@@ -60,12 +60,14 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
+/* ─── BASE ──────────────────────────────────────── */
 :root {
   --app-font-sans: 'Space Mono', 'Courier New', Courier, monospace;
   --app-font-serif: Georgia, serif;
   --app-font-mono: 'Space Mono', 'Courier New', Courier, monospace;
   --radius: 0;
 
+  /* DARK theme (default) */
   --background: 230 25% 4%;
   --foreground: 180 100% 90%;
   --border: 180 100% 25%;
@@ -95,8 +97,13 @@
   --destructive-foreground: 230 25% 4%;
   --input: 180 100% 25%;
   --ring: 180 100% 50%;
+
+  --glow-color: 0 255 255;
+  --grid-color: hsl(var(--border) / 0.1);
 }
 
+/* ─── DARK THEME ────────────────────────────────── */
+:root[data-theme="dark"],
 .dark {
   --background: 230 25% 4%;
   --foreground: 180 100% 90%;
@@ -127,27 +134,168 @@
   --destructive-foreground: 230 25% 4%;
   --input: 180 100% 25%;
   --ring: 180 100% 50%;
+
+  --glow-color: 0 255 255;
+  --grid-color: hsl(var(--border) / 0.1);
 }
 
+/* ─── LIGHT THEME ───────────────────────────────── */
+:root[data-theme="light"] {
+  --background: 0 0% 98%;
+  --foreground: 230 30% 15%;
+  --border: 220 20% 80%;
+  --card: 0 0% 100%;
+  --card-foreground: 230 30% 15%;
+  --card-border: 220 20% 85%;
+  --sidebar: 220 20% 95%;
+  --sidebar-foreground: 230 30% 25%;
+  --sidebar-border: 220 20% 80%;
+  --sidebar-primary: 180 70% 35%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 220 20% 90%;
+  --sidebar-accent-foreground: 230 30% 15%;
+  --sidebar-ring: 180 70% 35%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 230 30% 15%;
+  --popover-border: 220 20% 80%;
+  --primary: 180 70% 35%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 220 20% 92%;
+  --secondary-foreground: 230 30% 15%;
+  --muted: 220 20% 94%;
+  --muted-foreground: 230 20% 45%;
+  --accent: 270 60% 55%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 80% 50%;
+  --destructive-foreground: 0 0% 100%;
+  --input: 220 20% 82%;
+  --ring: 180 70% 35%;
+
+  --glow-color: 0 150 130;
+  --grid-color: hsl(var(--border) / 0.35);
+}
+
+/* ─── NEON THEME ────────────────────────────────── */
+:root[data-theme="neon"] {
+  --background: 270 20% 4%;
+  --foreground: 300 100% 92%;
+  --border: 300 100% 40%;
+  --card: 270 20% 6%;
+  --card-foreground: 300 100% 92%;
+  --card-border: 300 100% 30%;
+  --sidebar: 270 20% 5%;
+  --sidebar-foreground: 300 100% 80%;
+  --sidebar-border: 300 100% 40%;
+  --sidebar-primary: 300 100% 60%;
+  --sidebar-primary-foreground: 270 20% 4%;
+  --sidebar-accent: 270 20% 12%;
+  --sidebar-accent-foreground: 300 100% 92%;
+  --sidebar-ring: 300 100% 60%;
+  --popover: 270 20% 6%;
+  --popover-foreground: 300 100% 92%;
+  --popover-border: 300 100% 40%;
+  --primary: 300 100% 60%;
+  --primary-foreground: 270 20% 4%;
+  --secondary: 270 20% 14%;
+  --secondary-foreground: 300 100% 92%;
+  --muted: 270 20% 10%;
+  --muted-foreground: 300 70% 65%;
+  --accent: 185 100% 50%;
+  --accent-foreground: 270 20% 4%;
+  --destructive: 15 100% 55%;
+  --destructive-foreground: 270 20% 4%;
+  --input: 300 100% 30%;
+  --ring: 300 100% 60%;
+
+  --glow-color: 255 0 255;
+  --grid-color: hsl(var(--border) / 0.12);
+}
+
+/* ─── BASE LAYER ────────────────────────────────── */
 @layer base {
   * {
     @apply border-border;
   }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Font scale from data-scale attribute */
+  :root[data-scale="sm"] { font-size: 13px; }
+  :root[data-scale="md"] { font-size: 15px; }
+  :root[data-scale="lg"] { font-size: 17px; }
+
   body {
     @apply font-mono antialiased bg-background text-foreground;
-    background-image: 
-      linear-gradient(to right, hsl(var(--border) / 0.1) 1px, transparent 1px),
-      linear-gradient(to bottom, hsl(var(--border) / 0.1) 1px, transparent 1px);
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease;
+    background-image:
+      linear-gradient(to right, var(--grid-color) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
     background-size: 40px 40px;
     position: relative;
   }
-  
+
   body::after {
     content: '';
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
     pointer-events: none;
-    background: radial-gradient(circle at center, transparent 0%, hsl(var(--background)) 100%);
-    z-index: 50;
+    background: radial-gradient(circle at center, transparent 0%, hsl(var(--background) / 0.7) 100%);
+    z-index: 0;
+  }
+
+  /* Smooth transition for all theme-affected properties */
+  *, *::before, *::after {
+    transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+    transition-duration: 0.25s;
+    transition-timing-function: ease;
+  }
+
+  /* Override transition for animated elements that shouldn't slow down */
+  .animate-spin, .animate-pulse, .animate-bounce, [data-no-transition] {
+    transition: none !important;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 0;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary));
+  }
+}
+
+/* ─── UTILITY CLASSES ───────────────────────────── */
+@layer utilities {
+  .theme-glow-text {
+    text-shadow:
+      0 0 10px rgb(var(--glow-color) / 0.7),
+      0 0 30px rgb(var(--glow-color) / 0.3);
+  }
+
+  .theme-glow-box {
+    box-shadow:
+      0 0 8px rgb(var(--glow-color) / 0.5),
+      inset 0 0 8px rgb(var(--glow-color) / 0.1);
+  }
+
+  .theme-glow-icon {
+    filter: drop-shadow(0 0 6px rgb(var(--glow-color) / 0.8));
+  }
+
+  .theme-glow-border {
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 12px rgb(var(--glow-color) / 0.4);
   }
 }
