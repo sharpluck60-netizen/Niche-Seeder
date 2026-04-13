@@ -187,7 +187,7 @@ export function PhotoStudio() {
         </div>
       </header>
 
-      <div className="grid grid-cols-1 xl:grid-cols-[380px_minmax(0,1fr)] gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-[400px_minmax(0,1fr)] gap-6">
         <aside className="space-y-4 xl:sticky xl:top-6 self-start">
           <Card className="bg-card border-border theme-glow-box">
             <CardHeader className="border-b border-border bg-secondary/50">
@@ -328,28 +328,28 @@ export function PhotoStudio() {
 
         <section className="space-y-4 min-w-0">
           <Card className="bg-card border-border">
-            <CardContent className="p-4 space-y-4">
-              <div className="border border-primary/30 bg-primary/5 p-3 text-xs text-foreground/80 leading-relaxed">
+            <CardContent className="p-3 space-y-3">
+              <div className="border border-primary/30 bg-primary/5 px-3 py-2 text-[11px] text-foreground/80 leading-relaxed">
                 <span className="text-primary font-bold uppercase tracking-wider">How it works:</span>{" "}
                 click a filter card to apply that style to the prompt, then edit the prompt if needed before copying.
               </div>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                 <input
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder="Search filters, categories, or vitality cues..."
-                  className="w-full bg-secondary/40 border border-border pl-10 pr-3 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
+                  className="w-full bg-secondary/40 border border-border pl-9 pr-3 py-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
                 />
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {categories.map((category) => (
                   <button
                     key={category}
                     type="button"
                     onClick={() => setActiveCategory(category)}
                     className={cn(
-                      "px-3 py-1.5 text-[10px] uppercase tracking-wider border transition-colors",
+                      "px-2.5 py-1 text-[9px] uppercase tracking-wider border transition-colors",
                       activeCategory === category
                         ? "bg-primary text-primary-foreground border-primary theme-glow-box"
                         : "border-border text-muted-foreground hover:text-primary hover:border-primary/70"
@@ -362,34 +362,49 @@ export function PhotoStudio() {
             </CardContent>
           </Card>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4">
+          <div className="flex items-center justify-between border-b border-border pb-2">
+            <div className="text-xs uppercase tracking-wider text-primary font-bold">
+              Filter Matrix
+            </div>
+            <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
+              {filteredFilters.length} visible
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3 gap-2.5">
             {filteredFilters.map((filter) => (
               <button
                 key={filter.name}
                 type="button"
                 onClick={() => applyFilter(filter)}
                 className={cn(
-                  "group text-left border bg-card transition-all hover:border-primary hover:theme-glow-box",
-                  selectedFilter.name === filter.name ? "border-primary theme-glow-box" : "border-border"
+                  "group text-left border bg-card transition-all hover:border-primary hover:bg-primary/5",
+                  selectedFilter.name === filter.name
+                    ? "border-primary bg-primary/10 theme-glow-box"
+                    : "border-border"
                 )}
               >
-                <div className={cn("border-b bg-gradient-to-br p-4 min-h-[150px] flex flex-col justify-between", toneClasses[filter.tone])}>
-                  <div className="flex items-start justify-between gap-3">
-                    <Badge className="bg-background/80 text-primary border border-primary/40 uppercase text-[10px]">
+                <div className="p-3 space-y-2.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className={cn("w-7 h-7 border bg-gradient-to-br flex items-center justify-center shrink-0", toneClasses[filter.tone])}>
+                      <Wand2 className="w-3.5 h-3.5 opacity-80" />
+                    </div>
+                    <Badge className="bg-secondary/60 text-primary border border-primary/30 uppercase text-[8px] px-1.5 py-0.5 max-w-[120px] truncate">
                       {filter.category}
                     </Badge>
-                    <Wand2 className="w-5 h-5 opacity-70" />
                   </div>
-                  <h3 className="text-xl font-bold text-foreground mt-8">{filter.name}</h3>
-                </div>
-                <div className="p-4 space-y-3">
-                  <p className="text-xs text-muted-foreground leading-relaxed min-h-[48px]">
+                  <div>
+                    <h3 className="text-sm font-bold text-foreground leading-tight truncate">
+                      {filter.name}
+                    </h3>
+                    <p className="text-[10px] text-muted-foreground leading-relaxed mt-1 line-clamp-2 min-h-[32px]">
                     {filter.vitality}
-                  </p>
-                  <div className="flex items-center justify-between text-[10px] uppercase tracking-wider">
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between text-[9px] uppercase tracking-wider pt-1 border-t border-border/50">
                     <span className="flex items-center gap-1 text-primary">
                       <Palette className="w-3 h-3" />
-                      Apply to Prompt
+                      Apply
                     </span>
                     <span
                       className={cn(
