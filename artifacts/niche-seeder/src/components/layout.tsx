@@ -191,7 +191,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 Photo Studio
               </div>
               <div className="mt-2 text-[9px] text-muted-foreground leading-relaxed">
-                38 vitality filters loaded from anime, fine art, toy, sketch, comic, cartoon, and 3D styles.
+                38 photo prompt filters for anime, fine art, toy, sketch, comic, cartoon, and 3D looks.
               </div>
             </div>
           </Link>

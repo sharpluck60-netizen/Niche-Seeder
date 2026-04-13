@@ -7,7 +7,6 @@ import {
   Camera,
   Check,
   Copy,
-  Crown,
   ImageIcon,
   Upload,
   X,
@@ -16,108 +15,67 @@ import {
   Sparkles,
   Wand2,
 } from "lucide-react";
-import filterSetOne from "@assets/Screenshot_20260413_230333_1776119249249.jpg";
-import filterSetTwo from "@assets/Screenshot_20260413_230344_1776119249286.jpg";
-import filterSetThree from "@assets/Screenshot_20260413_230412_1776119249302.jpg";
-import filterSetFour from "@assets/Screenshot_20260413_230359_1776119249316.jpg";
-import filterSetFive from "@assets/Screenshot_20260413_230422_1776119249330.jpg";
-import filterSetSix from "@assets/Screenshot_20260413_230437_1776119249346.jpg";
-import filterSetSeven from "@assets/Screenshot_20260413_230458_1776119249360.jpg";
-import filterSetEight from "@assets/Screenshot_20260413_230516_1776119249378.jpg";
-import filterSetNine from "@assets/Screenshot_20260413_230525_1776119249393.jpg";
-import filterSetTen from "@assets/Screenshot_20260413_230543_1776119249408.jpg";
 
 type StudioFilter = {
   name: string;
   category: string;
   vitality: string;
-  image: string;
-  premium?: boolean;
   prompt: string;
+  tone: string;
 };
 
 const studioFilters: StudioFilter[] = [
-  { name: "Japanese Anime", category: "Anime", vitality: "Clean emotion, cinematic street glow, expressive eyes", image: filterSetOne, premium: true, prompt: "Transform the photo into Japanese anime with expressive eyes, soft cinematic sunlight, clean cel shading, warm street atmosphere, gentle emotion, polished character design, high vitality, crisp linework." },
-  { name: "Claude Monet", category: "Fine Art", vitality: "Impressionist color, luminous skin, painterly movement", image: filterSetOne, premium: true, prompt: "Transform the photo into a Claude Monet inspired portrait with impressionist brushwork, luminous color, garden light, atmospheric texture, soft edges, vibrant painterly vitality." },
-  { name: "Art Nouveau", category: "Fine Art", vitality: "Ornamental frames, flowing hair, stained-glass detail", image: filterSetOne, premium: true, prompt: "Transform the photo into Art Nouveau with ornamental floral borders, flowing hair, decorative linework, stained-glass color panels, elegant vintage poster energy, vivid vitality." },
-  { name: "Toy Figure", category: "Toy Studio", vitality: "Glossy collectible face, bright eyes, miniature realism", image: filterSetOne, premium: true, prompt: "Transform the photo into a collectible toy figure with glossy plastic skin, oversized bright eyes, sculpted hair, soft product lighting, miniature realism, playful vitality." },
-  { name: "Exhibit Artwork", category: "Gallery", vitality: "Museum portrait finish, gold frames, heirloom mood", image: filterSetTwo, premium: true, prompt: "Transform the photo into exhibit artwork with museum portrait lighting, ornate gold frame energy, refined brush texture, rich shadows, historical gallery atmosphere, premium vitality." },
-  { name: "Children's Book", category: "Illustration", vitality: "Friendly storybook face, soft lines, bright charm", image: filterSetTwo, premium: true, prompt: "Transform the photo into a children's book illustration with friendly proportions, soft hand-drawn lines, bright cheerful colors, wholesome storybook setting, gentle vitality." },
-  { name: "3D Animation", category: "3D", vitality: "Pixar-like polish, soft skin, cinematic expression", image: filterSetTwo, premium: true, prompt: "Transform the photo into premium 3D animation with smooth stylized skin, expressive eyes, cinematic rim light, rounded features, lush color, warm character vitality." },
-  { name: "Pencil Sketch", category: "Sketch", vitality: "Hand-drawn realism, tonal shading, emotional detail", image: filterSetTwo, prompt: "Transform the photo into a pencil sketch with realistic hand-drawn shading, clean graphite texture, detailed facial structure, expressive eyes, paper grain, quiet vitality." },
-  { name: "Gold", category: "Luxury", vitality: "Golden atmosphere, premium shine, dramatic warmth", image: filterSetThree, premium: true, prompt: "Transform the photo with a gold art filter, metallic warm highlights, luxury editorial lighting, rich amber shadows, glowing architecture accents, high-status vitality." },
-  { name: "Watercolor Art", category: "Fine Art", vitality: "Soft pigment bloom, airy texture, bright natural charm", image: filterSetThree, prompt: "Transform the photo into watercolor art with translucent pigment, soft paper bloom, delicate facial details, airy background wash, natural color vitality." },
-  { name: "Starry Night", category: "Fine Art", vitality: "Swirling sky energy, thick strokes, electric blues", image: filterSetThree, premium: true, prompt: "Transform the photo in a Starry Night inspired style with swirling blue skies, thick expressive brush strokes, glowing yellow accents, dramatic motion, electric vitality." },
-  { name: "Sketch on a box", category: "Sketch", vitality: "Paper sketch realism, lifestyle desk mood, analog charm", image: filterSetThree, prompt: "Transform the photo into a sketch on a box or paper card, black ink pencil lines, casual desk presentation, handmade texture, authentic analog vitality." },
-  { name: "Low poly 3D", category: "3D", vitality: "Faceted geometry, bold color blocks, modern avatar feel", image: filterSetFour, premium: true, prompt: "Transform the photo into low poly 3D with faceted geometric planes, angular lighting, bold color gradients, stylized avatar structure, modern digital vitality." },
-  { name: "Art deco", category: "Poster", vitality: "Radiant symmetry, jewel colors, 1920s glamour", image: filterSetFour, premium: true, prompt: "Transform the photo into Art Deco with symmetrical radiant backgrounds, jewel-tone color, elegant graphic linework, gold accents, 1920s glamour vitality." },
-  { name: "Energetic Manga", category: "Anime", vitality: "Dynamic emotion, pop lighting, high-action panels", image: filterSetFour, premium: true, prompt: "Transform the photo into energetic manga with dynamic facial expression, punchy lighting, bold ink lines, panel-ready framing, vivid action vitality." },
-  { name: "Classic Comics", category: "Comics", vitality: "Black ink panels, halftone texture, retro storytelling", image: filterSetFour, prompt: "Transform the photo into classic comics with black ink linework, halftone texture, dramatic expressions, panel shading, retro urban storytelling vitality." },
-  { name: "Funny Caricature", category: "Comics", vitality: "Exaggerated joy, bold outlines, comic travel energy", image: filterSetFive, premium: true, prompt: "Transform the photo into a funny caricature with exaggerated joyful features, oversized smile, bold outlines, saturated travel colors, comedic vitality." },
-  { name: "Picasso Art", category: "Fine Art", vitality: "Cubist distortion, expressive color, gallery drama", image: filterSetFive, premium: true, prompt: "Transform the photo into Picasso-inspired art with cubist geometry, expressive color planes, asymmetrical facial structure, bold brushwork, gallery-level vitality." },
-  { name: "Blue Pen Sketch", category: "Sketch", vitality: "Blue ink clarity, clean portrait lines, notebook feel", image: filterSetFive, prompt: "Transform the photo into a blue pen sketch with crisp cobalt ink, notebook paper texture, clean contour lines, delicate hatching, fresh creative vitality." },
-  { name: "Pop Art", category: "Poster", vitality: "Halftone dots, neon contrast, comic poster punch", image: filterSetFive, premium: true, prompt: "Transform the photo into Pop Art with bright halftone dots, bold comic outlines, neon contrast, graphic poster framing, playful mass-culture vitality." },
-  { name: "Cartoon", category: "Cartoon", vitality: "Friendly animated portrait, polished eyes, soft charm", image: filterSetSix, prompt: "Transform the photo into a modern cartoon portrait with friendly proportions, polished expressive eyes, smooth outlines, soft color gradients, approachable vitality." },
-  { name: "Fam Guy Cartoon", category: "Cartoon", vitality: "Sitcom animation shape, flat colors, deadpan humor", image: filterSetSix, prompt: "Transform the photo into a family sitcom cartoon style with flat colors, simple facial shapes, clean TV animation lines, humorous everyday vitality." },
-  { name: "Noir Comics", category: "Comics", vitality: "High contrast ink, dramatic shadows, pulp attitude", image: filterSetSix, premium: true, prompt: "Transform the photo into noir comics with high contrast black ink, dramatic shadows, limited color accents, moody pulp atmosphere, intense vitality." },
-  { name: "Clay Figure", category: "Toy Studio", vitality: "Handmade clay texture, warm set lighting, cozy depth", image: filterSetSix, premium: true, prompt: "Transform the photo into a clay figure with handmade sculpted texture, soft studio lighting, rounded features, warm stop-motion atmosphere, tactile vitality." },
-  { name: "Doll", category: "Toy Studio", vitality: "Glossy doll face, bright fashion color, cute polish", image: filterSetSeven, premium: true, prompt: "Transform the photo into a cute doll with glossy skin, large sparkling eyes, polished hair, bright fashion colors, toy-store lighting, sweet vitality." },
-  { name: "Manga", category: "Anime", vitality: "Sharp anime emotion, crisp ink, romantic detail", image: filterSetSeven, prompt: "Transform the photo into manga with crisp ink outlines, expressive eyes, stylized hair, clean panel composition, emotional character vitality." },
-  { name: "Oil Painting Art", category: "Fine Art", vitality: "Rich brush texture, glowing highlights, gallery warmth", image: filterSetSeven, premium: true, prompt: "Transform the photo into oil painting art with rich textured brush strokes, glowing skin highlights, deep shadows, expressive painterly color, classic vitality." },
-  { name: "Papercut Art", category: "Craft", vitality: "Layered paper depth, handmade shapes, soft shadows", image: filterSetSeven, prompt: "Transform the photo into papercut art with layered cut-paper shapes, soft shadows, crafted edges, dimensional collage feel, handmade vitality." },
-  { name: "Retro Game", category: "Pixel", vitality: "Pixel avatar energy, arcade color, nostalgic edge", image: filterSetEight, premium: true, prompt: "Transform the photo into retro game pixel art with crisp pixel edges, arcade color palette, 16-bit portrait detail, nostalgic character vitality." },
-  { name: "Sticker", category: "Craft", vitality: "Clean cutout border, playful pose, shareable charm", image: filterSetEight, prompt: "Transform the photo into a sticker with clean white cutout border, bright simplified colors, playful character pose, glossy finish, shareable vitality." },
-  { name: "Block Toy", category: "Toy Studio", vitality: "Plastic brick face, simple joy, collectible brightness", image: filterSetEight, premium: true, prompt: "Transform the photo into a block toy character with yellow plastic face, molded hair, simplified features, toy brick proportions, cheerful collectible vitality." },
-  { name: "Crayon Drawing", category: "Illustration", vitality: "Colorful wax strokes, handmade youth, joyful texture", image: filterSetEight, prompt: "Transform the photo into a crayon drawing with waxy texture, bright childlike strokes, paper grain, playful color blending, joyful handmade vitality." },
-  { name: "Enamel Pin", category: "Craft", vitality: "Polished metal outline, glossy color, collectible badge", image: filterSetNine, premium: true, prompt: "Transform the photo into an enamel pin with polished metal outlines, glossy flat color fills, collectible badge shape, cute character simplification, premium vitality." },
-  { name: "Line Art", category: "Sketch", vitality: "Clean contour lines, minimal elegance, bright simplicity", image: filterSetNine, prompt: "Transform the photo into line art with clean contour drawing, minimal shading, elegant face structure, white paper background, simple refined vitality." },
-  { name: "Felt Art", category: "Craft", vitality: "Soft fiber surface, plush texture, tactile warmth", image: filterSetNine, premium: true, prompt: "Transform the photo into felt art with soft fiber texture, plush sculpted details, warm handmade lighting, tactile surface depth, cozy vitality." },
-  { name: "South Style Cartoon", category: "Cartoon", vitality: "Simple cutout comedy, flat color, quirky grin", image: filterSetNine, prompt: "Transform the photo into a satirical cutout cartoon style with simple shapes, flat color fields, big round eyes, quirky grin, comedic vitality." },
-  { name: "Mini me doll", category: "Toy Studio", vitality: "Tiny avatar doll, premium cute scale, soft bokeh", image: filterSetTen, premium: true, prompt: "Transform the photo into a mini me doll with tiny collectible proportions, large glossy eyes, soft bokeh studio background, cute premium outfit detail, bright vitality." },
-  { name: "Cube Face Toy", category: "Toy Studio", vitality: "Blocky smile, plastic shine, toy-shelf simplicity", image: filterSetTen, premium: true, prompt: "Transform the photo into a cube face toy with blocky plastic head, simple smiling expression, molded hair, bright toy-shelf lighting, playful vitality." },
+  { name: "Japanese Anime", category: "Anime", vitality: "Clean emotion, cinematic street glow, expressive eyes", tone: "cyan", prompt: "Japanese anime look with expressive eyes, clean cel shading, soft cinematic sunlight, warm street atmosphere, polished character design, and crisp linework." },
+  { name: "Claude Monet", category: "Fine Art", vitality: "Impressionist color, luminous skin, painterly movement", tone: "blue", prompt: "Claude Monet inspired portrait with impressionist brushwork, luminous color, soft edges, garden light, atmospheric texture, and vibrant painterly motion." },
+  { name: "Art Nouveau", category: "Fine Art", vitality: "Ornamental frames, flowing hair, stained-glass detail", tone: "amber", prompt: "Art Nouveau styling with ornamental floral borders, flowing hair, decorative linework, stained-glass colors, and elegant vintage poster energy." },
+  { name: "Toy Figure", category: "Toy Studio", vitality: "Glossy collectible face, bright eyes, miniature realism", tone: "pink", prompt: "Collectible toy figure style with glossy plastic skin, oversized bright eyes, sculpted hair, soft product lighting, and miniature realism." },
+  { name: "Exhibit Artwork", category: "Gallery", vitality: "Museum portrait finish, gold frames, heirloom mood", tone: "amber", prompt: "Museum exhibit artwork style with portrait lighting, refined brush texture, rich shadows, historical gallery atmosphere, and ornate frame energy." },
+  { name: "Children's Book", category: "Illustration", vitality: "Friendly storybook face, soft lines, bright charm", tone: "green", prompt: "Children's book illustration style with friendly proportions, soft hand-drawn lines, bright cheerful colors, and wholesome storybook warmth." },
+  { name: "3D Animation", category: "3D", vitality: "Polished 3D character, soft skin, cinematic expression", tone: "purple", prompt: "Stylized 3D animation look with smooth skin, expressive eyes, cinematic rim light, rounded features, lush color, and warm character energy." },
+  { name: "Pencil Sketch", category: "Sketch", vitality: "Hand-drawn realism, tonal shading, emotional detail", tone: "slate", prompt: "Pencil sketch style with realistic hand-drawn shading, clean graphite texture, detailed facial structure, expressive eyes, and paper grain." },
+  { name: "Gold", category: "Luxury", vitality: "Golden atmosphere, radiant shine, dramatic warmth", tone: "amber", prompt: "Gold art treatment with metallic warm highlights, luxury editorial lighting, rich amber shadows, glowing accents, and dramatic warmth." },
+  { name: "Watercolor Art", category: "Fine Art", vitality: "Soft pigment bloom, airy texture, bright natural charm", tone: "blue", prompt: "Watercolor art style with translucent pigment, soft paper bloom, delicate facial details, airy background wash, and natural color." },
+  { name: "Starry Night", category: "Fine Art", vitality: "Swirling sky energy, thick strokes, electric blues", tone: "blue", prompt: "Starry Night inspired style with swirling blue skies, thick expressive brush strokes, glowing yellow accents, and dramatic motion." },
+  { name: "Sketch on a box", category: "Sketch", vitality: "Paper sketch realism, lifestyle desk mood, analog charm", tone: "slate", prompt: "Sketch-on-paper style with black ink and pencil lines, casual desk presentation, handmade texture, and authentic analog detail." },
+  { name: "Low poly 3D", category: "3D", vitality: "Faceted geometry, bold color blocks, modern avatar feel", tone: "purple", prompt: "Low poly 3D style with faceted geometric planes, angular lighting, bold color gradients, and modern digital avatar structure." },
+  { name: "Art deco", category: "Poster", vitality: "Radiant symmetry, jewel colors, 1920s glamour", tone: "amber", prompt: "Art Deco poster style with symmetrical radiant backgrounds, jewel-tone colors, elegant graphic linework, and gold accents." },
+  { name: "Energetic Manga", category: "Anime", vitality: "Dynamic emotion, pop lighting, high-action panels", tone: "cyan", prompt: "Energetic manga style with dynamic expression, punchy lighting, bold ink lines, panel-ready framing, and vivid action energy." },
+  { name: "Classic Comics", category: "Comics", vitality: "Black ink panels, halftone texture, retro storytelling", tone: "slate", prompt: "Classic comics style with black ink linework, halftone texture, dramatic expressions, panel shading, and retro storytelling." },
+  { name: "Funny Caricature", category: "Comics", vitality: "Exaggerated joy, bold outlines, comic travel energy", tone: "green", prompt: "Funny caricature style with exaggerated joyful features, expressive smile, bold outlines, saturated colors, and comedic personality." },
+  { name: "Picasso Art", category: "Fine Art", vitality: "Cubist distortion, expressive color, gallery drama", tone: "orange", prompt: "Picasso-inspired art style with cubist geometry, expressive color planes, asymmetrical facial structure, and bold brushwork." },
+  { name: "Blue Pen Sketch", category: "Sketch", vitality: "Blue ink clarity, clean portrait lines, notebook feel", tone: "blue", prompt: "Blue pen sketch style with crisp cobalt ink, notebook paper texture, clean contour lines, and delicate hatching." },
+  { name: "Pop Art", category: "Poster", vitality: "Halftone dots, neon contrast, comic poster punch", tone: "pink", prompt: "Pop Art style with bright halftone dots, bold comic outlines, neon contrast, and graphic poster framing." },
+  { name: "Cartoon", category: "Cartoon", vitality: "Friendly animated portrait, polished eyes, soft charm", tone: "green", prompt: "Modern cartoon portrait style with friendly proportions, polished expressive eyes, smooth outlines, and soft color gradients." },
+  { name: "Fam Guy Cartoon", category: "Cartoon", vitality: "Sitcom animation shape, flat colors, deadpan humor", tone: "orange", prompt: "Family sitcom cartoon style with flat colors, simple facial shapes, clean TV animation lines, and humorous everyday expression." },
+  { name: "Noir Comics", category: "Comics", vitality: "High contrast ink, dramatic shadows, pulp attitude", tone: "slate", prompt: "Noir comics style with high contrast black ink, dramatic shadows, limited color accents, and moody pulp atmosphere." },
+  { name: "Clay Figure", category: "Toy Studio", vitality: "Handmade clay texture, warm set lighting, cozy depth", tone: "orange", prompt: "Clay figure style with handmade sculpted texture, soft studio lighting, rounded features, and warm stop-motion atmosphere." },
+  { name: "Doll", category: "Toy Studio", vitality: "Glossy doll face, bright fashion color, cute polish", tone: "pink", prompt: "Cute doll style with glossy skin, large sparkling eyes, polished hair, bright fashion colors, and toy-store lighting." },
+  { name: "Manga", category: "Anime", vitality: "Sharp anime emotion, crisp ink, romantic detail", tone: "cyan", prompt: "Manga style with crisp ink outlines, expressive eyes, stylized hair, clean panel composition, and emotional character detail." },
+  { name: "Oil Painting Art", category: "Fine Art", vitality: "Rich brush texture, glowing highlights, gallery warmth", tone: "green", prompt: "Oil painting style with rich textured brush strokes, glowing skin highlights, deep shadows, and expressive painterly color." },
+  { name: "Papercut Art", category: "Craft", vitality: "Layered paper depth, handmade shapes, soft shadows", tone: "orange", prompt: "Papercut art style with layered cut-paper shapes, soft shadows, crafted edges, and dimensional collage depth." },
+  { name: "Retro Game", category: "Pixel", vitality: "Pixel avatar energy, arcade color, nostalgic edge", tone: "purple", prompt: "Retro game pixel art style with crisp pixel edges, arcade color palette, 16-bit portrait detail, and nostalgic character energy." },
+  { name: "Sticker", category: "Craft", vitality: "Clean cutout border, playful pose, shareable charm", tone: "green", prompt: "Sticker style with clean white cutout border, bright simplified colors, playful character pose, and glossy finish." },
+  { name: "Block Toy", category: "Toy Studio", vitality: "Plastic brick face, simple joy, collectible brightness", tone: "amber", prompt: "Block toy character style with plastic face, molded hair, simplified features, toy brick proportions, and cheerful collectible brightness." },
+  { name: "Crayon Drawing", category: "Illustration", vitality: "Colorful wax strokes, handmade youth, joyful texture", tone: "pink", prompt: "Crayon drawing style with waxy texture, bright handmade strokes, paper grain, and playful color blending." },
+  { name: "Enamel Pin", category: "Craft", vitality: "Polished metal outline, glossy color, collectible badge", tone: "purple", prompt: "Enamel pin style with polished metal outlines, glossy flat color fills, collectible badge shape, and cute character simplification." },
+  { name: "Line Art", category: "Sketch", vitality: "Clean contour lines, minimal elegance, bright simplicity", tone: "slate", prompt: "Line art style with clean contour drawing, minimal shading, elegant face structure, and bright white paper simplicity." },
+  { name: "Felt Art", category: "Craft", vitality: "Soft fiber surface, plush texture, tactile warmth", tone: "green", prompt: "Felt art style with soft fiber texture, plush sculpted details, warm handmade lighting, and tactile surface depth." },
+  { name: "South Style Cartoon", category: "Cartoon", vitality: "Simple cutout comedy, flat color, quirky grin", tone: "orange", prompt: "Satirical cutout cartoon style with simple shapes, flat color fields, big round eyes, and quirky comedic expression." },
+  { name: "Mini me doll", category: "Toy Studio", vitality: "Tiny avatar doll, cute scale, soft bokeh", tone: "pink", prompt: "Mini-me doll style with tiny collectible proportions, large glossy eyes, soft bokeh background, and cute outfit detail." },
+  { name: "Cube Face Toy", category: "Toy Studio", vitality: "Blocky smile, plastic shine, toy-shelf simplicity", tone: "amber", prompt: "Cube face toy style with blocky plastic head, simple smiling expression, molded hair, and bright toy-shelf lighting." },
 ];
 
 const categories = ["All", ...Array.from(new Set(studioFilters.map((filter) => filter.category)))];
 
-const imagePositions: Record<string, string> = {
-  "Japanese Anime": "50% 0%",
-  "Claude Monet": "50% 28%",
-  "Art Nouveau": "50% 62%",
-  "Toy Figure": "50% 100%",
-  "Exhibit Artwork": "50% 0%",
-  "Children's Book": "50% 32%",
-  "3D Animation": "50% 66%",
-  "Pencil Sketch": "50% 100%",
-  Gold: "50% 0%",
-  "Watercolor Art": "50% 32%",
-  "Starry Night": "50% 66%",
-  "Sketch on a box": "50% 100%",
-  "Low poly 3D": "50% 0%",
-  "Art deco": "50% 32%",
-  "Energetic Manga": "50% 66%",
-  "Classic Comics": "50% 100%",
-  "Funny Caricature": "50% 0%",
-  "Picasso Art": "50% 32%",
-  "Blue Pen Sketch": "50% 66%",
-  "Pop Art": "50% 100%",
-  Cartoon: "50% 0%",
-  "Fam Guy Cartoon": "50% 32%",
-  "Noir Comics": "50% 66%",
-  "Clay Figure": "50% 100%",
-  Doll: "50% 0%",
-  Manga: "50% 32%",
-  "Oil Painting Art": "50% 66%",
-  "Papercut Art": "50% 100%",
-  "Retro Game": "50% 0%",
-  Sticker: "50% 32%",
-  "Block Toy": "50% 66%",
-  "Crayon Drawing": "50% 100%",
-  "Enamel Pin": "50% 0%",
-  "Line Art": "50% 32%",
-  "Felt Art": "50% 66%",
-  "South Style Cartoon": "50% 100%",
-  "Mini me doll": "50% 15%",
-  "Cube Face Toy": "50% 88%",
+const toneClasses: Record<string, string> = {
+  cyan: "from-cyan-500/20 to-cyan-500/5 border-cyan-400/40 text-cyan-200",
+  blue: "from-blue-500/20 to-blue-500/5 border-blue-400/40 text-blue-200",
+  amber: "from-amber-500/20 to-amber-500/5 border-amber-400/40 text-amber-200",
+  pink: "from-pink-500/20 to-pink-500/5 border-pink-400/40 text-pink-200",
+  green: "from-emerald-500/20 to-emerald-500/5 border-emerald-400/40 text-emerald-200",
+  purple: "from-purple-500/20 to-purple-500/5 border-purple-400/40 text-purple-200",
+  slate: "from-slate-400/20 to-slate-400/5 border-slate-300/30 text-slate-200",
+  orange: "from-orange-500/20 to-orange-500/5 border-orange-400/40 text-orange-200",
 };
 
 export function PhotoStudio() {
@@ -147,7 +105,7 @@ export function PhotoStudio() {
   };
 
   const generatedPrompt = useMemo(() => {
-    const basePrompt = `Use the uploaded reference photo as the source identity, preserving the person's key facial structure, expression, pose, hairstyle, skin tone, outfit cues, and overall likeness. Apply the ${selectedFilter.name} vitality filter. ${selectedFilter.prompt}`;
+    const basePrompt = `Use my uploaded photo as the source. Preserve the subject's identity, key facial structure, expression, hairstyle, skin tone, pose, outfit cues, and overall likeness. Generate a new image using the ${selectedFilter.name} filter: ${selectedFilter.prompt} Keep the result vivid, polished, and social-media ready.`;
     const notes = subjectNotes.trim();
     if (!notes) return basePrompt;
     return `${basePrompt} Extra subject direction: ${notes}.`;
@@ -186,18 +144,18 @@ export function PhotoStudio() {
               Photo Studio
             </h1>
             <p className="text-muted-foreground mt-2 font-mono text-sm max-w-3xl">
-              Access the visual filters from the provided references as reusable creator recipes for lively portraits, thumbnails, avatars, and social-ready AI images.
+              Upload a photo, choose a filter type, then copy a prompt that tells an image generator how to recreate your photo in that style.
             </p>
           </div>
           <div className="grid grid-cols-3 gap-2 text-center min-w-[280px]">
             <Metric label="Filters" value={studioFilters.length.toString()} />
             <Metric label="Categories" value={(categories.length - 1).toString()} />
-            <Metric label="Premium" value={studioFilters.filter((filter) => filter.premium).length.toString()} />
+            <Metric label="Mode" value="Prompt" />
           </div>
         </div>
       </header>
 
-      <div className="grid grid-cols-1 xl:grid-cols-[320px_minmax(0,1fr)] gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-[380px_minmax(0,1fr)] gap-6">
         <aside className="space-y-4 xl:sticky xl:top-6 self-start">
           <Card className="bg-card border-border theme-glow-box">
             <CardHeader className="border-b border-border bg-secondary/50">
@@ -253,37 +211,19 @@ export function PhotoStudio() {
                 )}
               </div>
 
-              <div className="relative overflow-hidden border border-border bg-secondary/30 min-h-[220px]">
-                <img
-                  src={selectedFilter.image}
-                  alt={`${selectedFilter.name} reference board`}
-                  className="absolute inset-0 w-full h-full object-cover opacity-80"
-                  style={{ objectPosition: imagePositions[selectedFilter.name] }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
-                <div className="absolute inset-x-0 bottom-0 p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Badge className="bg-primary text-primary-foreground uppercase text-[10px]">
+              <div className={cn("border bg-gradient-to-br p-4", toneClasses[selectedFilter.tone])}>
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <Badge className="bg-background/80 text-primary border border-primary/40 uppercase text-[10px] mb-3">
                       {selectedFilter.category}
                     </Badge>
-                    {selectedFilter.premium && (
-                      <Badge variant="outline" className="border-accent text-accent uppercase text-[10px]">
-                        <Crown className="w-3 h-3 mr-1" />
-                        Crown
-                      </Badge>
-                    )}
+                    <h2 className="text-2xl font-bold text-foreground">{selectedFilter.name}</h2>
+                    <p className="text-sm mt-2 text-foreground/75 leading-relaxed">
+                      {selectedFilter.vitality}
+                    </p>
                   </div>
-                  <h2 className="text-2xl font-bold text-foreground">{selectedFilter.name}</h2>
+                  <Palette className="w-8 h-8 opacity-80 shrink-0" />
                 </div>
-              </div>
-
-              <div>
-                <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-1">
-                  Vitality Formula
-                </p>
-                <p className="text-sm text-foreground/80 leading-relaxed">
-                  {selectedFilter.vitality}
-                </p>
               </div>
 
               <div>
@@ -373,31 +313,18 @@ export function PhotoStudio() {
                 type="button"
                 onClick={() => setSelectedFilter(filter)}
                 className={cn(
-                  "group text-left border bg-card overflow-hidden transition-all hover:border-primary hover:theme-glow-box",
+                  "group text-left border bg-card transition-all hover:border-primary hover:theme-glow-box",
                   selectedFilter.name === filter.name ? "border-primary theme-glow-box" : "border-border"
                 )}
               >
-                <div className="relative h-44 bg-secondary overflow-hidden">
-                  <img
-                    src={filter.image}
-                    alt={`${filter.name} filter reference`}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    style={{ objectPosition: imagePositions[filter.name] }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
-                  <div className="absolute top-3 left-3 flex gap-2">
+                <div className={cn("border-b bg-gradient-to-br p-4 min-h-[150px] flex flex-col justify-between", toneClasses[filter.tone])}>
+                  <div className="flex items-start justify-between gap-3">
                     <Badge className="bg-background/80 text-primary border border-primary/40 uppercase text-[10px]">
                       {filter.category}
                     </Badge>
-                    {filter.premium && (
-                      <span className="w-7 h-7 rounded-full border border-accent bg-background/80 text-accent flex items-center justify-center">
-                        <Crown className="w-3.5 h-3.5" />
-                      </span>
-                    )}
+                    <Wand2 className="w-5 h-5 opacity-70" />
                   </div>
-                  <div className="absolute bottom-0 inset-x-0 p-4">
-                    <h3 className="text-xl font-bold text-foreground drop-shadow-lg">{filter.name}</h3>
-                  </div>
+                  <h3 className="text-xl font-bold text-foreground mt-8">{filter.name}</h3>
                 </div>
                 <div className="p-4 space-y-3">
                   <p className="text-xs text-muted-foreground leading-relaxed min-h-[48px]">
