@@ -8,6 +8,7 @@ import {
   Palette,
   Type,
   Instagram,
+  Camera,
   Shield,
   Wifi,
   Eye,
@@ -66,6 +67,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { href: "/analyze", label: "INJECT CONTENT", icon: Zap },
     { href: "/analyses", label: "INTEL ARCHIVE", icon: Database },
     { href: "/image-lab", label: "IMAGE LAB", icon: Instagram },
+    { href: "/photo-studio", label: "PHOTO STUDIO", icon: Camera },
   ];
 
   const currentTheme = themes.find((t) => t.id === theme) ?? themes[0];
@@ -178,6 +180,21 @@ export function Layout({ children }: { children: React.ReactNode }) {
               </div>
             </div>
           </div>
+
+          <Link href="/photo-studio">
+            <div
+              onClick={() => setIsMobileOpen(false)}
+              className="mt-3 mx-3 border border-accent/40 bg-accent/10 p-3 cursor-pointer hover:border-primary hover:bg-primary/10 transition-colors dw-bracket"
+            >
+              <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider text-accent font-bold">
+                <Camera className="w-3 h-3" />
+                Photo Studio
+              </div>
+              <div className="mt-2 text-[9px] text-muted-foreground leading-relaxed">
+                38 vitality filters loaded from anime, fine art, toy, sketch, comic, cartoon, and 3D styles.
+              </div>
+            </div>
+          </Link>
         </nav>
 
         {/* Display / Scale controls */}
