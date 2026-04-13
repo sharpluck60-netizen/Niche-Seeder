@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,8 +8,6 @@ import {
   Check,
   Copy,
   ImageIcon,
-  Upload,
-  X,
   Palette,
   RefreshCw,
   Search,
@@ -80,7 +78,7 @@ const toneClasses: Record<string, string> = {
 };
 
 function buildPrompt(filter: StudioFilter, notes: string) {
-  const basePrompt = `Use my uploaded photo as the source. Preserve the subject's identity, key facial structure, expression, hairstyle, skin tone, pose, outfit cues, and overall likeness. Generate a new image using the ${filter.name} filter: ${filter.prompt} Keep the result vivid, polished, and social-media ready.`;
+  const basePrompt = `Use the user's source photo as the reference. Preserve the subject's identity, key facial structure, expression, hairstyle, skin tone, pose, outfit cues, and overall likeness. Generate a new image using the ${filter.name} filter: ${filter.prompt} Keep the result vivid, polished, and social-media ready.`;
   const trimmedNotes = notes.trim();
   if (!trimmedNotes) return basePrompt;
   return `${basePrompt} Extra subject direction: ${trimmedNotes}.`;
@@ -91,11 +89,10 @@ export function PhotoStudio() {
   const [query, setQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState<StudioFilter>(studioFilters[0]);
   const [copied, setCopied] = useState(false);
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [subjectNotes, setSubjectNotes] = useState("");
   const [promptDraft, setPromptDraft] = useState(() => buildPrompt(studioFilters[0], ""));
   const [promptEdited, setPromptEdited] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [recentFilterNames, setRecentFilterNames] = useState<string[]>([]);
 
   const filteredFilters = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -114,32 +111,23 @@ export function PhotoStudio() {
     setTimeout(() => setCopied(false), 1800);
   };
 
-  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file || !file.type.startsWith("image/")) return;
-
-    const reader = new FileReader();
-    reader.onload = (readerEvent) => {
-      setUploadedImage(readerEvent.target?.result as string);
-      setCopied(false);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const clearUploadedImage = () => {
-    setUploadedImage(null);
-    setSubjectNotes("");
-    setPromptDraft(buildPrompt(selectedFilter, ""));
-    setPromptEdited(false);
-    setCopied(false);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
+  const recentFilters = useMemo(
+    () =>
+      recentFilterNames
+        .map((name) => studioFilters.find((filter) => filter.name === name))
+        .filter((filter): filter is StudioFilter => Boolean(filter)),
+    [recentFilterNames]
+  );
 
   const applyFilter = (filter: StudioFilter) => {
     setSelectedFilter(filter);
     setPromptDraft(buildPrompt(filter, subjectNotes));
     setPromptEdited(false);
     setCopied(false);
+    setRecentFilterNames((current) => [
+      filter.name,
+      ...current.filter((name) => name !== filter.name),
+    ].slice(0, 6));
   };
 
   const handleNotesChange = (value: string) => {
@@ -176,7 +164,7 @@ export function PhotoStudio() {
               Photo Studio
             </h1>
             <p className="text-muted-foreground mt-2 font-mono text-sm max-w-3xl">
-              Upload a photo, choose a filter type, then copy a prompt that tells an image generator how to recreate your photo in that style.
+              Choose a filter type, tune the prompt, then copy it into the image generator you use for your photos.
             </p>
           </div>
           <div className="grid grid-cols-3 gap-2 text-center min-w-[280px]">
@@ -197,52 +185,6 @@ export function PhotoStudio() {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 space-y-4">
-              <div>
-                <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-2">
-                  Upload Source Photo
-                </p>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handlePhotoUpload}
-                />
-                {uploadedImage ? (
-                  <div className="relative border border-border bg-secondary/30 overflow-hidden">
-                    <img
-                      src={uploadedImage}
-                      alt="Uploaded source"
-                      className="w-full h-48 object-cover"
-                    />
-                    <button
-                      type="button"
-                      onClick={clearUploadedImage}
-                      className="absolute top-2 right-2 bg-background/80 border border-border p-1.5 text-muted-foreground hover:text-primary"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                    <div className="absolute left-2 bottom-2 right-2 bg-background/80 border border-primary/30 px-2 py-1 text-[10px] uppercase tracking-wider text-primary">
-                      Source identity loaded
-                    </div>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="w-full min-h-32 border-2 border-dashed border-border hover:border-primary hover:bg-primary/5 transition-colors flex flex-col items-center justify-center gap-3 text-muted-foreground hover:text-primary"
-                  >
-                    <Upload className="w-7 h-7" />
-                    <span className="text-xs uppercase tracking-wider font-bold">
-                      Upload photo to transform
-                    </span>
-                    <span className="text-[10px]">
-                      JPG, PNG, WebP
-                    </span>
-                  </button>
-                )}
-              </div>
-
               <div className={cn("border bg-gradient-to-br p-4", toneClasses[selectedFilter.tone])}>
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -331,7 +273,7 @@ export function PhotoStudio() {
             <CardContent className="p-3 space-y-3">
               <div className="border border-primary/30 bg-primary/5 px-3 py-2 text-[11px] text-foreground/80 leading-relaxed">
                 <span className="text-primary font-bold uppercase tracking-wider">How it works:</span>{" "}
-                click a filter card to apply that style to the prompt, then edit the prompt if needed before copying.
+                click a filter card to apply that style to the prompt, edit it if needed, then copy it into your image generator.
               </div>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
@@ -359,6 +301,39 @@ export function PhotoStudio() {
                   </button>
                 ))}
               </div>
+              {recentFilters.length > 0 && (
+                <div className="border-t border-border pt-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] uppercase tracking-wider text-primary font-bold">
+                      Recently Used
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setRecentFilterNames([])}
+                      className="text-[9px] uppercase tracking-wider text-muted-foreground hover:text-primary"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {recentFilters.map((filter) => (
+                      <button
+                        key={filter.name}
+                        type="button"
+                        onClick={() => applyFilter(filter)}
+                        className={cn(
+                          "px-2.5 py-1.5 border text-[10px] uppercase tracking-wider transition-colors",
+                          selectedFilter.name === filter.name
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "border-border text-muted-foreground hover:text-primary hover:border-primary/70"
+                        )}
+                      >
+                        {filter.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 

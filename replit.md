@@ -30,7 +30,7 @@ pnpm workspace monorepo using TypeScript.
 - **Script Generator**: Full 60-90 second cinematic scripts with logline, 1.5-second opening hook, three acts, visual notes, dialogue/text, sound design cues, cliffhanger, character description, and world-building note
 - **Metadata Optimizer**: YouTube/TikTok/Facebook titles, descriptions, posting times, search tags, hashtags, thumbnail concept, and A/B hook variants
 - **Content Series Planner**: 7-episode cinematic universe plans with recurring lore, episode hooks, cliffhangers, character arcs, and Identity Loyalty hook
-- **Photo Studio**: Sidebar-accessible prompt studio with 38 photo filter types inspired by user-provided examples, searchable categories, source photo upload, optional direction notes, filter-applied editable prompts, regenerate controls, and copyable output
+- **Photo Studio**: Sidebar-accessible prompt studio with 38 photo filter types inspired by user-provided examples, searchable categories, optional direction notes, filter-applied editable prompts, regenerate controls, recently used filters, and copyable output
 
 ## Database Schema
 
