@@ -14,7 +14,10 @@ import {
   Sparkles,
   Wand2,
   ShieldX,
+  Layers,
+  SlidersHorizontal,
 } from "lucide-react";
+import { artStyles, artStyleCategories, artStyleNegativeExtras, type ArtStyle } from "@/data/art-styles";
 
 type StudioFilter = {
   name: string;
@@ -241,10 +244,48 @@ function buildPrompt(filter: StudioFilter, notes: string, tuning: PromptTuning) 
   return `${basePrompt} Extra subject direction: ${trimmedNotes}.`;
 }
 
+const artStylePromptStructures = [
+  (style: ArtStyle, identity: string, styleStrength: string, finish: string) =>
+    `Use the user's source photo as the reference. ${identity} Render the image in ${style.name} style: ${style.prompt} ${styleStrength} ${finish} Make the result vivid, polished, and social-media ready.`,
+  (style: ArtStyle, identity: string, styleStrength: string, finish: string) =>
+    `Create a ${style.name} version of the user's source photo. ${identity} Art direction: ${style.prompt} ${styleStrength} ${finish} Compose it as a finished, striking image suitable for profile photos and social posts.`,
+  (style: ArtStyle, identity: string, styleStrength: string, finish: string) =>
+    `Transform the user's source photo into ${style.name} art. ${identity} Style recipe: ${style.prompt} ${styleStrength} ${finish} Avoid generic results; make the final image lively, recognizable, and immediately arresting.`,
+];
+
+function buildArtStylePrompt(style: ArtStyle, notes: string, tuning: PromptTuning) {
+  const identityPrompt = getOptionPrompt(identityOptions, tuning.identity);
+  const stylePrompt = getOptionPrompt(styleOptions, tuning.style);
+  const finishPrompt = getOptionPrompt(finishOptions, tuning.finish);
+  const structure = artStylePromptStructures[tuning.variant % artStylePromptStructures.length];
+  const basePrompt = structure(style, identityPrompt, stylePrompt, finishPrompt);
+  const trimmedNotes = notes.trim();
+  if (!trimmedNotes) return basePrompt;
+  return `${basePrompt} Extra subject direction: ${trimmedNotes}.`;
+}
+
+function buildArtStyleNegativePrompt(style: ArtStyle): string {
+  const extra = artStyleNegativeExtras[style.category] ?? "";
+  const parts = [baseNegativePrompt];
+  if (extra) parts.push(extra);
+  return parts.join(", ");
+}
+
 export function PhotoStudio() {
+  const [mode, setMode] = useState<"filters" | "styles">("filters");
+
+  // Filter mode state
   const [activeCategory, setActiveCategory] = useState("All");
   const [query, setQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState<StudioFilter>(studioFilters[0]);
+
+  // Art styles mode state
+  const [styleCategory, setStyleCategory] = useState("All");
+  const [styleQuery, setStyleQuery] = useState("");
+  const [selectedStyle, setSelectedStyle] = useState<ArtStyle>(artStyles[0]);
+  const [recentStyleNames, setRecentStyleNames] = useState<string[]>([]);
+
+  // Shared state
   const [copied, setCopied] = useState(false);
   const [subjectNotes, setSubjectNotes] = useState("");
   const [identityLevel, setIdentityLevel] = useState("balanced");
@@ -277,11 +318,59 @@ export function PhotoStudio() {
     });
   }, [activeCategory, query]);
 
+  const filteredStyles = useMemo(() => {
+    const normalizedQuery = styleQuery.trim().toLowerCase();
+    return artStyles.filter((style) => {
+      const matchesCategory = styleCategory === "All" || style.category === styleCategory;
+      const matchesQuery =
+        normalizedQuery.length === 0 ||
+        `${style.name} ${style.category} ${style.description}`.toLowerCase().includes(normalizedQuery);
+      return matchesCategory && matchesQuery;
+    });
+  }, [styleCategory, styleQuery]);
+
   const copyPrompt = async () => {
     await navigator.clipboard.writeText(promptDraft);
     setCopied(true);
     setTimeout(() => setCopied(false), 1800);
   };
+
+  const applyStyle = (style: ArtStyle) => {
+    setSelectedStyle(style);
+    setPromptDraft(buildArtStylePrompt(style, subjectNotes, currentTuning));
+    setNegativePrompt(buildArtStyleNegativePrompt(style));
+    setPromptEdited(false);
+    setRefreshMessage(`${style.name} applied`);
+    setCopied(false);
+    setCopiedNeg(false);
+    setRecentStyleNames((current) => [
+      style.name,
+      ...current.filter((name) => name !== style.name),
+    ].slice(0, 6));
+  };
+
+  const switchMode = (next: "filters" | "styles") => {
+    setMode(next);
+    setRefreshMessage("");
+    setCopied(false);
+    setCopiedNeg(false);
+    if (next === "filters") {
+      setPromptDraft(buildPrompt(selectedFilter, subjectNotes, currentTuning));
+      setNegativePrompt(buildNegativePrompt(selectedFilter));
+    } else {
+      setPromptDraft(buildArtStylePrompt(selectedStyle, subjectNotes, currentTuning));
+      setNegativePrompt(buildArtStyleNegativePrompt(selectedStyle));
+    }
+    setPromptEdited(false);
+  };
+
+  const recentStyles = useMemo(
+    () =>
+      recentStyleNames
+        .map((name) => artStyles.find((s) => s.name === name))
+        .filter((s): s is ArtStyle => Boolean(s)),
+    [recentStyleNames]
+  );
 
   const recentFilters = useMemo(
     () =>
@@ -321,7 +410,11 @@ export function PhotoStudio() {
   const handleNotesChange = (value: string) => {
     setSubjectNotes(value);
     if (!promptEdited) {
-      setPromptDraft(buildPrompt(selectedFilter, value, currentTuning));
+      if (mode === "filters") {
+        setPromptDraft(buildPrompt(selectedFilter, value, currentTuning));
+      } else {
+        setPromptDraft(buildArtStylePrompt(selectedStyle, value, currentTuning));
+      }
     }
     setCopied(false);
   };
@@ -341,7 +434,11 @@ export function PhotoStudio() {
       variant: nextVariant,
     };
     setPromptVariant(nextVariant);
-    setPromptDraft(buildPrompt(selectedFilter, subjectNotes, nextTuning));
+    if (mode === "filters") {
+      setPromptDraft(buildPrompt(selectedFilter, subjectNotes, nextTuning));
+    } else {
+      setPromptDraft(buildArtStylePrompt(selectedStyle, subjectNotes, nextTuning));
+    }
     setPromptEdited(false);
     setRefreshMessage("Prompt regenerated");
     setCopied(false);
@@ -359,7 +456,11 @@ export function PhotoStudio() {
     if (type === "style") setStyleLevel(value);
     if (type === "finish") setFinishLevel(value);
 
-    setPromptDraft(buildPrompt(selectedFilter, subjectNotes, nextTuning));
+    if (mode === "filters") {
+      setPromptDraft(buildPrompt(selectedFilter, subjectNotes, nextTuning));
+    } else {
+      setPromptDraft(buildArtStylePrompt(selectedStyle, subjectNotes, nextTuning));
+    }
     setPromptEdited(false);
     setRefreshMessage("Prompt tuned");
     setCopied(false);
@@ -384,8 +485,8 @@ export function PhotoStudio() {
           </div>
           <div className="grid grid-cols-3 gap-2 text-center min-w-[280px]">
             <Metric label="Filters" value={studioFilters.length.toString()} />
-            <Metric label="Categories" value={(categories.length - 1).toString()} />
-            <Metric label="Mode" value="Prompt" />
+            <Metric label="Art Styles" value={artStyles.length.toString()} />
+            <Metric label="Mode" value={mode === "filters" ? "Filter" : "Style"} />
           </div>
         </div>
       </header>
@@ -395,25 +496,42 @@ export function PhotoStudio() {
           <Card className="bg-card border-border theme-glow-box">
             <CardHeader className="border-b border-border bg-secondary/50">
               <CardTitle className="uppercase text-sm tracking-wider text-primary flex items-center gap-2">
-                <Wand2 className="w-4 h-4" />
-                Active Filter
+                {mode === "filters" ? <Wand2 className="w-4 h-4" /> : <Layers className="w-4 h-4" />}
+                {mode === "filters" ? "Active Filter" : "Active Art Style"}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 space-y-4">
-              <div className={cn("border bg-gradient-to-br p-4", toneClasses[selectedFilter.tone])}>
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <Badge className="bg-background/80 text-primary border border-primary/40 uppercase text-[10px] mb-3">
-                      {selectedFilter.category}
-                    </Badge>
-                    <h2 className="text-2xl font-bold text-foreground">{selectedFilter.name}</h2>
-                    <p className="text-sm mt-2 text-foreground/75 leading-relaxed">
-                      {selectedFilter.vitality}
-                    </p>
+              {mode === "filters" ? (
+                <div className={cn("border bg-gradient-to-br p-4", toneClasses[selectedFilter.tone])}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <Badge className="bg-background/80 text-primary border border-primary/40 uppercase text-[10px] mb-3">
+                        {selectedFilter.category}
+                      </Badge>
+                      <h2 className="text-2xl font-bold text-foreground">{selectedFilter.name}</h2>
+                      <p className="text-sm mt-2 text-foreground/75 leading-relaxed">
+                        {selectedFilter.vitality}
+                      </p>
+                    </div>
+                    <Palette className="w-8 h-8 opacity-80 shrink-0" />
                   </div>
-                  <Palette className="w-8 h-8 opacity-80 shrink-0" />
                 </div>
-              </div>
+              ) : (
+                <div className={cn("border bg-gradient-to-br p-4", toneClasses[selectedStyle.tone])}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <Badge className="bg-background/80 text-primary border border-primary/40 uppercase text-[10px] mb-3">
+                        {selectedStyle.category}
+                      </Badge>
+                      <h2 className="text-2xl font-bold text-foreground">{selectedStyle.name}</h2>
+                      <p className="text-sm mt-2 text-foreground/75 leading-relaxed">
+                        {selectedStyle.description}
+                      </p>
+                    </div>
+                    <Layers className="w-8 h-8 opacity-80 shrink-0" />
+                  </div>
+                </div>
+              )}
 
               <div>
                 <div className="space-y-3 border border-border bg-secondary/20 p-3">
@@ -560,142 +678,303 @@ export function PhotoStudio() {
         </aside>
 
         <section className="space-y-4 min-w-0">
-          <Card className="bg-card border-border">
-            <CardContent className="p-3 space-y-3">
-              <div className="border border-primary/30 bg-primary/5 px-3 py-2 text-[11px] text-foreground/80 leading-relaxed">
-                <span className="text-primary font-bold uppercase tracking-wider">How it works:</span>{" "}
-                click a filter card to apply that style to the prompt, edit it if needed, then copy it into your image generator.
-              </div>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-                <input
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Search filters, categories, or vitality cues..."
-                  className="w-full bg-secondary/40 border border-border pl-9 pr-3 py-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
-                />
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {categories.map((category) => (
-                  <button
-                    key={category}
-                    type="button"
-                    onClick={() => setActiveCategory(category)}
-                    className={cn(
-                      "px-2.5 py-1 text-[9px] uppercase tracking-wider border transition-colors",
-                      activeCategory === category
-                        ? "bg-primary text-primary-foreground border-primary theme-glow-box"
-                        : "border-border text-muted-foreground hover:text-primary hover:border-primary/70"
-                    )}
-                  >
-                    {category}
-                  </button>
-                ))}
-              </div>
-              {recentFilters.length > 0 && (
-                <div className="border-t border-border pt-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] uppercase tracking-wider text-primary font-bold">
-                      Recently Used
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setRecentFilterNames([])}
-                      className="text-[9px] uppercase tracking-wider text-muted-foreground hover:text-primary"
-                    >
-                      Clear
-                    </button>
+          {/* Mode Toggle */}
+          <div className="grid grid-cols-2 border border-border">
+            <button
+              type="button"
+              onClick={() => switchMode("filters")}
+              className={cn(
+                "flex items-center justify-center gap-2 py-2.5 text-[11px] uppercase tracking-widest font-bold transition-colors",
+                mode === "filters"
+                  ? "bg-primary text-primary-foreground theme-glow-box"
+                  : "bg-secondary/30 text-muted-foreground hover:text-primary"
+              )}
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              Filters ({studioFilters.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => switchMode("styles")}
+              className={cn(
+                "flex items-center justify-center gap-2 py-2.5 text-[11px] uppercase tracking-widest font-bold transition-colors border-l border-border",
+                mode === "styles"
+                  ? "bg-primary text-primary-foreground theme-glow-box"
+                  : "bg-secondary/30 text-muted-foreground hover:text-primary"
+              )}
+            >
+              <Layers className="w-3.5 h-3.5" />
+              Art Styles ({artStyles.length})
+            </button>
+          </div>
+
+          {/* Filters Mode */}
+          {mode === "filters" && (
+            <>
+              <Card className="bg-card border-border">
+                <CardContent className="p-3 space-y-3">
+                  <div className="border border-primary/30 bg-primary/5 px-3 py-2 text-[11px] text-foreground/80 leading-relaxed">
+                    <span className="text-primary font-bold uppercase tracking-wider">Filters:</span>{" "}
+                    click a filter card to apply that style to the prompt, tune it, then copy into your image generator.
+                  </div>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                    <input
+                      value={query}
+                      onChange={(event) => setQuery(event.target.value)}
+                      placeholder="Search filters, categories, or vitality cues..."
+                      className="w-full bg-secondary/40 border border-border pl-9 pr-3 py-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
+                    />
                   </div>
                   <div className="flex flex-wrap gap-1.5">
-                    {recentFilters.map((filter) => (
+                    {categories.map((category) => (
                       <button
-                        key={filter.name}
+                        key={category}
                         type="button"
-                        onClick={() => applyFilter(filter)}
+                        onClick={() => setActiveCategory(category)}
                         className={cn(
-                          "px-2.5 py-1.5 border text-[10px] uppercase tracking-wider transition-colors",
-                          selectedFilter.name === filter.name
-                            ? "bg-primary text-primary-foreground border-primary"
+                          "px-2.5 py-1 text-[9px] uppercase tracking-wider border transition-colors",
+                          activeCategory === category
+                            ? "bg-primary text-primary-foreground border-primary theme-glow-box"
                             : "border-border text-muted-foreground hover:text-primary hover:border-primary/70"
                         )}
                       >
-                        {filter.name}
+                        {category}
                       </button>
                     ))}
                   </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <div className="flex items-center justify-between border-b border-border pb-2">
-            <div className="text-xs uppercase tracking-wider text-primary font-bold">
-              Filter Matrix
-            </div>
-            <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
-              {filteredFilters.length} visible
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3 gap-2.5">
-            {filteredFilters.map((filter) => (
-              <button
-                key={filter.name}
-                type="button"
-                onClick={() => applyFilter(filter)}
-                className={cn(
-                  "group text-left border bg-card transition-all hover:border-primary hover:bg-primary/5",
-                  selectedFilter.name === filter.name
-                    ? "border-primary bg-primary/10 theme-glow-box"
-                    : "border-border"
-                )}
-              >
-                <div className="p-3 space-y-2.5">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className={cn("w-7 h-7 border bg-gradient-to-br flex items-center justify-center shrink-0", toneClasses[filter.tone])}>
-                      <Wand2 className="w-3.5 h-3.5 opacity-80" />
+                  {recentFilters.length > 0 && (
+                    <div className="border-t border-border pt-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] uppercase tracking-wider text-primary font-bold">Recently Used</span>
+                        <button
+                          type="button"
+                          onClick={() => setRecentFilterNames([])}
+                          className="text-[9px] uppercase tracking-wider text-muted-foreground hover:text-primary"
+                        >
+                          Clear
+                        </button>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {recentFilters.map((filter) => (
+                          <button
+                            key={filter.name}
+                            type="button"
+                            onClick={() => applyFilter(filter)}
+                            className={cn(
+                              "px-2.5 py-1.5 border text-[10px] uppercase tracking-wider transition-colors",
+                              selectedFilter.name === filter.name
+                                ? "bg-primary text-primary-foreground border-primary"
+                                : "border-border text-muted-foreground hover:text-primary hover:border-primary/70"
+                            )}
+                          >
+                            {filter.name}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                    <Badge className="bg-secondary/60 text-primary border border-primary/30 uppercase text-[8px] px-1.5 py-0.5 max-w-[120px] truncate">
-                      {filter.category}
-                    </Badge>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-foreground leading-tight truncate">
-                      {filter.name}
-                    </h3>
-                    <p className="text-[10px] text-muted-foreground leading-relaxed mt-1 line-clamp-2 min-h-[32px]">
-                    {filter.vitality}
-                    </p>
-                  </div>
-                  <div className="flex items-center justify-between text-[9px] uppercase tracking-wider pt-1 border-t border-border/50">
-                    <span className="flex items-center gap-1 text-primary">
-                      <Palette className="w-3 h-3" />
-                      Apply
-                    </span>
-                    <span
-                      className={cn(
-                        selectedFilter.name === filter.name
-                          ? "text-primary font-bold"
-                          : "text-muted-foreground"
-                      )}
-                    >
-                      {selectedFilter.name === filter.name ? "Applied" : "Select"}
-                    </span>
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
+                  )}
+                </CardContent>
+              </Card>
 
-          {filteredFilters.length === 0 && (
-            <Card className="bg-card border-border">
-              <CardContent className="p-10 text-center">
-                <ImageIcon className="w-10 h-10 mx-auto text-muted-foreground/50 mb-3" />
-                <p className="text-sm text-muted-foreground font-mono">
-                  No filters matched that search. Try another style cue.
-                </p>
-              </CardContent>
-            </Card>
+              <div className="flex items-center justify-between border-b border-border pb-2">
+                <div className="text-xs uppercase tracking-wider text-primary font-bold">Filter Matrix</div>
+                <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                  {filteredFilters.length} visible
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3 gap-2.5">
+                {filteredFilters.map((filter) => (
+                  <button
+                    key={filter.name}
+                    type="button"
+                    onClick={() => applyFilter(filter)}
+                    className={cn(
+                      "group text-left border bg-card transition-all hover:border-primary hover:bg-primary/5",
+                      selectedFilter.name === filter.name
+                        ? "border-primary bg-primary/10 theme-glow-box"
+                        : "border-border"
+                    )}
+                  >
+                    <div className="p-3 space-y-2.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className={cn("w-7 h-7 border bg-gradient-to-br flex items-center justify-center shrink-0", toneClasses[filter.tone])}>
+                          <Wand2 className="w-3.5 h-3.5 opacity-80" />
+                        </div>
+                        <Badge className="bg-secondary/60 text-primary border border-primary/30 uppercase text-[8px] px-1.5 py-0.5 max-w-[120px] truncate">
+                          {filter.category}
+                        </Badge>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-foreground leading-tight truncate">
+                          {filter.name}
+                        </h3>
+                        <p className="text-[10px] text-muted-foreground leading-relaxed mt-1 line-clamp-2 min-h-[32px]">
+                          {filter.vitality}
+                        </p>
+                      </div>
+                      <div className="flex items-center justify-between text-[9px] uppercase tracking-wider pt-1 border-t border-border/50">
+                        <span className="flex items-center gap-1 text-primary">
+                          <Palette className="w-3 h-3" />
+                          Apply
+                        </span>
+                        <span className={cn(selectedFilter.name === filter.name ? "text-primary font-bold" : "text-muted-foreground")}>
+                          {selectedFilter.name === filter.name ? "Applied" : "Select"}
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {filteredFilters.length === 0 && (
+                <Card className="bg-card border-border">
+                  <CardContent className="p-10 text-center">
+                    <ImageIcon className="w-10 h-10 mx-auto text-muted-foreground/50 mb-3" />
+                    <p className="text-sm text-muted-foreground font-mono">
+                      No filters matched that search. Try another style cue.
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+            </>
+          )}
+
+          {/* Art Styles Mode */}
+          {mode === "styles" && (
+            <>
+              <Card className="bg-card border-border">
+                <CardContent className="p-3 space-y-3">
+                  <div className="border border-primary/30 bg-primary/5 px-3 py-2 text-[11px] text-foreground/80 leading-relaxed">
+                    <span className="text-primary font-bold uppercase tracking-wider">Art Styles:</span>{" "}
+                    choose from {artStyles.length} curated world art styles — Photography, Painting, Digital Art, Cinematic, Cultural traditions, Fantasy, and more.
+                  </div>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                    <input
+                      value={styleQuery}
+                      onChange={(event) => setStyleQuery(event.target.value)}
+                      placeholder="Search art styles, movements, or descriptions..."
+                      className="w-full bg-secondary/40 border border-border pl-9 pr-3 py-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {artStyleCategories.map((category) => (
+                      <button
+                        key={category}
+                        type="button"
+                        onClick={() => setStyleCategory(category)}
+                        className={cn(
+                          "px-2.5 py-1 text-[9px] uppercase tracking-wider border transition-colors",
+                          styleCategory === category
+                            ? "bg-primary text-primary-foreground border-primary theme-glow-box"
+                            : "border-border text-muted-foreground hover:text-primary hover:border-primary/70"
+                        )}
+                      >
+                        {category}
+                      </button>
+                    ))}
+                  </div>
+                  {recentStyles.length > 0 && (
+                    <div className="border-t border-border pt-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] uppercase tracking-wider text-primary font-bold">Recently Used</span>
+                        <button
+                          type="button"
+                          onClick={() => setRecentStyleNames([])}
+                          className="text-[9px] uppercase tracking-wider text-muted-foreground hover:text-primary"
+                        >
+                          Clear
+                        </button>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {recentStyles.map((style) => (
+                          <button
+                            key={style.name}
+                            type="button"
+                            onClick={() => applyStyle(style)}
+                            className={cn(
+                              "px-2.5 py-1.5 border text-[10px] uppercase tracking-wider transition-colors",
+                              selectedStyle.name === style.name
+                                ? "bg-primary text-primary-foreground border-primary"
+                                : "border-border text-muted-foreground hover:text-primary hover:border-primary/70"
+                            )}
+                          >
+                            {style.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <div className="flex items-center justify-between border-b border-border pb-2">
+                <div className="text-xs uppercase tracking-wider text-primary font-bold flex items-center gap-2">
+                  <Layers className="w-3.5 h-3.5" />
+                  Art Style Library
+                </div>
+                <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                  {filteredStyles.length} visible
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3 gap-2.5">
+                {filteredStyles.map((style) => (
+                  <button
+                    key={style.name}
+                    type="button"
+                    onClick={() => applyStyle(style)}
+                    className={cn(
+                      "group text-left border bg-card transition-all hover:border-primary hover:bg-primary/5",
+                      selectedStyle.name === style.name
+                        ? "border-primary bg-primary/10 theme-glow-box"
+                        : "border-border"
+                    )}
+                  >
+                    <div className="p-3 space-y-2.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className={cn("w-7 h-7 border bg-gradient-to-br flex items-center justify-center shrink-0", toneClasses[style.tone])}>
+                          <Layers className="w-3.5 h-3.5 opacity-80" />
+                        </div>
+                        <Badge className="bg-secondary/60 text-primary border border-primary/30 uppercase text-[8px] px-1.5 py-0.5 max-w-[120px] truncate">
+                          {style.category}
+                        </Badge>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-foreground leading-tight truncate">
+                          {style.name}
+                        </h3>
+                        <p className="text-[10px] text-muted-foreground leading-relaxed mt-1 line-clamp-2 min-h-[32px]">
+                          {style.description}
+                        </p>
+                      </div>
+                      <div className="flex items-center justify-between text-[9px] uppercase tracking-wider pt-1 border-t border-border/50">
+                        <span className="flex items-center gap-1 text-primary">
+                          <Layers className="w-3 h-3" />
+                          Apply
+                        </span>
+                        <span className={cn(selectedStyle.name === style.name ? "text-primary font-bold" : "text-muted-foreground")}>
+                          {selectedStyle.name === style.name ? "Applied" : "Select"}
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {filteredStyles.length === 0 && (
+                <Card className="bg-card border-border">
+                  <CardContent className="p-10 text-center">
+                    <ImageIcon className="w-10 h-10 mx-auto text-muted-foreground/50 mb-3" />
+                    <p className="text-sm text-muted-foreground font-mono">
+                      No art styles matched that search. Try another movement or era.
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+            </>
           )}
         </section>
       </div>
