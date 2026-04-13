@@ -13,6 +13,7 @@ import {
   Search,
   Sparkles,
   Wand2,
+  ShieldX,
 } from "lucide-react";
 
 type StudioFilter = {
@@ -138,6 +139,81 @@ const finishOptions = [
   },
 ];
 
+const baseNegativePrompt =
+  "bad hands, deformed fingers, extra fingers, missing fingers, fused fingers, mutated hands, bad anatomy, deformed face, asymmetrical face, distorted facial features, crossed eyes, blurry, motion blur, out of focus, low quality, jpeg artifacts, pixelated, grainy noise, watermark, signature, text overlay, logo, username, cropped head, cut off body, bad proportions, disfigured, malformed limbs, extra limbs, cloned face, duplicate, ugly, worst quality, low resolution";
+
+const categoryNegativeExtras: Record<string, string> = {
+  Anime: "photorealistic, 3D render, realistic photo, western illustration, too realistic, uncanny valley, flat shading, washed out colors",
+  "Fine Art": "photographic, digital neon, flat digital colors, glossy CGI, stock photo, overexposed, harsh shadows",
+  "3D": "flat 2D illustration, hand-drawn, pencil sketch, paper texture, collage, cutout style",
+  Sketch: "color fill, painted, photographic gloss, digital render, airbrushed, CGI smooth",
+  "Toy Studio": "human skin pores, photorealistic flesh, uncanny valley realism, fur texture, organic tissue",
+  Illustration: "photographic realism, harsh studio lighting, overrendered details, clinical sharpness, stock photo feel",
+  Comics: "photographic, realistic skin, 3D render, smooth CGI, painterly fine art",
+  Cartoon: "photorealistic, hyper realistic, uncanny valley, horror expression, aggressive shading",
+  Poster: "photographic bleed, 3D depth map, overly realistic texture, blurry edge, low contrast",
+  Pixel: "smooth gradients, anti-aliasing, soft edges, high-fidelity detail, painterly texture",
+  Craft: "photographic, smooth CGI, digital gloss, airbrushed, clinical lighting",
+  Gallery: "modern neon digital, cartoon, flat vector, pixelated, overexposed",
+  Luxury: "dull matte, flat colors, low contrast, rough texture, washed out, dingy",
+};
+
+function buildNegativePrompt(filter: StudioFilter): string {
+  const extra = categoryNegativeExtras[filter.category] ?? "";
+  const filterSpecific = getFilterNegativeHints(filter);
+  const parts = [baseNegativePrompt];
+  if (extra) parts.push(extra);
+  if (filterSpecific) parts.push(filterSpecific);
+  return parts.join(", ");
+}
+
+function getFilterNegativeHints(filter: StudioFilter): string {
+  const name = filter.name.toLowerCase();
+  if (name.includes("anime") || name.includes("manga")) {
+    return "realistic nose, detailed pores, adult western comic style, overly dark shadows";
+  }
+  if (name.includes("watercolor")) {
+    return "hard edges, solid fills, flat digital color, heavy ink lines";
+  }
+  if (name.includes("oil painting")) {
+    return "digital smoothness, flat color, photographic finish, vector look";
+  }
+  if (name.includes("pencil") || name.includes("sketch") || name.includes("line art")) {
+    return "color wash, painted fill, digital airbrush, glossy surface";
+  }
+  if (name.includes("pixel") || name.includes("retro game")) {
+    return "smooth curves, anti-aliased edges, high resolution detail, soft focus";
+  }
+  if (name.includes("clay")) {
+    return "digital gloss, photorealistic skin, smooth CGI texture, flat colors";
+  }
+  if (name.includes("doll") || name.includes("toy") || name.includes("mini me") || name.includes("block") || name.includes("cube")) {
+    return "realistic human skin, wrinkles, pores, body hair, photographic realism";
+  }
+  if (name.includes("pop art")) {
+    return "photorealistic gradients, muted colors, fine art texture, detailed shading";
+  }
+  if (name.includes("noir")) {
+    return "bright colors, pastel tones, low contrast, cheerful mood, high saturation";
+  }
+  if (name.includes("caricature")) {
+    return "realistic proportions, plain expression, photorealistic skin, stiff pose";
+  }
+  if (name.includes("sticker")) {
+    return "complex background, blended edges, no border, dark tones, messy outline";
+  }
+  if (name.includes("enamel")) {
+    return "gradients, 3D shading, photographic detail, rough edges, grungy texture";
+  }
+  if (name.includes("felt")) {
+    return "smooth plastic, digital gloss, photorealistic texture, CGI render";
+  }
+  if (name.includes("papercut")) {
+    return "photographic depth of field, smooth gradients, painted texture, digital blur";
+  }
+  return "";
+}
+
 const promptStructures = [
   (filter: StudioFilter, identity: string, style: string, finish: string) =>
     `Use the user's source photo as the reference. ${identity} Generate a new image using the ${filter.name} filter: ${filter.prompt} ${style} ${finish} Keep the result vivid, polished, and social-media ready.`,
@@ -186,6 +262,9 @@ export function PhotoStudio() {
   const [promptEdited, setPromptEdited] = useState(false);
   const [refreshMessage, setRefreshMessage] = useState("");
   const [recentFilterNames, setRecentFilterNames] = useState<string[]>([]);
+  const [negativePrompt, setNegativePrompt] = useState(() => buildNegativePrompt(studioFilters[0]));
+  const [copiedNeg, setCopiedNeg] = useState(false);
+  const [negExpanded, setNegExpanded] = useState(false);
 
   const filteredFilters = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -219,12 +298,20 @@ export function PhotoStudio() {
     variant: promptVariant,
   };
 
+  const copyNegativePrompt = async () => {
+    await navigator.clipboard.writeText(negativePrompt);
+    setCopiedNeg(true);
+    setTimeout(() => setCopiedNeg(false), 1800);
+  };
+
   const applyFilter = (filter: StudioFilter) => {
     setSelectedFilter(filter);
     setPromptDraft(buildPrompt(filter, subjectNotes, currentTuning));
+    setNegativePrompt(buildNegativePrompt(filter));
     setPromptEdited(false);
     setRefreshMessage(`${filter.name} applied`);
     setCopied(false);
+    setCopiedNeg(false);
     setRecentFilterNames((current) => [
       filter.name,
       ...current.filter((name) => name !== filter.name),
@@ -398,6 +485,49 @@ export function PhotoStudio() {
                 <p className="mt-2 text-[10px] text-muted-foreground leading-relaxed">
                   Clicking any filter rewrites this prompt for that style. You can edit it after applying a filter.
                 </p>
+              </div>
+
+              <div className="border border-red-500/30 bg-red-500/5">
+                <button
+                  type="button"
+                  onClick={() => setNegExpanded((v) => !v)}
+                  className="w-full flex items-center justify-between px-3 py-2.5 text-left hover:bg-red-500/10 transition-colors"
+                >
+                  <span className="flex items-center gap-2">
+                    <ShieldX className="w-3.5 h-3.5 text-red-400" />
+                    <span className="text-[10px] uppercase tracking-wider text-red-400 font-bold">
+                      Negative Prompt
+                    </span>
+                    <span className="text-[9px] text-muted-foreground uppercase tracking-wider">
+                      — blocks bad outputs
+                    </span>
+                  </span>
+                  <span className="text-[9px] text-red-400 uppercase tracking-wider">
+                    {negExpanded ? "Hide" : "Show"}
+                  </span>
+                </button>
+                {negExpanded && (
+                  <div className="px-3 pb-3 space-y-2">
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-[9px] text-muted-foreground leading-relaxed">
+                        Paste this into the <span className="text-red-400 font-medium">Negative Prompt</span> field of your image generator to block bad hands, distorted faces, blurry details, and {selectedFilter.category.toLowerCase()} style mistakes.
+                      </p>
+                    </div>
+                    <textarea
+                      readOnly
+                      value={negativePrompt}
+                      className="w-full min-h-28 bg-red-950/20 border border-red-500/20 p-3 text-[10px] text-red-200/70 leading-relaxed font-mono focus:outline-none resize-y"
+                    />
+                    <button
+                      type="button"
+                      onClick={copyNegativePrompt}
+                      className="flex items-center gap-1.5 text-[10px] text-red-400 hover:text-red-300 uppercase tracking-wider transition-colors"
+                    >
+                      {copiedNeg ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                      {copiedNeg ? "Copied!" : "Copy Negative Prompt"}
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div>
