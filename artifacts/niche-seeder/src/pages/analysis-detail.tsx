@@ -83,6 +83,40 @@ export function AnalysisDetail() {
     );
   };
 
+  const [blueprintCopied, setBlueprintCopied] = useState(false);
+
+  const handleCopyBlueprint = () => {
+    if (!blueprint) return;
+    const text = [
+      `ALGORITHM READINESS SCORE: ${blueprint.algorithmReadinessScore}/100`,
+      ``,
+      `SCORE BREAKDOWN:`,
+      `  Hook Strength: ${blueprint.algorithmReadinessBreakdown.hookStrength}`,
+      `  Audience Clarity: ${blueprint.algorithmReadinessBreakdown.audienceClarity}`,
+      `  Niche Specificity: ${blueprint.algorithmReadinessBreakdown.nicheSpecificity}`,
+      `  Sound Design Potential: ${blueprint.algorithmReadinessBreakdown.soundDesignPotential}`,
+      `  Face Drift Risk: ${blueprint.algorithmReadinessBreakdown.characterConsistencyRisk}`,
+      ``,
+      `CHARACTER CONSISTENCY PROTOCOL:`,
+      ...blueprint.characterConsistencyTips.map((t, i) => `  ${i + 1}. ${t}`),
+      ``,
+      `SOUND DESIGN PLAN:`,
+      ...blueprint.soundDesignPlan.map((t, i) => `  ${i + 1}. ${t}`),
+      ``,
+      `POV LORE / DIGITAL ARTIFACT CONCEPT:`,
+      `  ${blueprint.povLoreIdea}`,
+      ``,
+      `IDENTITY LOYALTY FACTORS:`,
+      ...blueprint.identityLoyaltyFactors.map((t) => `  ▸ ${t}`),
+      ``,
+      `HIGH-INTENT GAINS TACTICS:`,
+      ...blueprint.highIntentGainsTactics.map((t) => `  ▸ ${t}`),
+    ].join("\n");
+    navigator.clipboard.writeText(text);
+    setBlueprintCopied(true);
+    setTimeout(() => setBlueprintCopied(false), 2000);
+  };
+
   const handleDiscoverCommunities = () => {
     discoverCommunities.mutate(
       { id },
@@ -365,19 +399,31 @@ export function AnalysisDetail() {
             <p className="text-sm text-muted-foreground font-mono">
               Content Blueprint & Algorithm Readiness
             </p>
-            <Button
-              data-testid="button-generate-blueprint"
-              onClick={handleGenerateBlueprint}
-              disabled={generateBlueprint.isPending}
-              size="sm"
-              className="uppercase tracking-wider text-xs"
-            >
-              {generateBlueprint.isPending ? (
-                <><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Generating...</>
-              ) : (
-                <><Shield className="w-3 h-3 mr-1" /> {blueprint ? "Regenerate Blueprint" : "Generate Blueprint"}</>
+            <div className="flex items-center gap-2">
+              {blueprint && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCopyBlueprint}
+                  className="uppercase tracking-wider text-xs border-border text-muted-foreground hover:text-primary"
+                >
+                  {blueprintCopied ? <><Check className="w-3 h-3 mr-1" /> Copied</> : <><Copy className="w-3 h-3 mr-1" /> Copy Blueprint</>}
+                </Button>
               )}
-            </Button>
+              <Button
+                data-testid="button-generate-blueprint"
+                onClick={handleGenerateBlueprint}
+                disabled={generateBlueprint.isPending}
+                size="sm"
+                className="uppercase tracking-wider text-xs"
+              >
+                {generateBlueprint.isPending ? (
+                  <><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Generating...</>
+                ) : (
+                  <><Shield className="w-3 h-3 mr-1" /> {blueprint ? "Regenerate" : "Generate Blueprint"}</>
+                )}
+              </Button>
+            </div>
           </div>
 
           {!blueprint && blueprintNotFound && (
