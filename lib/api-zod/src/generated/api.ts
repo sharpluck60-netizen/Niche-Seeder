@@ -197,3 +197,107 @@ export const GetBlueprintResponse = zod.object({
 export const GenerateBlueprintParams = zod.object({
   id: zod.coerce.number(),
 });
+
+/**
+ * @summary Get generated cinematic script for an analysis
+ */
+export const GetScriptParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetScriptResponse = zod.object({
+  analysisId: zod.number(),
+  logline: zod.string(),
+  openingHook: zod.string(),
+  acts: zod.array(
+    zod.object({
+      actNumber: zod.number(),
+      title: zod.string(),
+      description: zod.string(),
+      visualNotes: zod.string(),
+      dialogueLine: zod.string(),
+      soundDesignNote: zod.string(),
+    }),
+  ),
+  closingCliffhanger: zod.string(),
+  estimatedRuntime: zod.string(),
+  characterDescription: zod.string(),
+  worldBuildingNote: zod.string(),
+});
+
+/**
+ * @summary Generate a cinematic script using AI
+ */
+export const GenerateScriptParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+/**
+ * @summary Get platform-optimized metadata for an analysis
+ */
+export const GetMetadataParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetMetadataResponse = zod.object({
+  analysisId: zod.number(),
+  youtube: zod.object({
+    title: zod.string(),
+    description: zod.string(),
+    bestPostingTime: zod.string(),
+  }),
+  tiktok: zod.object({
+    title: zod.string(),
+    description: zod.string(),
+    bestPostingTime: zod.string(),
+  }),
+  facebook: zod.object({
+    title: zod.string(),
+    description: zod.string(),
+    bestPostingTime: zod.string(),
+  }),
+  tags: zod.array(zod.string()),
+  hashtags: zod.array(zod.string()),
+  thumbnailConcept: zod.string(),
+  hookVariants: zod.array(zod.string()),
+});
+
+/**
+ * @summary Generate platform-optimized metadata using AI
+ */
+export const GenerateMetadataParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+/**
+ * @summary Get content series plan for an analysis
+ */
+export const GetSeriesParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetSeriesResponse = zod.object({
+  analysisId: zod.number(),
+  seriesTitle: zod.string(),
+  premise: zod.string(),
+  episodes: zod.array(
+    zod.object({
+      number: zod.number(),
+      title: zod.string(),
+      logline: zod.string(),
+      openingHook: zod.string(),
+      worldBuildingElement: zod.string(),
+      cliffhanger: zod.string(),
+    }),
+  ),
+  loreElements: zod.array(zod.string()),
+  characterArcs: zod.array(zod.string()),
+  identityLoyaltyHook: zod.string(),
+});
+
+/**
+ * @summary Generate a content series plan using AI
+ */
+export const GenerateSeriesParams = zod.object({
+  id: zod.coerce.number(),
+});

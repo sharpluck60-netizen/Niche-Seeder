@@ -21,6 +21,15 @@ import {
   GetBlueprintParams,
   GetBlueprintResponse,
   GenerateBlueprintParams,
+  GetScriptParams,
+  GetScriptResponse,
+  GenerateScriptParams,
+  GetMetadataParams,
+  GetMetadataResponse,
+  GenerateMetadataParams,
+  GetSeriesParams,
+  GetSeriesResponse,
+  GenerateSeriesParams,
 } from "@workspace/api-zod";
 
 const router: IRouter = Router();
@@ -565,6 +574,247 @@ Platform: ${analysis.platform}`,
   } catch (error) {
     req.log.error({ error }, "Blueprint generation failed");
     res.status(500).json({ error: "Blueprint generation failed" });
+  }
+});
+
+router.get("/analyses/:id/script", async (req, res): Promise<void> => {
+  const params = GetScriptParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
+  const [analysis] = await db.select().from(analysesTable).where(eq(analysesTable.id, params.data.id));
+  if (!analysis) { res.status(404).json({ error: "Analysis not found" }); return; }
+  if (!analysis.scriptData) { res.status(404).json({ error: "Script not yet generated" }); return; }
+  res.json(GetScriptResponse.parse(analysis.scriptData));
+});
+
+router.post("/analyses/:id/script", async (req, res): Promise<void> => {
+  const params = GenerateScriptParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
+  const [analysis] = await db.select().from(analysesTable).where(eq(analysesTable.id, params.data.id));
+  if (!analysis) { res.status(404).json({ error: "Analysis not found" }); return; }
+
+  try {
+    const aiResponse = await openai.chat.completions.create({
+      model: "gpt-5.2",
+      max_completion_tokens: 8192,
+      messages: [
+        {
+          role: "system",
+          content: `You are a 2026 AI cinematic short-film screenwriter. Write a complete cinematic script for a 60-90 second viral short film based on the given micro-niche. The script must open with a 1.5-second physics-defying or extreme-close-up hook, have 3 acts, and end with a cliffhanger or moral question. Include visual notes and spatial audio cues. Respond in JSON:
+{
+  "logline": "One-sentence premise",
+  "openingHook": "Precise 1.5-second opening scene — what the viewer sees in the first frame to freeze the scroll",
+  "acts": [
+    {
+      "actNumber": 1,
+      "title": "Act title",
+      "description": "What happens in this act",
+      "visualNotes": "Camera angle, lighting, color grade, AI generation prompt hint",
+      "dialogueLine": "Key spoken or text-on-screen line",
+      "soundDesignNote": "Specific spatial audio / foley instruction"
+    }
+  ],
+  "closingCliffhanger": "The final 3 seconds — what moral question or revelation freezes the viewer",
+  "estimatedRuntime": "e.g. 75 seconds",
+  "characterDescription": "Detailed physical description of the protagonist for AI generation consistency",
+  "worldBuildingNote": "One lore element hidden in the visuals that rewards repeat viewers"
+}`,
+        },
+        {
+          role: "user",
+          content: `Write a viral cinematic script for:
+Micro-Niche: ${analysis.microNiche}
+Mood Keywords: ${analysis.moodKeywords.join(", ")}
+Hook Suggestion: ${analysis.hookSuggestion}
+Audience: ${analysis.audienceProfile}`,
+        },
+      ],
+    });
+
+    const content = aiResponse.choices[0]?.message?.content ?? "{}";
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    const raw = JSON.parse(jsonMatch ? jsonMatch[0] : "{}");
+
+    const scriptData = {
+      analysisId: analysis.id,
+      logline: raw.logline ?? "",
+      openingHook: raw.openingHook ?? "",
+      acts: raw.acts ?? [],
+      closingCliffhanger: raw.closingCliffhanger ?? "",
+      estimatedRuntime: raw.estimatedRuntime ?? "",
+      characterDescription: raw.characterDescription ?? "",
+      worldBuildingNote: raw.worldBuildingNote ?? "",
+    };
+
+    await db.update(analysesTable).set({ scriptData }).where(eq(analysesTable.id, analysis.id));
+    res.status(201).json(GetScriptResponse.parse(scriptData));
+  } catch (error) {
+    req.log.error({ error }, "Script generation failed");
+    res.status(500).json({ error: "Script generation failed" });
+  }
+});
+
+router.get("/analyses/:id/metadata", async (req, res): Promise<void> => {
+  const params = GetMetadataParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
+  const [analysis] = await db.select().from(analysesTable).where(eq(analysesTable.id, params.data.id));
+  if (!analysis) { res.status(404).json({ error: "Analysis not found" }); return; }
+  if (!analysis.metadataData) { res.status(404).json({ error: "Metadata not yet generated" }); return; }
+  res.json(GetMetadataResponse.parse(analysis.metadataData));
+});
+
+router.post("/analyses/:id/metadata", async (req, res): Promise<void> => {
+  const params = GenerateMetadataParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
+  const [analysis] = await db.select().from(analysesTable).where(eq(analysesTable.id, params.data.id));
+  if (!analysis) { res.status(404).json({ error: "Analysis not found" }); return; }
+
+  try {
+    const aiResponse = await openai.chat.completions.create({
+      model: "gpt-5.2",
+      max_completion_tokens: 8192,
+      messages: [
+        {
+          role: "system",
+          content: `You are a 2026 viral content metadata specialist. Generate platform-optimized metadata for a cinematic short. TikTok titles must be under 100 chars, YouTube titles under 60. Descriptions must be platform-native. Tags are for YouTube search. Hashtags for TikTok/Facebook. Best posting times are based on 2026 algorithm data for this niche. Generate 4 different 1.5-second hook variants to A/B test. Respond in JSON:
+{
+  "youtube": {
+    "title": "SEO-optimized YouTube title with mood keywords",
+    "description": "YouTube description with lore hook, mood keywords, and a question that drives comments (max 200 words)",
+    "bestPostingTime": "e.g. Thursday 2PM EST"
+  },
+  "tiktok": {
+    "title": "TikTok caption optimized for saves",
+    "description": "TikTok bio-link description (2 sentences max)",
+    "bestPostingTime": "e.g. Friday 7PM EST"
+  },
+  "facebook": {
+    "title": "Facebook post opener that sparks debate",
+    "description": "Facebook post body ending with a moral question (3-4 sentences)",
+    "bestPostingTime": "e.g. Sunday 1PM EST"
+  },
+  "tags": ["youtube", "tag", "list", "of", "12", "tags"],
+  "hashtags": ["TikTok", "and", "Facebook", "hashtags"],
+  "thumbnailConcept": "Detailed visual description of the perfect thumbnail — what to show, text overlay, color grade, composition",
+  "hookVariants": [
+    "Hook variant A (1.5 seconds)",
+    "Hook variant B",
+    "Hook variant C",
+    "Hook variant D"
+  ]
+}`,
+        },
+        {
+          role: "user",
+          content: `Generate metadata for:
+Micro-Niche: ${analysis.microNiche}
+Mood Keywords: ${analysis.moodKeywords.join(", ")}
+Audience: ${analysis.audienceProfile}
+Platform: ${analysis.platform}
+Hook: ${analysis.hookSuggestion}`,
+        },
+      ],
+    });
+
+    const content = aiResponse.choices[0]?.message?.content ?? "{}";
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    const raw = JSON.parse(jsonMatch ? jsonMatch[0] : "{}");
+
+    const metadataData = {
+      analysisId: analysis.id,
+      youtube: raw.youtube ?? { title: "", description: "", bestPostingTime: "" },
+      tiktok: raw.tiktok ?? { title: "", description: "", bestPostingTime: "" },
+      facebook: raw.facebook ?? { title: "", description: "", bestPostingTime: "" },
+      tags: raw.tags ?? [],
+      hashtags: raw.hashtags ?? [],
+      thumbnailConcept: raw.thumbnailConcept ?? "",
+      hookVariants: raw.hookVariants ?? [],
+    };
+
+    await db.update(analysesTable).set({ metadataData }).where(eq(analysesTable.id, analysis.id));
+    res.status(201).json(GetMetadataResponse.parse(metadataData));
+  } catch (error) {
+    req.log.error({ error }, "Metadata generation failed");
+    res.status(500).json({ error: "Metadata generation failed" });
+  }
+});
+
+router.get("/analyses/:id/series", async (req, res): Promise<void> => {
+  const params = GetSeriesParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
+  const [analysis] = await db.select().from(analysesTable).where(eq(analysesTable.id, params.data.id));
+  if (!analysis) { res.status(404).json({ error: "Analysis not found" }); return; }
+  if (!analysis.seriesData) { res.status(404).json({ error: "Series not yet generated" }); return; }
+  res.json(GetSeriesResponse.parse(analysis.seriesData));
+});
+
+router.post("/analyses/:id/series", async (req, res): Promise<void> => {
+  const params = GenerateSeriesParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
+  const [analysis] = await db.select().from(analysesTable).where(eq(analysesTable.id, params.data.id));
+  if (!analysis) { res.status(404).json({ error: "Analysis not found" }); return; }
+
+  try {
+    const aiResponse = await openai.chat.completions.create({
+      model: "gpt-5.2",
+      max_completion_tokens: 8192,
+      messages: [
+        {
+          role: "system",
+          content: `You are a 2026 AI cinematic universe architect. Design a 7-episode viral content series that builds Identity Loyalty — each episode must end with a cliffhanger that makes the viewer NEED to see the next one. Include hidden lore elements that reward repeat viewers. Each episode is 60-90 seconds. Respond in JSON:
+{
+  "seriesTitle": "The series universe name",
+  "premise": "2-3 sentence series premise that hooks the right micro-niche audience",
+  "episodes": [
+    {
+      "number": 1,
+      "title": "Episode title",
+      "logline": "One-sentence episode premise",
+      "openingHook": "The 1.5-second freeze-the-scroll opening",
+      "worldBuildingElement": "The hidden lore element in this episode",
+      "cliffhanger": "The final 3 seconds — what makes them watch the next one"
+    }
+  ],
+  "loreElements": [
+    "Recurring visual symbol and its meaning",
+    "Hidden world-building detail"
+  ],
+  "characterArcs": [
+    "Protagonist arc across the series",
+    "Secondary character development"
+  ],
+  "identityLoyaltyHook": "The one thing fans will identify with and obsess over — the 'Mandela Effect' moment of your universe"
+}`,
+        },
+        {
+          role: "user",
+          content: `Design a 7-episode viral series for:
+Micro-Niche: ${analysis.microNiche}
+Mood Keywords: ${analysis.moodKeywords.join(", ")}
+Audience: ${analysis.audienceProfile}
+Hook Style: ${analysis.hookSuggestion}`,
+        },
+      ],
+    });
+
+    const content = aiResponse.choices[0]?.message?.content ?? "{}";
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    const raw = JSON.parse(jsonMatch ? jsonMatch[0] : "{}");
+
+    const seriesData = {
+      analysisId: analysis.id,
+      seriesTitle: raw.seriesTitle ?? "",
+      premise: raw.premise ?? "",
+      episodes: raw.episodes ?? [],
+      loreElements: raw.loreElements ?? [],
+      characterArcs: raw.characterArcs ?? [],
+      identityLoyaltyHook: raw.identityLoyaltyHook ?? "",
+    };
+
+    await db.update(analysesTable).set({ seriesData }).where(eq(analysesTable.id, analysis.id));
+    res.status(201).json(GetSeriesResponse.parse(seriesData));
+  } catch (error) {
+    req.log.error({ error }, "Series generation failed");
+    res.status(500).json({ error: "Series generation failed" });
   }
 });
 

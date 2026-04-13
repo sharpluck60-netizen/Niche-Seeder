@@ -260,6 +260,120 @@ paths:
               schema:
                 $ref: "#/components/schemas/ContentBlueprint"
 
+  /analyses/{id}/script:
+    get:
+      operationId: getScript
+      tags: [analyses]
+      summary: Get generated cinematic script for an analysis
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Script data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScriptData"
+        "404":
+          description: Not found
+    post:
+      operationId: generateScript
+      tags: [analyses]
+      summary: Generate a cinematic script using AI
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "201":
+          description: Script generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScriptData"
+
+  /analyses/{id}/metadata:
+    get:
+      operationId: getMetadata
+      tags: [analyses]
+      summary: Get platform-optimized metadata for an analysis
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MetadataData"
+        "404":
+          description: Not found
+    post:
+      operationId: generateMetadata
+      tags: [analyses]
+      summary: Generate platform-optimized metadata using AI
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "201":
+          description: Metadata generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MetadataData"
+
+  /analyses/{id}/series:
+    get:
+      operationId: getSeries
+      tags: [analyses]
+      summary: Get content series plan for an analysis
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Series plan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SeriesData"
+        "404":
+          description: Not found
+    post:
+      operationId: generateSeries
+      tags: [analyses]
+      summary: Generate a content series plan using AI
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "201":
+          description: Series plan generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SeriesData"
+
 components:
   schemas:
     HealthStatus:
@@ -483,3 +597,161 @@ components:
         - povLoreIdea
         - identityLoyaltyFactors
         - highIntentGainsTactics
+
+    ScriptAct:
+      type: object
+      properties:
+        actNumber:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        visualNotes:
+          type: string
+        dialogueLine:
+          type: string
+        soundDesignNote:
+          type: string
+      required:
+        - actNumber
+        - title
+        - description
+        - visualNotes
+        - dialogueLine
+        - soundDesignNote
+
+    ScriptData:
+      type: object
+      properties:
+        analysisId:
+          type: integer
+        logline:
+          type: string
+        openingHook:
+          type: string
+        acts:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScriptAct"
+        closingCliffhanger:
+          type: string
+        estimatedRuntime:
+          type: string
+        characterDescription:
+          type: string
+        worldBuildingNote:
+          type: string
+      required:
+        - analysisId
+        - logline
+        - openingHook
+        - acts
+        - closingCliffhanger
+        - estimatedRuntime
+        - characterDescription
+        - worldBuildingNote
+
+    MetadataPlatformSet:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        bestPostingTime:
+          type: string
+      required:
+        - title
+        - description
+        - bestPostingTime
+
+    MetadataData:
+      type: object
+      properties:
+        analysisId:
+          type: integer
+        youtube:
+          $ref: "#/components/schemas/MetadataPlatformSet"
+        tiktok:
+          $ref: "#/components/schemas/MetadataPlatformSet"
+        facebook:
+          $ref: "#/components/schemas/MetadataPlatformSet"
+        tags:
+          type: array
+          items:
+            type: string
+        hashtags:
+          type: array
+          items:
+            type: string
+        thumbnailConcept:
+          type: string
+        hookVariants:
+          type: array
+          items:
+            type: string
+      required:
+        - analysisId
+        - youtube
+        - tiktok
+        - facebook
+        - tags
+        - hashtags
+        - thumbnailConcept
+        - hookVariants
+
+    SeriesEpisode:
+      type: object
+      properties:
+        number:
+          type: integer
+        title:
+          type: string
+        logline:
+          type: string
+        openingHook:
+          type: string
+        worldBuildingElement:
+          type: string
+        cliffhanger:
+          type: string
+      required:
+        - number
+        - title
+        - logline
+        - openingHook
+        - worldBuildingElement
+        - cliffhanger
+
+    SeriesData:
+      type: object
+      properties:
+        analysisId:
+          type: integer
+        seriesTitle:
+          type: string
+        premise:
+          type: string
+        episodes:
+          type: array
+          items:
+            $ref: "#/components/schemas/SeriesEpisode"
+        loreElements:
+          type: array
+          items:
+            type: string
+        characterArcs:
+          type: array
+          items:
+            type: string
+        identityLoyaltyHook:
+          type: string
+      required:
+        - analysisId
+        - seriesTitle
+        - premise
+        - episodes
+        - loreElements
+        - characterArcs
+        - identityLoyaltyHook

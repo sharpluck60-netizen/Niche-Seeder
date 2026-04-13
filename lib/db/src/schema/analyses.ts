@@ -13,6 +13,9 @@ export const analysesTable = pgTable("analyses", {
   hookSuggestion: text("hook_suggestion").notNull().default(""),
   status: text("status").notNull().default("pending"),
   blueprintData: jsonb("blueprint_data"),
+  scriptData: jsonb("script_data"),
+  metadataData: jsonb("metadata_data"),
+  seriesData: jsonb("series_data"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

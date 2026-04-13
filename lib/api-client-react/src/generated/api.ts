@@ -23,6 +23,9 @@ import type {
   CreateAnalysisBody,
   DashboardStats,
   HealthStatus,
+  MetadataData,
+  ScriptData,
+  SeriesData,
   SparkPost,
   StrategyTips,
 } from "./api.schemas";
@@ -1192,4 +1195,513 @@ export const useGenerateBlueprint = <
   TContext
 > => {
   return useMutation(getGenerateBlueprintMutationOptions(options));
+};
+
+/**
+ * @summary Get generated cinematic script for an analysis
+ */
+export const getGetScriptUrl = (id: number) => {
+  return `/api/analyses/${id}/script`;
+};
+
+export const getScript = async (
+  id: number,
+  options?: RequestInit,
+): Promise<ScriptData> => {
+  return customFetch<ScriptData>(getGetScriptUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetScriptQueryKey = (id: number) => {
+  return [`/api/analyses/${id}/script`] as const;
+};
+
+export const getGetScriptQueryOptions = <
+  TData = Awaited<ReturnType<typeof getScript>>,
+  TError = ErrorType<void>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getScript>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetScriptQueryKey(id);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getScript>>> = ({
+    signal,
+  }) => getScript(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getScript>>, TError, TData> & {
+    queryKey: QueryKey;
+  };
+};
+
+export type GetScriptQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getScript>>
+>;
+export type GetScriptQueryError = ErrorType<void>;
+
+/**
+ * @summary Get generated cinematic script for an analysis
+ */
+
+export function useGetScript<
+  TData = Awaited<ReturnType<typeof getScript>>,
+  TError = ErrorType<void>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getScript>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetScriptQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Generate a cinematic script using AI
+ */
+export const getGenerateScriptUrl = (id: number) => {
+  return `/api/analyses/${id}/script`;
+};
+
+export const generateScript = async (
+  id: number,
+  options?: RequestInit,
+): Promise<ScriptData> => {
+  return customFetch<ScriptData>(getGenerateScriptUrl(id), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getGenerateScriptMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateScript>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof generateScript>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["generateScript"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof generateScript>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return generateScript(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type GenerateScriptMutationResult = NonNullable<
+  Awaited<ReturnType<typeof generateScript>>
+>;
+
+export type GenerateScriptMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Generate a cinematic script using AI
+ */
+export const useGenerateScript = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateScript>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof generateScript>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getGenerateScriptMutationOptions(options));
+};
+
+/**
+ * @summary Get platform-optimized metadata for an analysis
+ */
+export const getGetMetadataUrl = (id: number) => {
+  return `/api/analyses/${id}/metadata`;
+};
+
+export const getMetadata = async (
+  id: number,
+  options?: RequestInit,
+): Promise<MetadataData> => {
+  return customFetch<MetadataData>(getGetMetadataUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetMetadataQueryKey = (id: number) => {
+  return [`/api/analyses/${id}/metadata`] as const;
+};
+
+export const getGetMetadataQueryOptions = <
+  TData = Awaited<ReturnType<typeof getMetadata>>,
+  TError = ErrorType<void>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getMetadata>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetMetadataQueryKey(id);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getMetadata>>> = ({
+    signal,
+  }) => getMetadata(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getMetadata>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetMetadataQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getMetadata>>
+>;
+export type GetMetadataQueryError = ErrorType<void>;
+
+/**
+ * @summary Get platform-optimized metadata for an analysis
+ */
+
+export function useGetMetadata<
+  TData = Awaited<ReturnType<typeof getMetadata>>,
+  TError = ErrorType<void>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getMetadata>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetMetadataQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Generate platform-optimized metadata using AI
+ */
+export const getGenerateMetadataUrl = (id: number) => {
+  return `/api/analyses/${id}/metadata`;
+};
+
+export const generateMetadata = async (
+  id: number,
+  options?: RequestInit,
+): Promise<MetadataData> => {
+  return customFetch<MetadataData>(getGenerateMetadataUrl(id), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getGenerateMetadataMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateMetadata>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof generateMetadata>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["generateMetadata"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof generateMetadata>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return generateMetadata(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type GenerateMetadataMutationResult = NonNullable<
+  Awaited<ReturnType<typeof generateMetadata>>
+>;
+
+export type GenerateMetadataMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Generate platform-optimized metadata using AI
+ */
+export const useGenerateMetadata = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateMetadata>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof generateMetadata>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getGenerateMetadataMutationOptions(options));
+};
+
+/**
+ * @summary Get content series plan for an analysis
+ */
+export const getGetSeriesUrl = (id: number) => {
+  return `/api/analyses/${id}/series`;
+};
+
+export const getSeries = async (
+  id: number,
+  options?: RequestInit,
+): Promise<SeriesData> => {
+  return customFetch<SeriesData>(getGetSeriesUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetSeriesQueryKey = (id: number) => {
+  return [`/api/analyses/${id}/series`] as const;
+};
+
+export const getGetSeriesQueryOptions = <
+  TData = Awaited<ReturnType<typeof getSeries>>,
+  TError = ErrorType<void>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getSeries>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetSeriesQueryKey(id);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getSeries>>> = ({
+    signal,
+  }) => getSeries(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getSeries>>, TError, TData> & {
+    queryKey: QueryKey;
+  };
+};
+
+export type GetSeriesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getSeries>>
+>;
+export type GetSeriesQueryError = ErrorType<void>;
+
+/**
+ * @summary Get content series plan for an analysis
+ */
+
+export function useGetSeries<
+  TData = Awaited<ReturnType<typeof getSeries>>,
+  TError = ErrorType<void>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getSeries>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetSeriesQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Generate a content series plan using AI
+ */
+export const getGenerateSeriesUrl = (id: number) => {
+  return `/api/analyses/${id}/series`;
+};
+
+export const generateSeries = async (
+  id: number,
+  options?: RequestInit,
+): Promise<SeriesData> => {
+  return customFetch<SeriesData>(getGenerateSeriesUrl(id), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getGenerateSeriesMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateSeries>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof generateSeries>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["generateSeries"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof generateSeries>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return generateSeries(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type GenerateSeriesMutationResult = NonNullable<
+  Awaited<ReturnType<typeof generateSeries>>
+>;
+
+export type GenerateSeriesMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Generate a content series plan using AI
+ */
+export const useGenerateSeries = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateSeries>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof generateSeries>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getGenerateSeriesMutationOptions(options));
 };

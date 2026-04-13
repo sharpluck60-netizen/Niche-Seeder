@@ -97,3 +97,59 @@ export interface ContentBlueprint {
   identityLoyaltyFactors: string[];
   highIntentGainsTactics: string[];
 }
+
+export interface ScriptAct {
+  actNumber: number;
+  title: string;
+  description: string;
+  visualNotes: string;
+  dialogueLine: string;
+  soundDesignNote: string;
+}
+
+export interface ScriptData {
+  analysisId: number;
+  logline: string;
+  openingHook: string;
+  acts: ScriptAct[];
+  closingCliffhanger: string;
+  estimatedRuntime: string;
+  characterDescription: string;
+  worldBuildingNote: string;
+}
+
+export interface MetadataPlatformSet {
+  title: string;
+  description: string;
+  bestPostingTime: string;
+}
+
+export interface MetadataData {
+  analysisId: number;
+  youtube: MetadataPlatformSet;
+  tiktok: MetadataPlatformSet;
+  facebook: MetadataPlatformSet;
+  tags: string[];
+  hashtags: string[];
+  thumbnailConcept: string;
+  hookVariants: string[];
+}
+
+export interface SeriesEpisode {
+  number: number;
+  title: string;
+  logline: string;
+  openingHook: string;
+  worldBuildingElement: string;
+  cliffhanger: string;
+}
+
+export interface SeriesData {
+  analysisId: number;
+  seriesTitle: string;
+  premise: string;
+  episodes: SeriesEpisode[];
+  loreElements: string[];
+  characterArcs: string[];
+  identityLoyaltyHook: string;
+}
