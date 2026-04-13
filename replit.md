@@ -2,7 +2,7 @@
 
 ## Overview
 
-Niche Seeder — a 2026 AI cinematic content distribution tool. Analyzes video URLs to identify micro-niches, maps target communities, generates human-sounding "Spark Posts," builds platform strategies, and now generates Content Blueprints with Algorithm Readiness Scores.
+Niche Seeder — a 2026 AI cinematic content distribution tool. Analyzes video URLs to identify micro-niches, maps target communities, generates human-sounding "Spark Posts," builds platform strategies, and now generates Content Blueprints, cinematic scripts, platform metadata, and multi-episode content series plans.
 
 pnpm workspace monorepo using TypeScript.
 
@@ -26,11 +26,14 @@ pnpm workspace monorepo using TypeScript.
 - **Community Mapping**: Top 20 Discord/Telegram/Reddit communities per micro-niche with relevance scores
 - **Spark Posts**: Human-sounding organic posts tailored per community and platform
 - **Strategy**: Platform-specific Waterfall Trigger, 1.5s Micro-Hook, Content Pillars, Wildcard Play
-- **Blueprint** (NEW): Algorithm Readiness Score (0-100 with breakdown), Character Consistency Protocol, Sound Design Plan, POV Lore/Digital Artifact concept, Identity Loyalty Factors, High-Intent Gains Tactics
+- **Blueprint**: Algorithm Readiness Score (0-100 with breakdown), Character Consistency Protocol, Sound Design Plan, POV Lore/Digital Artifact concept, Identity Loyalty Factors, High-Intent Gains Tactics
+- **Script Generator**: Full 60-90 second cinematic scripts with logline, 1.5-second opening hook, three acts, visual notes, dialogue/text, sound design cues, cliffhanger, character description, and world-building note
+- **Metadata Optimizer**: YouTube/TikTok/Facebook titles, descriptions, posting times, search tags, hashtags, thumbnail concept, and A/B hook variants
+- **Content Series Planner**: 7-episode cinematic universe plans with recurring lore, episode hooks, cliffhangers, character arcs, and Identity Loyalty hook
 
 ## Database Schema
 
-- `analyses` — video analyses with `blueprintData` (jsonb) column for persisting generated blueprints
+- `analyses` — video analyses with `blueprintData`, `scriptData`, `metadataData`, and `seriesData` (jsonb) columns for persisting generated content tools
 - `communities` — mapped communities per analysis
 - `spark_posts` — generated organic posts
 

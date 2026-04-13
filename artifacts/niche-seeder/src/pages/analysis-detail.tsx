@@ -13,6 +13,15 @@ import {
   useGetBlueprint,
   getGetBlueprintQueryKey,
   useGenerateBlueprint,
+  useGetScript,
+  getGetScriptQueryKey,
+  useGenerateScript,
+  useGetMetadata,
+  getGetMetadataQueryKey,
+  useGenerateMetadata,
+  useGetSeries,
+  getGetSeriesQueryKey,
+  useGenerateSeries,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,6 +46,10 @@ import {
   Users,
   TrendingUp,
   AlertTriangle,
+  FileText,
+  Tags,
+  CalendarDays,
+  Clapperboard,
 } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
@@ -45,28 +58,42 @@ import { useState } from "react";
 export function AnalysisDetail() {
   const [, params] = useRoute("/analyses/:id");
   const id = params?.id ? parseInt(params.id, 10) : 0;
+  const [activeTab, setActiveTab] = useState("communities");
 
   const { data: analysis, isLoading } = useGetAnalysis(id, {
     query: { enabled: !!id, queryKey: getGetAnalysisQueryKey(id) },
   });
   const { data: communities } = useGetCommunities(id, {
-    query: { enabled: !!id, queryKey: getGetCommunitiesQueryKey(id) },
+    query: { enabled: !!id && (activeTab === "communities" || activeTab === "spark-posts"), queryKey: getGetCommunitiesQueryKey(id) },
   });
   const { data: sparkPosts } = useGetSparkPosts(id, {
-    query: { enabled: !!id, queryKey: getGetSparkPostsQueryKey(id) },
+    query: { enabled: !!id && activeTab === "spark-posts", queryKey: getGetSparkPostsQueryKey(id) },
   });
   const { data: strategy } = useGetStrategy(id, {
-    query: { enabled: !!id, queryKey: getGetStrategyQueryKey(id) },
+    query: { enabled: !!id && activeTab === "strategy", queryKey: getGetStrategyQueryKey(id) },
   });
   const { data: blueprint, isError: blueprintNotFound } = useGetBlueprint(id, {
-    query: { enabled: !!id, queryKey: getGetBlueprintQueryKey(id), retry: false },
+    query: { enabled: !!id && activeTab === "blueprint", queryKey: getGetBlueprintQueryKey(id), retry: false },
+  });
+  const { data: script, isError: scriptNotFound } = useGetScript(id, {
+    query: { enabled: !!id && activeTab === "script", queryKey: getGetScriptQueryKey(id), retry: false },
+  });
+  const { data: metadata, isError: metadataNotFound } = useGetMetadata(id, {
+    query: { enabled: !!id && activeTab === "metadata", queryKey: getGetMetadataQueryKey(id), retry: false },
+  });
+  const { data: series, isError: seriesNotFound } = useGetSeries(id, {
+    query: { enabled: !!id && activeTab === "series", queryKey: getGetSeriesQueryKey(id), retry: false },
   });
 
   const discoverCommunities = useDiscoverCommunities();
   const generateSparkPosts = useGenerateSparkPosts();
   const generateBlueprint = useGenerateBlueprint();
+  const generateScript = useGenerateScript();
+  const generateMetadata = useGenerateMetadata();
+  const generateSeries = useGenerateSeries();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const [toolCopied, setToolCopied] = useState<string | null>(null);
 
   const handleGenerateBlueprint = () => {
     generateBlueprint.mutate(
@@ -84,6 +111,140 @@ export function AnalysisDetail() {
   };
 
   const [blueprintCopied, setBlueprintCopied] = useState(false);
+
+  const markCopied = (key: string) => {
+    setToolCopied(key);
+    setTimeout(() => setToolCopied(null), 2000);
+  };
+
+  const handleGenerateScript = () => {
+    generateScript.mutate(
+      { id },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetScriptQueryKey(id) });
+          toast({ title: "Script Generated", description: "Your cinematic script is ready." });
+        },
+        onError: () => {
+          toast({ title: "Script Failed", description: "Could not generate script.", variant: "destructive" });
+        },
+      }
+    );
+  };
+
+  const handleGenerateMetadata = () => {
+    generateMetadata.mutate(
+      { id },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetMetadataQueryKey(id) });
+          toast({ title: "Metadata Generated", description: "Platform titles, tags, schedule, and thumbnail concept are ready." });
+        },
+        onError: () => {
+          toast({ title: "Metadata Failed", description: "Could not generate metadata.", variant: "destructive" });
+        },
+      }
+    );
+  };
+
+  const handleGenerateSeries = () => {
+    generateSeries.mutate(
+      { id },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetSeriesQueryKey(id) });
+          toast({ title: "Series Plan Generated", description: "Your multi-episode cinematic universe plan is ready." });
+        },
+        onError: () => {
+          toast({ title: "Series Failed", description: "Could not generate series plan.", variant: "destructive" });
+        },
+      }
+    );
+  };
+
+  const handleCopyScript = () => {
+    if (!script) return;
+    const text = [
+      `LOGLINE: ${script.logline}`,
+      ``,
+      `OPENING HOOK: ${script.openingHook}`,
+      ``,
+      `ACTS:`,
+      ...script.acts.map((act) => [
+        `  ACT ${act.actNumber}: ${act.title}`,
+        `  ${act.description}`,
+        `  Visuals: ${act.visualNotes}`,
+        `  Dialogue/Text: ${act.dialogueLine}`,
+        `  Sound: ${act.soundDesignNote}`,
+      ].join("\n")),
+      ``,
+      `CLOSING CLIFFHANGER: ${script.closingCliffhanger}`,
+      `RUNTIME: ${script.estimatedRuntime}`,
+      ``,
+      `CHARACTER: ${script.characterDescription}`,
+      `WORLD-BUILDING: ${script.worldBuildingNote}`,
+    ].join("\n");
+    navigator.clipboard.writeText(text);
+    markCopied("script");
+  };
+
+  const handleCopyMetadata = () => {
+    if (!metadata) return;
+    const text = [
+      `YOUTUBE`,
+      `Title: ${metadata.youtube.title}`,
+      `Description: ${metadata.youtube.description}`,
+      `Best Time: ${metadata.youtube.bestPostingTime}`,
+      ``,
+      `TIKTOK`,
+      `Title: ${metadata.tiktok.title}`,
+      `Description: ${metadata.tiktok.description}`,
+      `Best Time: ${metadata.tiktok.bestPostingTime}`,
+      ``,
+      `FACEBOOK`,
+      `Title: ${metadata.facebook.title}`,
+      `Description: ${metadata.facebook.description}`,
+      `Best Time: ${metadata.facebook.bestPostingTime}`,
+      ``,
+      `TAGS: ${metadata.tags.join(", ")}`,
+      `HASHTAGS: ${metadata.hashtags.map((tag) => tag.startsWith("#") ? tag : `#${tag}`).join(" ")}`,
+      ``,
+      `THUMBNAIL CONCEPT: ${metadata.thumbnailConcept}`,
+      ``,
+      `HOOK VARIANTS:`,
+      ...metadata.hookVariants.map((hook, i) => `  ${i + 1}. ${hook}`),
+    ].join("\n");
+    navigator.clipboard.writeText(text);
+    markCopied("metadata");
+  };
+
+  const handleCopySeries = () => {
+    if (!series) return;
+    const text = [
+      `SERIES: ${series.seriesTitle}`,
+      ``,
+      `PREMISE: ${series.premise}`,
+      ``,
+      `EPISODES:`,
+      ...series.episodes.map((episode) => [
+        `  EP ${episode.number}: ${episode.title}`,
+        `  Logline: ${episode.logline}`,
+        `  Opening Hook: ${episode.openingHook}`,
+        `  World-Building: ${episode.worldBuildingElement}`,
+        `  Cliffhanger: ${episode.cliffhanger}`,
+      ].join("\n")),
+      ``,
+      `LORE ELEMENTS:`,
+      ...series.loreElements.map((item) => `  ▸ ${item}`),
+      ``,
+      `CHARACTER ARCS:`,
+      ...series.characterArcs.map((item) => `  ▸ ${item}`),
+      ``,
+      `IDENTITY LOYALTY HOOK: ${series.identityLoyaltyHook}`,
+    ].join("\n");
+    navigator.clipboard.writeText(text);
+    markCopied("series");
+  };
 
   const handleCopyBlueprint = () => {
     if (!blueprint) return;
@@ -218,7 +379,7 @@ export function AnalysisDetail() {
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="communities" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="w-full bg-secondary border border-border">
           <TabsTrigger value="communities" className="flex-1 uppercase text-xs tracking-wider" data-testid="tab-communities">
             Communities
@@ -231,6 +392,15 @@ export function AnalysisDetail() {
           </TabsTrigger>
           <TabsTrigger value="blueprint" className="flex-1 uppercase text-xs tracking-wider" data-testid="tab-blueprint">
             Blueprint
+          </TabsTrigger>
+          <TabsTrigger value="script" className="flex-1 uppercase text-xs tracking-wider" data-testid="tab-script">
+            Script
+          </TabsTrigger>
+          <TabsTrigger value="metadata" className="flex-1 uppercase text-xs tracking-wider" data-testid="tab-metadata">
+            Metadata
+          </TabsTrigger>
+          <TabsTrigger value="series" className="flex-1 uppercase text-xs tracking-wider" data-testid="tab-series">
+            Series
           </TabsTrigger>
         </TabsList>
 
@@ -572,8 +742,273 @@ export function AnalysisDetail() {
             </div>
           )}
         </TabsContent>
+        <TabsContent value="script" className="mt-4 space-y-4">
+          <div className="flex justify-between items-center">
+            <p className="text-sm text-muted-foreground font-mono">Full cinematic script with acts, hooks, visuals, and sound cues</p>
+            <div className="flex items-center gap-2">
+              {script && (
+                <Button variant="outline" size="sm" onClick={handleCopyScript} className="uppercase tracking-wider text-xs border-border text-muted-foreground hover:text-primary">
+                  {toolCopied === "script" ? <><Check className="w-3 h-3 mr-1" /> Copied</> : <><Copy className="w-3 h-3 mr-1" /> Copy Script</>}
+                </Button>
+              )}
+              <Button data-testid="button-generate-script" onClick={handleGenerateScript} disabled={generateScript.isPending} size="sm" className="uppercase tracking-wider text-xs">
+                {generateScript.isPending ? <><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Writing...</> : <><FileText className="w-3 h-3 mr-1" /> {script ? "Regenerate" : "Generate Script"}</>}
+              </Button>
+            </div>
+          </div>
+
+          {!script && scriptNotFound && (
+            <EmptyToolState icon={FileText} code="NO_SCRIPT_GENERATED" description="Generate a 60-90 second cinematic script with a 1.5-second hook, three acts, visual notes, dialogue, and cliffhanger." />
+          )}
+
+          {script && (
+            <div className="space-y-4">
+              <Card className="bg-card border-primary/40 border-2">
+                <CardHeader className="border-b border-primary/30 bg-primary/5">
+                  <CardTitle className="uppercase text-sm tracking-wider text-primary flex items-center gap-2">
+                    <Clapperboard className="w-4 h-4" /> Logline & Opening Hook
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 space-y-4">
+                  <div>
+                    <span className="text-xs uppercase tracking-wider text-muted-foreground font-bold">Logline</span>
+                    <p className="text-sm text-foreground mt-1">{script.logline}</p>
+                  </div>
+                  <div>
+                    <span className="text-xs uppercase tracking-wider text-muted-foreground font-bold">1.5-Second Opening Hook</span>
+                    <p className="text-sm text-primary mt-1 italic">{script.openingHook}</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="space-y-3">
+                {script.acts.map((act) => (
+                  <Card key={act.actNumber} className="bg-card border-border">
+                    <CardHeader className="border-b border-border bg-secondary/50">
+                      <CardTitle className="uppercase text-sm tracking-wider text-primary">
+                        Act {act.actNumber}: {act.title}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4 space-y-3">
+                      <p className="text-sm text-foreground">{act.description}</p>
+                      <ToolDetail label="Visual Notes" value={act.visualNotes} />
+                      <ToolDetail label="Dialogue / Text On Screen" value={act.dialogueLine} />
+                      <ToolDetail label="Sound Design" value={act.soundDesignNote} />
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card className="bg-card border-border">
+                  <CardHeader className="border-b border-border bg-secondary/50">
+                    <CardTitle className="uppercase text-xs tracking-wider text-primary">Closing Cliffhanger</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4">
+                    <p className="text-sm text-foreground">{script.closingCliffhanger}</p>
+                    <p className="text-xs text-muted-foreground font-mono mt-3">Runtime: {script.estimatedRuntime}</p>
+                  </CardContent>
+                </Card>
+                <Card className="bg-card border-border">
+                  <CardHeader className="border-b border-border bg-secondary/50">
+                    <CardTitle className="uppercase text-xs tracking-wider text-primary">Character & World Consistency</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 space-y-3">
+                    <ToolDetail label="Character" value={script.characterDescription} />
+                    <ToolDetail label="Hidden Lore" value={script.worldBuildingNote} />
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="metadata" className="mt-4 space-y-4">
+          <div className="flex justify-between items-center">
+            <p className="text-sm text-muted-foreground font-mono">Platform titles, descriptions, tags, schedule, hooks, and thumbnail concept</p>
+            <div className="flex items-center gap-2">
+              {metadata && (
+                <Button variant="outline" size="sm" onClick={handleCopyMetadata} className="uppercase tracking-wider text-xs border-border text-muted-foreground hover:text-primary">
+                  {toolCopied === "metadata" ? <><Check className="w-3 h-3 mr-1" /> Copied</> : <><Copy className="w-3 h-3 mr-1" /> Copy Metadata</>}
+                </Button>
+              )}
+              <Button data-testid="button-generate-metadata" onClick={handleGenerateMetadata} disabled={generateMetadata.isPending} size="sm" className="uppercase tracking-wider text-xs">
+                {generateMetadata.isPending ? <><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Optimizing...</> : <><Tags className="w-3 h-3 mr-1" /> {metadata ? "Regenerate" : "Generate Metadata"}</>}
+              </Button>
+            </div>
+          </div>
+
+          {!metadata && metadataNotFound && (
+            <EmptyToolState icon={Tags} code="NO_METADATA_GENERATED" description="Generate optimized titles, descriptions, tags, posting times, thumbnail concept, and hook variants for every platform." />
+          )}
+
+          {metadata && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                {[
+                  { platform: "YouTube", data: metadata.youtube },
+                  { platform: "TikTok", data: metadata.tiktok },
+                  { platform: "Facebook", data: metadata.facebook },
+                ].map((item) => (
+                  <Card key={item.platform} className="bg-card border-border">
+                    <CardHeader className="border-b border-border bg-secondary/50">
+                      <CardTitle className="uppercase text-sm tracking-wider text-primary flex items-center gap-2">
+                        <CalendarDays className="w-4 h-4" /> {item.platform}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4 space-y-3">
+                      <ToolDetail label="Title" value={item.data.title} />
+                      <ToolDetail label="Description" value={item.data.description} />
+                      <ToolDetail label="Best Posting Time" value={item.data.bestPostingTime} />
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              <Card className="bg-card border-primary/40 border-2">
+                <CardHeader className="border-b border-primary/30 bg-primary/5">
+                  <CardTitle className="uppercase text-sm tracking-wider text-primary">Thumbnail Concept</CardTitle>
+                </CardHeader>
+                <CardContent className="p-4">
+                  <p className="text-sm text-foreground leading-relaxed">{metadata.thumbnailConcept}</p>
+                </CardContent>
+              </Card>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card className="bg-card border-border">
+                  <CardHeader className="border-b border-border bg-secondary/50">
+                    <CardTitle className="uppercase text-xs tracking-wider text-primary">Search Tags</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 flex flex-wrap gap-2">
+                    {metadata.tags.map((tag, i) => <Badge key={i} variant="secondary" className="text-[10px] uppercase">{tag}</Badge>)}
+                  </CardContent>
+                </Card>
+                <Card className="bg-card border-border">
+                  <CardHeader className="border-b border-border bg-secondary/50">
+                    <CardTitle className="uppercase text-xs tracking-wider text-primary">Hashtags</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 flex flex-wrap gap-2">
+                    {metadata.hashtags.map((tag, i) => <Badge key={i} variant="outline" className="text-[10px] uppercase">{tag.startsWith("#") ? tag : `#${tag}`}</Badge>)}
+                  </CardContent>
+                </Card>
+              </div>
+
+              <Card className="bg-card border-border">
+                <CardHeader className="border-b border-border bg-secondary/50">
+                  <CardTitle className="uppercase text-xs tracking-wider text-primary">1.5-Second Hook Variants</CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 space-y-2">
+                  {metadata.hookVariants.map((hook, i) => (
+                    <div key={i} className="flex gap-3 text-sm">
+                      <span className="text-primary font-bold flex-shrink-0">{String.fromCharCode(65 + i)}</span>
+                      <span className="text-foreground">{hook}</span>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="series" className="mt-4 space-y-4">
+          <div className="flex justify-between items-center">
+            <p className="text-sm text-muted-foreground font-mono">Multi-episode world-building plan built for repeat viewing and fan identity</p>
+            <div className="flex items-center gap-2">
+              {series && (
+                <Button variant="outline" size="sm" onClick={handleCopySeries} className="uppercase tracking-wider text-xs border-border text-muted-foreground hover:text-primary">
+                  {toolCopied === "series" ? <><Check className="w-3 h-3 mr-1" /> Copied</> : <><Copy className="w-3 h-3 mr-1" /> Copy Series</>}
+                </Button>
+              )}
+              <Button data-testid="button-generate-series" onClick={handleGenerateSeries} disabled={generateSeries.isPending} size="sm" className="uppercase tracking-wider text-xs">
+                {generateSeries.isPending ? <><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Planning...</> : <><Clapperboard className="w-3 h-3 mr-1" /> {series ? "Regenerate" : "Generate Series"}</>}
+              </Button>
+            </div>
+          </div>
+
+          {!series && seriesNotFound && (
+            <EmptyToolState icon={Clapperboard} code="NO_SERIES_GENERATED" description="Generate a 7-episode cinematic universe with recurring lore, character arcs, hidden symbols, and cliffhangers." />
+          )}
+
+          {series && (
+            <div className="space-y-4">
+              <Card className="bg-card border-primary/40 border-2">
+                <CardHeader className="border-b border-primary/30 bg-primary/5">
+                  <CardTitle className="uppercase text-sm tracking-wider text-primary">{series.seriesTitle}</CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 space-y-3">
+                  <p className="text-sm text-foreground leading-relaxed">{series.premise}</p>
+                  <ToolDetail label="Identity Loyalty Hook" value={series.identityLoyaltyHook} />
+                </CardContent>
+              </Card>
+
+              <div className="space-y-3">
+                {series.episodes.map((episode) => (
+                  <Card key={episode.number} className="bg-card border-border">
+                    <CardHeader className="border-b border-border bg-secondary/50">
+                      <CardTitle className="uppercase text-sm tracking-wider text-primary">
+                        Episode {episode.number}: {episode.title}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4 space-y-3">
+                      <p className="text-sm text-foreground">{episode.logline}</p>
+                      <ToolDetail label="Opening Hook" value={episode.openingHook} />
+                      <ToolDetail label="World-Building Element" value={episode.worldBuildingElement} />
+                      <ToolDetail label="Cliffhanger" value={episode.cliffhanger} />
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <ListCard title="Lore Elements" icon={Film} items={series.loreElements} />
+                <ListCard title="Character Arcs" icon={Users} items={series.characterArcs} />
+              </div>
+            </div>
+          )}
+        </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+function EmptyToolState({ icon: Icon, code, description }: { icon: any; code: string; description: string }) {
+  return (
+    <Card className="bg-card border-border">
+      <CardContent className="p-8 text-center">
+        <Icon className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+        <p className="text-muted-foreground font-mono text-sm">{code}</p>
+        <p className="text-muted-foreground font-mono text-xs mt-1">{description}</p>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ToolDetail({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">{label}</span>
+      <p className="text-sm text-foreground mt-1">{value}</p>
+    </div>
+  );
+}
+
+function ListCard({ title, icon: Icon, items }: { title: string; icon: any; items: string[] }) {
+  return (
+    <Card className="bg-card border-border">
+      <CardHeader className="border-b border-border bg-secondary/50">
+        <CardTitle className="uppercase text-xs tracking-wider text-primary flex items-center gap-2">
+          <Icon className="w-3 h-3" /> {title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-4 space-y-2">
+        {items.map((item, i) => (
+          <div key={i} className="flex gap-2 text-sm">
+            <span className="text-primary">▸</span>
+            <span className="text-foreground">{item}</span>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
   );
 }
 
