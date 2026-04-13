@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +9,8 @@ import {
   Copy,
   Crown,
   ImageIcon,
+  Upload,
+  X,
   Palette,
   Search,
   Sparkles,
@@ -123,6 +125,9 @@ export function PhotoStudio() {
   const [query, setQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState<StudioFilter>(studioFilters[0]);
   const [copied, setCopied] = useState(false);
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [subjectNotes, setSubjectNotes] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const filteredFilters = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -136,9 +141,35 @@ export function PhotoStudio() {
   }, [activeCategory, query]);
 
   const copyPrompt = async () => {
-    await navigator.clipboard.writeText(selectedFilter.prompt);
+    await navigator.clipboard.writeText(generatedPrompt);
     setCopied(true);
     setTimeout(() => setCopied(false), 1800);
+  };
+
+  const generatedPrompt = useMemo(() => {
+    const basePrompt = `Use the uploaded reference photo as the source identity, preserving the person's key facial structure, expression, pose, hairstyle, skin tone, outfit cues, and overall likeness. Apply the ${selectedFilter.name} vitality filter. ${selectedFilter.prompt}`;
+    const notes = subjectNotes.trim();
+    if (!notes) return basePrompt;
+    return `${basePrompt} Extra subject direction: ${notes}.`;
+  }, [selectedFilter, subjectNotes]);
+
+  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !file.type.startsWith("image/")) return;
+
+    const reader = new FileReader();
+    reader.onload = (readerEvent) => {
+      setUploadedImage(readerEvent.target?.result as string);
+      setCopied(false);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const clearUploadedImage = () => {
+    setUploadedImage(null);
+    setSubjectNotes("");
+    setCopied(false);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   return (
@@ -176,6 +207,52 @@ export function PhotoStudio() {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 space-y-4">
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-2">
+                  Upload Source Photo
+                </p>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handlePhotoUpload}
+                />
+                {uploadedImage ? (
+                  <div className="relative border border-border bg-secondary/30 overflow-hidden">
+                    <img
+                      src={uploadedImage}
+                      alt="Uploaded source"
+                      className="w-full h-48 object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={clearUploadedImage}
+                      className="absolute top-2 right-2 bg-background/80 border border-border p-1.5 text-muted-foreground hover:text-primary"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                    <div className="absolute left-2 bottom-2 right-2 bg-background/80 border border-primary/30 px-2 py-1 text-[10px] uppercase tracking-wider text-primary">
+                      Source identity loaded
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full min-h-32 border-2 border-dashed border-border hover:border-primary hover:bg-primary/5 transition-colors flex flex-col items-center justify-center gap-3 text-muted-foreground hover:text-primary"
+                  >
+                    <Upload className="w-7 h-7" />
+                    <span className="text-xs uppercase tracking-wider font-bold">
+                      Upload photo to transform
+                    </span>
+                    <span className="text-[10px]">
+                      JPG, PNG, WebP
+                    </span>
+                  </button>
+                )}
+              </div>
+
               <div className="relative overflow-hidden border border-border bg-secondary/30 min-h-[220px]">
                 <img
                   src={selectedFilter.image}
@@ -212,7 +289,7 @@ export function PhotoStudio() {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">
-                    Prompt Recipe
+                    Generated Prompt
                   </p>
                   <button
                     type="button"
@@ -224,8 +301,20 @@ export function PhotoStudio() {
                   </button>
                 </div>
                 <div className="bg-secondary/50 border border-border p-3 text-xs text-foreground/80 leading-relaxed font-mono">
-                  {selectedFilter.prompt}
+                  {generatedPrompt}
                 </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-2 block">
+                  Optional Direction
+                </label>
+                <textarea
+                  value={subjectNotes}
+                  onChange={(event) => setSubjectNotes(event.target.value)}
+                  placeholder="Example: keep the same jacket, make the background sunset, add confident creator energy..."
+                  className="w-full min-h-24 bg-secondary/40 border border-border px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary resize-none"
+                />
               </div>
 
               <Button onClick={copyPrompt} className="w-full uppercase tracking-widest font-bold">
@@ -237,7 +326,7 @@ export function PhotoStudio() {
                 ) : (
                   <>
                     <Copy className="w-4 h-4 mr-2" />
-                    Copy Filter Prompt
+                    Copy Generated Prompt
                   </>
                 )}
               </Button>
