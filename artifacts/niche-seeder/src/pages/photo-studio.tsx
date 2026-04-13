@@ -23,6 +23,13 @@ type StudioFilter = {
   tone: string;
 };
 
+type PromptTuning = {
+  identity: string;
+  style: string;
+  finish: string;
+  variant: number;
+};
+
 const studioFilters: StudioFilter[] = [
   { name: "Japanese Anime", category: "Anime", vitality: "Clean emotion, cinematic street glow, expressive eyes", tone: "cyan", prompt: "Japanese anime look with expressive eyes, clean cel shading, soft cinematic sunlight, warm street atmosphere, polished character design, and crisp linework." },
   { name: "Claude Monet", category: "Fine Art", vitality: "Impressionist color, luminous skin, painterly movement", tone: "blue", prompt: "Claude Monet inspired portrait with impressionist brushwork, luminous color, soft edges, garden light, atmospheric texture, and vibrant painterly motion." },
@@ -77,8 +84,82 @@ const toneClasses: Record<string, string> = {
   orange: "from-orange-500/20 to-orange-500/5 border-orange-400/40 text-orange-200",
 };
 
-function buildPrompt(filter: StudioFilter, notes: string) {
-  const basePrompt = `Use the user's source photo as the reference. Preserve the subject's identity, key facial structure, expression, hairstyle, skin tone, pose, outfit cues, and overall likeness. Generate a new image using the ${filter.name} filter: ${filter.prompt} Keep the result vivid, polished, and social-media ready.`;
+const identityOptions = [
+  {
+    id: "balanced",
+    label: "Balanced",
+    prompt: "Preserve the subject's identity, key facial structure, expression, hairstyle, skin tone, pose, outfit cues, and overall likeness.",
+  },
+  {
+    id: "strict",
+    label: "Strict ID",
+    prompt: "Strongly preserve the subject's exact identity, facial proportions, eye shape, nose, mouth, hairstyle, skin tone, pose, and outfit cues so the person remains clearly recognizable.",
+  },
+  {
+    id: "creative",
+    label: "Flexible",
+    prompt: "Keep the subject recognizable while allowing the style to reshape proportions, mood, and artistic details more freely.",
+  },
+];
+
+const styleOptions = [
+  {
+    id: "subtle",
+    label: "Subtle",
+    prompt: "Apply the style lightly so the source photo still feels close to the original.",
+  },
+  {
+    id: "balanced",
+    label: "Balanced",
+    prompt: "Apply the style clearly while keeping the subject natural and usable.",
+  },
+  {
+    id: "bold",
+    label: "Bold",
+    prompt: "Push the style strongly with high visual impact, recognizable genre traits, and expressive details.",
+  },
+];
+
+const finishOptions = [
+  {
+    id: "realistic",
+    label: "Realistic",
+    prompt: "Keep lighting, anatomy, texture, and depth believable, with a realistic photo-to-art finish.",
+  },
+  {
+    id: "stylized",
+    label: "Stylized",
+    prompt: "Use a polished stylized finish with heightened color, clean shapes, and social-ready appeal.",
+  },
+  {
+    id: "graphic",
+    label: "Graphic",
+    prompt: "Use a bold graphic finish with sharper shapes, stronger contrast, and poster-like clarity.",
+  },
+];
+
+const promptStructures = [
+  (filter: StudioFilter, identity: string, style: string, finish: string) =>
+    `Use the user's source photo as the reference. ${identity} Generate a new image using the ${filter.name} filter: ${filter.prompt} ${style} ${finish} Keep the result vivid, polished, and social-media ready.`,
+  (filter: StudioFilter, identity: string, style: string, finish: string) =>
+    `Create a ${filter.name} version of the user's source photo. ${identity} Visual style direction: ${filter.prompt} ${style} ${finish} Compose it as a clean, finished image suitable for profile photos, thumbnails, and social posts.`,
+  (filter: StudioFilter, identity: string, style: string, finish: string) =>
+    `Transform the user's source photo through a ${filter.name} filter. ${identity} Style recipe: ${filter.prompt} ${style} ${finish} Avoid generic results; make the final image lively, clear, and immediately recognizable.`,
+];
+
+function getOptionPrompt(
+  options: { id: string; prompt: string }[],
+  selectedId: string,
+) {
+  return options.find((option) => option.id === selectedId)?.prompt ?? options[0].prompt;
+}
+
+function buildPrompt(filter: StudioFilter, notes: string, tuning: PromptTuning) {
+  const identityPrompt = getOptionPrompt(identityOptions, tuning.identity);
+  const stylePrompt = getOptionPrompt(styleOptions, tuning.style);
+  const finishPrompt = getOptionPrompt(finishOptions, tuning.finish);
+  const structure = promptStructures[tuning.variant % promptStructures.length];
+  const basePrompt = structure(filter, identityPrompt, stylePrompt, finishPrompt);
   const trimmedNotes = notes.trim();
   if (!trimmedNotes) return basePrompt;
   return `${basePrompt} Extra subject direction: ${trimmedNotes}.`;
@@ -90,8 +171,20 @@ export function PhotoStudio() {
   const [selectedFilter, setSelectedFilter] = useState<StudioFilter>(studioFilters[0]);
   const [copied, setCopied] = useState(false);
   const [subjectNotes, setSubjectNotes] = useState("");
-  const [promptDraft, setPromptDraft] = useState(() => buildPrompt(studioFilters[0], ""));
+  const [identityLevel, setIdentityLevel] = useState("balanced");
+  const [styleLevel, setStyleLevel] = useState("balanced");
+  const [finishLevel, setFinishLevel] = useState("stylized");
+  const [promptVariant, setPromptVariant] = useState(0);
+  const [promptDraft, setPromptDraft] = useState(() =>
+    buildPrompt(studioFilters[0], "", {
+      identity: "balanced",
+      style: "balanced",
+      finish: "stylized",
+      variant: 0,
+    })
+  );
   const [promptEdited, setPromptEdited] = useState(false);
+  const [refreshMessage, setRefreshMessage] = useState("");
   const [recentFilterNames, setRecentFilterNames] = useState<string[]>([]);
 
   const filteredFilters = useMemo(() => {
@@ -119,10 +212,18 @@ export function PhotoStudio() {
     [recentFilterNames]
   );
 
+  const currentTuning = {
+    identity: identityLevel,
+    style: styleLevel,
+    finish: finishLevel,
+    variant: promptVariant,
+  };
+
   const applyFilter = (filter: StudioFilter) => {
     setSelectedFilter(filter);
-    setPromptDraft(buildPrompt(filter, subjectNotes));
+    setPromptDraft(buildPrompt(filter, subjectNotes, currentTuning));
     setPromptEdited(false);
+    setRefreshMessage(`${filter.name} applied`);
     setCopied(false);
     setRecentFilterNames((current) => [
       filter.name,
@@ -133,7 +234,7 @@ export function PhotoStudio() {
   const handleNotesChange = (value: string) => {
     setSubjectNotes(value);
     if (!promptEdited) {
-      setPromptDraft(buildPrompt(selectedFilter, value));
+      setPromptDraft(buildPrompt(selectedFilter, value, currentTuning));
     }
     setCopied(false);
   };
@@ -145,8 +246,35 @@ export function PhotoStudio() {
   };
 
   const regeneratePrompt = () => {
-    setPromptDraft(buildPrompt(selectedFilter, subjectNotes));
+    const nextVariant = promptVariant + 1;
+    const nextTuning = {
+      identity: identityLevel,
+      style: styleLevel,
+      finish: finishLevel,
+      variant: nextVariant,
+    };
+    setPromptVariant(nextVariant);
+    setPromptDraft(buildPrompt(selectedFilter, subjectNotes, nextTuning));
     setPromptEdited(false);
+    setRefreshMessage("Prompt regenerated");
+    setCopied(false);
+  };
+
+  const updateTuning = (type: "identity" | "style" | "finish", value: string) => {
+    const nextTuning = {
+      identity: type === "identity" ? value : identityLevel,
+      style: type === "style" ? value : styleLevel,
+      finish: type === "finish" ? value : finishLevel,
+      variant: promptVariant,
+    };
+
+    if (type === "identity") setIdentityLevel(value);
+    if (type === "style") setStyleLevel(value);
+    if (type === "finish") setFinishLevel(value);
+
+    setPromptDraft(buildPrompt(selectedFilter, subjectNotes, nextTuning));
+    setPromptEdited(false);
+    setRefreshMessage("Prompt tuned");
     setCopied(false);
   };
 
@@ -197,6 +325,39 @@ export function PhotoStudio() {
                     </p>
                   </div>
                   <Palette className="w-8 h-8 opacity-80 shrink-0" />
+                </div>
+              </div>
+
+              <div>
+                <div className="space-y-3 border border-border bg-secondary/20 p-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">
+                      Prompt Strength
+                    </p>
+                    {refreshMessage && (
+                      <span className="text-[10px] text-primary uppercase tracking-wider">
+                        {refreshMessage}
+                      </span>
+                    )}
+                  </div>
+                  <TuningRow
+                    label="Identity"
+                    value={identityLevel}
+                    options={identityOptions}
+                    onChange={(value) => updateTuning("identity", value)}
+                  />
+                  <TuningRow
+                    label="Style"
+                    value={styleLevel}
+                    options={styleOptions}
+                    onChange={(value) => updateTuning("style", value)}
+                  />
+                  <TuningRow
+                    label="Finish"
+                    value={finishLevel}
+                    options={finishOptions}
+                    onChange={(value) => updateTuning("finish", value)}
+                  />
                 </div>
               </div>
 
@@ -417,6 +578,43 @@ function Metric({ label, value }: { label: string; value: string }) {
     <div className="border border-border bg-card px-3 py-2">
       <div className="text-lg font-bold text-primary">{value}</div>
       <div className="text-[9px] uppercase tracking-wider text-muted-foreground">{label}</div>
+    </div>
+  );
+}
+
+function TuningRow({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options: { id: string; label: string }[];
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <div className="text-[9px] uppercase tracking-wider text-muted-foreground">
+        {label}
+      </div>
+      <div className="grid grid-cols-3 gap-1">
+        {options.map((option) => (
+          <button
+            key={option.id}
+            type="button"
+            onClick={() => onChange(option.id)}
+            className={cn(
+              "border px-2 py-1.5 text-[9px] uppercase tracking-wider transition-colors",
+              value === option.id
+                ? "bg-primary text-primary-foreground border-primary"
+                : "border-border text-muted-foreground hover:text-primary hover:border-primary/70"
+            )}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
