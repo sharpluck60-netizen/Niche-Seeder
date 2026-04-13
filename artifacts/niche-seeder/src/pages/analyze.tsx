@@ -48,7 +48,7 @@ export function Analyze() {
   return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-3xl mx-auto">
       <header className="border-b border-border pb-6 mb-8">
-        <h1 className="text-3xl font-bold text-primary uppercase tracking-widest drop-shadow-[0_0_10px_rgba(0,255,255,0.5)]">
+        <h1 className="text-3xl font-bold text-primary uppercase tracking-widest theme-glow-text">
           New Injection
         </h1>
         <p className="text-muted-foreground mt-2 font-mono text-sm">

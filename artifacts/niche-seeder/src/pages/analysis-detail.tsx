@@ -336,7 +336,7 @@ export function AnalysisDetail() {
         </Link>
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-primary uppercase tracking-widest drop-shadow-[0_0_10px_rgba(0,255,255,0.5)]">
+            <h1 className="text-2xl font-bold text-primary uppercase tracking-widest theme-glow-text">
               {analysis.title}
             </h1>
             <p className="text-muted-foreground mt-1 font-mono text-xs truncate max-w-md">{analysis.url}</p>

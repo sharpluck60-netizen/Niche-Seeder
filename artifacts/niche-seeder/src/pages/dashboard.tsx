@@ -25,7 +25,7 @@ export function Dashboard() {
     <div className="space-y-6 animate-in fade-in duration-500">
       <header className="flex items-center justify-between border-b border-border pb-6 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-primary uppercase tracking-widest drop-shadow-[0_0_10px_rgba(0,255,255,0.5)]">
+          <h1 className="text-3xl font-bold text-primary uppercase tracking-widest theme-glow-text">
             Command Center
           </h1>
           <p className="text-muted-foreground mt-2 font-mono text-sm">System Overview & Analytics</p>
@@ -192,7 +192,7 @@ function StatCard({ title, value, icon: Icon }: { title: string, value: number, 
         <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
           {title}
         </CardTitle>
-        <Icon className="h-4 w-4 text-primary drop-shadow-[0_0_5px_rgba(0,255,255,0.8)]" />
+        <Icon className="h-4 w-4 text-primary theme-glow-icon" />
       </CardHeader>
       <CardContent>
         <div className="text-4xl font-bold text-foreground mt-2">{value}</div>

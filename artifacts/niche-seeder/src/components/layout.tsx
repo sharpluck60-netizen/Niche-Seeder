@@ -5,14 +5,17 @@ import {
   Database, 
   Zap,
   Menu,
-  X
+  X,
+  Palette
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { themes, useTheme } from "@/lib/theme";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
 
   const navItems = [
     { href: "/", label: "COMMAND CENTER", icon: Activity },
@@ -28,9 +31,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <Terminal className="w-5 h-5" />
           <span>NICHE_SEEDER_</span>
         </div>
-        <button onClick={() => setIsMobileOpen(!isMobileOpen)} className="text-primary p-2">
-          {isMobileOpen ? <X /> : <Menu />}
-        </button>
+        <div className="flex items-center gap-2">
+          <ThemeSwitcher compact />
+          <button onClick={() => setIsMobileOpen(!isMobileOpen)} className="text-primary p-2">
+            {isMobileOpen ? <X /> : <Menu />}
+          </button>
+        </div>
       </div>
 
       {/* Sidebar */}
@@ -51,7 +57,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <div className={cn(
                   "flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors duration-200 uppercase text-sm tracking-wider",
                   isActive 
-                    ? "bg-primary text-primary-foreground font-bold shadow-[0_0_15px_rgba(0,255,255,0.3)]" 
+                    ? "bg-primary text-primary-foreground font-bold theme-glow-box" 
                     : "text-sidebar-foreground hover:bg-secondary hover:text-primary"
                 )}>
                   <item.icon className="w-4 h-4" />
@@ -61,6 +67,33 @@ export function Layout({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
+
+        <div className="px-4 pb-4">
+          <div className="border border-border bg-card p-3">
+            <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground font-bold mb-3">
+              <Palette className="w-3 h-3 text-primary" />
+              Display Mode
+            </div>
+            <div className="grid grid-cols-3 gap-1">
+              {themes.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setTheme(item.id)}
+                  className={cn(
+                    "px-2 py-2 text-[10px] uppercase tracking-wider border transition-colors",
+                    theme === item.id
+                      ? "bg-primary text-primary-foreground border-primary theme-glow-box"
+                      : "border-border text-muted-foreground hover:text-primary hover:border-primary/60"
+                  )}
+                  title={item.description}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
 
         <div className="p-4 border-t border-border text-xs text-muted-foreground font-mono">
           <div className="flex justify-between items-center mb-1">
@@ -79,4 +112,25 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </main>
     </div>
   );
+}
+
+function ThemeSwitcher({ compact = false }: { compact?: boolean }) {
+  const { theme, setTheme } = useTheme();
+  const currentIndex = themes.findIndex((item) => item.id === theme);
+  const current = themes[currentIndex] ?? themes[0];
+
+  if (compact) {
+    return (
+      <button
+        type="button"
+        onClick={() => setTheme(themes[(currentIndex + 1) % themes.length].id)}
+        className="border border-border bg-card text-primary px-3 py-2 text-[10px] uppercase tracking-wider"
+        aria-label="Switch display mode"
+      >
+        {current.label}
+      </button>
+    );
+  }
+
+  return null;
 }

@@ -8,6 +8,7 @@ import { Dashboard } from "@/pages/dashboard";
 import { Analyze } from "@/pages/analyze";
 import { AnalysesList } from "@/pages/analyses-list";
 import { AnalysisDetail } from "@/pages/analysis-detail";
+import { ThemeProvider } from "@/lib/theme";
 
 const queryClient = new QueryClient();
 
@@ -28,12 +29,14 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <Router />
-        </WouterRouter>
-        <Toaster />
-      </TooltipProvider>
+      <ThemeProvider>
+        <TooltipProvider>
+          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+            <Router />
+          </WouterRouter>
+          <Toaster />
+        </TooltipProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
