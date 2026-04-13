@@ -18,6 +18,9 @@ import {
   GetRecentAnalysesResponse,
   GetStrategyParams,
   GetStrategyResponse,
+  GetBlueprintParams,
+  GetBlueprintResponse,
+  GenerateBlueprintParams,
 } from "@workspace/api-zod";
 
 const router: IRouter = Router();
@@ -440,6 +443,129 @@ router.get("/analyses/:id/strategy", async (req, res): Promise<void> => {
       ...strategy,
     })
   );
+});
+
+router.get("/analyses/:id/blueprint", async (req, res): Promise<void> => {
+  const params = GetBlueprintParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+
+  const [analysis] = await db
+    .select()
+    .from(analysesTable)
+    .where(eq(analysesTable.id, params.data.id));
+
+  if (!analysis) {
+    res.status(404).json({ error: "Analysis not found" });
+    return;
+  }
+
+  if (!analysis.blueprintData) {
+    res.status(404).json({ error: "Blueprint not yet generated" });
+    return;
+  }
+
+  res.json(GetBlueprintResponse.parse(analysis.blueprintData));
+});
+
+router.post("/analyses/:id/blueprint", async (req, res): Promise<void> => {
+  const params = GenerateBlueprintParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+
+  const [analysis] = await db
+    .select()
+    .from(analysesTable)
+    .where(eq(analysesTable.id, params.data.id));
+
+  if (!analysis) {
+    res.status(404).json({ error: "Analysis not found" });
+    return;
+  }
+
+  try {
+    const aiResponse = await openai.chat.completions.create({
+      model: "gpt-5.2",
+      max_completion_tokens: 8192,
+      messages: [
+        {
+          role: "system",
+          content: `You are a 2026 AI cinematic content strategist specializing in algorithm optimization and world-building retention. Given a video's micro-niche, mood keywords, and audience profile, generate a comprehensive Content Blueprint. Respond in JSON:
+{
+  "algorithmReadinessScore": <integer 0-100 overall score>,
+  "algorithmReadinessBreakdown": {
+    "hookStrength": <0-100, how strong the 1.5s micro-hook potential is>,
+    "audienceClarity": <0-100, how clearly defined the target audience is>,
+    "nicheSpecificity": <0-100, how specific the micro-niche is>,
+    "soundDesignPotential": <0-100, how much spatial audio could elevate this>,
+    "characterConsistencyRisk": <0-100, higher = more risk of face drift throttling>
+  },
+  "characterConsistencyTips": [
+    "Specific tip for maintaining character reference in this micro-niche",
+    "Another actionable tip"
+  ],
+  "soundDesignPlan": [
+    "Specific sound design element for this micro-niche",
+    "Binaural/foley recommendation"
+  ],
+  "povLoreIdea": "A detailed 'Found Footage' or 'Digital Artifact' video concept specific to this micro-niche — describe the visual style, the fictional origin story, and why it would go viral",
+  "identityLoyaltyFactors": [
+    "Specific factor that builds Identity Loyalty for this niche",
+    "World-building element that creates repeat viewers"
+  ],
+  "highIntentGainsTactics": [
+    "Platform-specific High-Intent Gain tactic for this content",
+    "Another tactic targeting the Save/Search/Debate signal"
+  ]
+}`,
+        },
+        {
+          role: "user",
+          content: `Generate a Content Blueprint for:
+Micro-Niche: ${analysis.microNiche}
+Mood Keywords: ${analysis.moodKeywords.join(", ")}
+Audience Profile: ${analysis.audienceProfile}
+Hook Suggestion: ${analysis.hookSuggestion}
+Platform: ${analysis.platform}`,
+        },
+      ],
+    });
+
+    const content = aiResponse.choices[0]?.message?.content ?? "{}";
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    const blueprintData = JSON.parse(jsonMatch ? jsonMatch[0] : "{}");
+
+    const fullBlueprint = {
+      analysisId: analysis.id,
+      algorithmReadinessScore: blueprintData.algorithmReadinessScore ?? 50,
+      algorithmReadinessBreakdown: blueprintData.algorithmReadinessBreakdown ?? {
+        hookStrength: 50,
+        audienceClarity: 50,
+        nicheSpecificity: 50,
+        soundDesignPotential: 50,
+        characterConsistencyRisk: 50,
+      },
+      characterConsistencyTips: blueprintData.characterConsistencyTips ?? [],
+      soundDesignPlan: blueprintData.soundDesignPlan ?? [],
+      povLoreIdea: blueprintData.povLoreIdea ?? "",
+      identityLoyaltyFactors: blueprintData.identityLoyaltyFactors ?? [],
+      highIntentGainsTactics: blueprintData.highIntentGainsTactics ?? [],
+    };
+
+    await db
+      .update(analysesTable)
+      .set({ blueprintData: fullBlueprint })
+      .where(eq(analysesTable.id, analysis.id));
+
+    res.status(201).json(GetBlueprintResponse.parse(fullBlueprint));
+  } catch (error) {
+    req.log.error({ error }, "Blueprint generation failed");
+    res.status(500).json({ error: "Blueprint generation failed" });
+  }
 });
 
 export default router;

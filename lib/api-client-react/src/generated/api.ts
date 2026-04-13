@@ -19,6 +19,7 @@ import type {
 import type {
   Analysis,
   Community,
+  ContentBlueprint,
   CreateAnalysisBody,
   DashboardStats,
   HealthStatus,
@@ -1021,3 +1022,174 @@ export function useGetStrategy<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary Get content blueprint with algorithm readiness score, character consistency, sound design, and POV lore idea
+ */
+export const getGetBlueprintUrl = (id: number) => {
+  return `/api/analyses/${id}/blueprint`;
+};
+
+export const getBlueprint = async (
+  id: number,
+  options?: RequestInit,
+): Promise<ContentBlueprint> => {
+  return customFetch<ContentBlueprint>(getGetBlueprintUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetBlueprintQueryKey = (id: number) => {
+  return [`/api/analyses/${id}/blueprint`] as const;
+};
+
+export const getGetBlueprintQueryOptions = <
+  TData = Awaited<ReturnType<typeof getBlueprint>>,
+  TError = ErrorType<void>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getBlueprint>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetBlueprintQueryKey(id);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getBlueprint>>> = ({
+    signal,
+  }) => getBlueprint(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getBlueprint>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetBlueprintQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getBlueprint>>
+>;
+export type GetBlueprintQueryError = ErrorType<void>;
+
+/**
+ * @summary Get content blueprint with algorithm readiness score, character consistency, sound design, and POV lore idea
+ */
+
+export function useGetBlueprint<
+  TData = Awaited<ReturnType<typeof getBlueprint>>,
+  TError = ErrorType<void>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getBlueprint>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetBlueprintQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Generate a content blueprint using AI
+ */
+export const getGenerateBlueprintUrl = (id: number) => {
+  return `/api/analyses/${id}/blueprint`;
+};
+
+export const generateBlueprint = async (
+  id: number,
+  options?: RequestInit,
+): Promise<ContentBlueprint> => {
+  return customFetch<ContentBlueprint>(getGenerateBlueprintUrl(id), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getGenerateBlueprintMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateBlueprint>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof generateBlueprint>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["generateBlueprint"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof generateBlueprint>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return generateBlueprint(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type GenerateBlueprintMutationResult = NonNullable<
+  Awaited<ReturnType<typeof generateBlueprint>>
+>;
+
+export type GenerateBlueprintMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Generate a content blueprint using AI
+ */
+export const useGenerateBlueprint = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateBlueprint>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof generateBlueprint>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getGenerateBlueprintMutationOptions(options));
+};

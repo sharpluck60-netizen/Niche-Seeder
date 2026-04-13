@@ -8,6 +8,8 @@
 
 export * from "./analysis";
 export * from "./community";
+export * from "./contentBlueprint";
+export * from "./contentBlueprintAlgorithmReadinessBreakdown";
 export * from "./createAnalysisBody";
 export * from "./createAnalysisBodyPlatform";
 export * from "./dashboardStats";

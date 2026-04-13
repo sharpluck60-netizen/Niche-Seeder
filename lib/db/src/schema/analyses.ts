@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, integer, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -12,6 +12,7 @@ export const analysesTable = pgTable("analyses", {
   audienceProfile: text("audience_profile").notNull().default(""),
   hookSuggestion: text("hook_suggestion").notNull().default(""),
   status: text("status").notNull().default("pending"),
+  blueprintData: jsonb("blueprint_data"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

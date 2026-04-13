@@ -166,3 +166,34 @@ export const GetStrategyResponse = zod.object({
   contentPillars: zod.array(zod.string()),
   wildcardIdea: zod.string(),
 });
+
+/**
+ * @summary Get content blueprint with algorithm readiness score, character consistency, sound design, and POV lore idea
+ */
+export const GetBlueprintParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetBlueprintResponse = zod.object({
+  analysisId: zod.number(),
+  algorithmReadinessScore: zod.number(),
+  algorithmReadinessBreakdown: zod.object({
+    hookStrength: zod.number(),
+    audienceClarity: zod.number(),
+    nicheSpecificity: zod.number(),
+    soundDesignPotential: zod.number(),
+    characterConsistencyRisk: zod.number(),
+  }),
+  characterConsistencyTips: zod.array(zod.string()),
+  soundDesignPlan: zod.array(zod.string()),
+  povLoreIdea: zod.string(),
+  identityLoyaltyFactors: zod.array(zod.string()),
+  highIntentGainsTactics: zod.array(zod.string()),
+});
+
+/**
+ * @summary Generate a content blueprint using AI
+ */
+export const GenerateBlueprintParams = zod.object({
+  id: zod.coerce.number(),
+});

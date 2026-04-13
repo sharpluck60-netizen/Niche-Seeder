@@ -10,6 +10,9 @@ import {
   useGenerateSparkPosts,
   useGetStrategy,
   getGetStrategyQueryKey,
+  useGetBlueprint,
+  getGetBlueprintQueryKey,
+  useGenerateBlueprint,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,6 +31,12 @@ import {
   Check,
   ArrowLeft,
   ExternalLink,
+  Shield,
+  Volume2,
+  Film,
+  Users,
+  TrendingUp,
+  AlertTriangle,
 } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
@@ -49,11 +58,30 @@ export function AnalysisDetail() {
   const { data: strategy } = useGetStrategy(id, {
     query: { enabled: !!id, queryKey: getGetStrategyQueryKey(id) },
   });
+  const { data: blueprint, isError: blueprintNotFound } = useGetBlueprint(id, {
+    query: { enabled: !!id, queryKey: getGetBlueprintQueryKey(id), retry: false },
+  });
 
   const discoverCommunities = useDiscoverCommunities();
   const generateSparkPosts = useGenerateSparkPosts();
+  const generateBlueprint = useGenerateBlueprint();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+
+  const handleGenerateBlueprint = () => {
+    generateBlueprint.mutate(
+      { id },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetBlueprintQueryKey(id) });
+          toast({ title: "Blueprint Generated", description: "Your content blueprint is ready." });
+        },
+        onError: () => {
+          toast({ title: "Blueprint Failed", description: "Could not generate blueprint.", variant: "destructive" });
+        },
+      }
+    );
+  };
 
   const handleDiscoverCommunities = () => {
     discoverCommunities.mutate(
@@ -166,6 +194,9 @@ export function AnalysisDetail() {
           </TabsTrigger>
           <TabsTrigger value="strategy" className="flex-1 uppercase text-xs tracking-wider" data-testid="tab-strategy">
             Strategy
+          </TabsTrigger>
+          <TabsTrigger value="blueprint" className="flex-1 uppercase text-xs tracking-wider" data-testid="tab-blueprint">
+            Blueprint
           </TabsTrigger>
         </TabsList>
 
@@ -325,6 +356,173 @@ export function AnalysisDetail() {
                   <p className="text-sm text-foreground">{strategy.wildcardIdea}</p>
                 </CardContent>
               </Card>
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="blueprint" className="mt-4 space-y-4">
+          <div className="flex justify-between items-center">
+            <p className="text-sm text-muted-foreground font-mono">
+              Content Blueprint & Algorithm Readiness
+            </p>
+            <Button
+              data-testid="button-generate-blueprint"
+              onClick={handleGenerateBlueprint}
+              disabled={generateBlueprint.isPending}
+              size="sm"
+              className="uppercase tracking-wider text-xs"
+            >
+              {generateBlueprint.isPending ? (
+                <><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Generating...</>
+              ) : (
+                <><Shield className="w-3 h-3 mr-1" /> {blueprint ? "Regenerate Blueprint" : "Generate Blueprint"}</>
+              )}
+            </Button>
+          </div>
+
+          {!blueprint && blueprintNotFound && (
+            <Card className="bg-card border-border">
+              <CardContent className="p-8 text-center">
+                <Shield className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+                <p className="text-muted-foreground font-mono text-sm">NO_BLUEPRINT_GENERATED</p>
+                <p className="text-muted-foreground font-mono text-xs mt-1">Generate a blueprint to get your Algorithm Readiness Score, POV Lore idea, and more</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {blueprint && (
+            <div className="space-y-4">
+              <Card className="bg-card border-border overflow-hidden">
+                <CardHeader className="border-b border-border bg-secondary/50">
+                  <CardTitle className="uppercase text-sm tracking-wider text-primary flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4" /> Algorithm Readiness Score
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-6 mb-6">
+                    <div className="relative flex items-center justify-center w-24 h-24 flex-shrink-0">
+                      <svg className="w-24 h-24 -rotate-90" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="42" fill="none" stroke="hsl(var(--secondary))" strokeWidth="8" />
+                        <circle
+                          cx="50" cy="50" r="42" fill="none"
+                          stroke={blueprint.algorithmReadinessScore >= 75 ? "#00ffff" : blueprint.algorithmReadinessScore >= 50 ? "#f59e0b" : "#ef4444"}
+                          strokeWidth="8"
+                          strokeDasharray={`${(blueprint.algorithmReadinessScore / 100) * 264} 264`}
+                          strokeLinecap="round"
+                          className="transition-all duration-1000"
+                        />
+                      </svg>
+                      <span className="absolute text-xl font-bold text-foreground">{blueprint.algorithmReadinessScore}</span>
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      {Object.entries(blueprint.algorithmReadinessBreakdown).map(([key, val]) => {
+                        const labels: Record<string, string> = {
+                          hookStrength: "Hook Strength",
+                          audienceClarity: "Audience Clarity",
+                          nicheSpecificity: "Niche Specificity",
+                          soundDesignPotential: "Sound Design Potential",
+                          characterConsistencyRisk: "Face Drift Risk",
+                        };
+                        const isRisk = key === "characterConsistencyRisk";
+                        const color = isRisk
+                          ? (val as number) >= 60 ? "bg-destructive" : "bg-yellow-500"
+                          : (val as number) >= 75 ? "bg-primary" : (val as number) >= 50 ? "bg-yellow-500" : "bg-destructive";
+                        return (
+                          <div key={key}>
+                            <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                              <span className="flex items-center gap-1">
+                                {isRisk && <AlertTriangle className="w-3 h-3 text-yellow-500" />}
+                                {labels[key] || key}
+                              </span>
+                              <span className="font-bold text-foreground">{val as number}</span>
+                            </div>
+                            <div className="w-full bg-secondary h-1.5">
+                              <div className={`h-full ${color} transition-all duration-700`} style={{ width: `${val}%` }} />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-card border-border">
+                <CardHeader className="border-b border-border bg-secondary/50">
+                  <CardTitle className="uppercase text-sm tracking-wider text-primary flex items-center gap-2">
+                    <Users className="w-4 h-4" /> Character Consistency Protocol
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 space-y-3">
+                  {blueprint.characterConsistencyTips.map((tip, i) => (
+                    <div key={i} className="flex gap-3 text-sm">
+                      <span className="text-primary font-bold flex-shrink-0">{String(i + 1).padStart(2, "0")}</span>
+                      <span className="text-foreground">{tip}</span>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+
+              <Card className="bg-card border-border">
+                <CardHeader className="border-b border-border bg-secondary/50">
+                  <CardTitle className="uppercase text-sm tracking-wider text-primary flex items-center gap-2">
+                    <Volume2 className="w-4 h-4" /> Sound Design Plan
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 space-y-3">
+                  {blueprint.soundDesignPlan.map((item, i) => (
+                    <div key={i} className="flex gap-3 text-sm">
+                      <span className="text-primary font-bold flex-shrink-0">{String(i + 1).padStart(2, "0")}</span>
+                      <span className="text-foreground">{item}</span>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+
+              <Card className="bg-card border-primary/40 border-2">
+                <CardHeader className="border-b border-primary/30 bg-primary/5">
+                  <CardTitle className="uppercase text-sm tracking-wider text-primary flex items-center gap-2">
+                    <Film className="w-4 h-4" /> POV Lore / Digital Artifact Concept
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4">
+                  <p className="text-sm text-foreground leading-relaxed">{blueprint.povLoreIdea}</p>
+                </CardContent>
+              </Card>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card className="bg-card border-border">
+                  <CardHeader className="border-b border-border bg-secondary/50">
+                    <CardTitle className="uppercase text-xs tracking-wider text-primary flex items-center gap-2">
+                      <Zap className="w-3 h-3" /> Identity Loyalty Factors
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 space-y-2">
+                    {blueprint.identityLoyaltyFactors.map((factor, i) => (
+                      <div key={i} className="flex gap-2 text-sm">
+                        <span className="text-primary">▸</span>
+                        <span className="text-foreground">{factor}</span>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-card border-border">
+                  <CardHeader className="border-b border-border bg-secondary/50">
+                    <CardTitle className="uppercase text-xs tracking-wider text-primary flex items-center gap-2">
+                      <TrendingUp className="w-3 h-3" /> High-Intent Gains Tactics
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4 space-y-2">
+                    {blueprint.highIntentGainsTactics.map((tactic, i) => (
+                      <div key={i} className="flex gap-2 text-sm">
+                        <span className="text-primary">▸</span>
+                        <span className="text-foreground">{tactic}</span>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           )}
         </TabsContent>

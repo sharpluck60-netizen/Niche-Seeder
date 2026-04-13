@@ -78,3 +78,22 @@ export interface StrategyTips {
   contentPillars: string[];
   wildcardIdea: string;
 }
+
+export type ContentBlueprintAlgorithmReadinessBreakdown = {
+  hookStrength: number;
+  audienceClarity: number;
+  nicheSpecificity: number;
+  soundDesignPotential: number;
+  characterConsistencyRisk: number;
+};
+
+export interface ContentBlueprint {
+  analysisId: number;
+  algorithmReadinessScore: number;
+  algorithmReadinessBreakdown: ContentBlueprintAlgorithmReadinessBreakdown;
+  characterConsistencyTips: string[];
+  soundDesignPlan: string[];
+  povLoreIdea: string;
+  identityLoyaltyFactors: string[];
+  highIntentGainsTactics: string[];
+}

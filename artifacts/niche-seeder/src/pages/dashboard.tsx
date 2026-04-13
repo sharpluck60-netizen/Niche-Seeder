@@ -1,6 +1,6 @@
 import { useGetDashboardStats } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, Database, Zap, Share2, Youtube, Facebook } from "lucide-react";
+import { Activity, Database, Zap, Share2, Youtube, Facebook, TrendingUp, Bookmark, Search, MessageCircle, Film } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FaTiktok } from "react-icons/fa";
 
@@ -99,6 +99,83 @@ export function Dashboard() {
                   NO_DATA_AVAILABLE
                 </div>
               )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="col-span-full lg:col-span-1 bg-card border-border">
+          <CardHeader className="border-b border-border bg-secondary/50">
+            <CardTitle className="uppercase text-sm tracking-wider text-primary flex items-center gap-2">
+              <TrendingUp className="w-4 h-4" /> Platform Signal Keys
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 space-y-4">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase text-muted-foreground">
+                <FaTiktok className="w-3 h-3" /> TikTok
+              </div>
+              <div className="flex items-center gap-2 text-xs text-foreground bg-secondary/50 p-2">
+                <Bookmark className="w-3 h-3 text-primary flex-shrink-0" />
+                <span>Save = 10x Like. Target AI Art Collection curators.</span>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase text-muted-foreground">
+                <Youtube className="w-3 h-3" /> YouTube
+              </div>
+              <div className="flex items-center gap-2 text-xs text-foreground bg-secondary/50 p-2">
+                <Search className="w-3 h-3 text-primary flex-shrink-0" />
+                <span>Pixel-indexed. Use Mood Keywords, not generic "AI movie."</span>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase text-muted-foreground">
+                <Facebook className="w-3 h-3" /> Facebook
+              </div>
+              <div className="flex items-center gap-2 text-xs text-foreground bg-secondary/50 p-2">
+                <MessageCircle className="w-3 h-3 text-primary flex-shrink-0" />
+                <span>Debate Engine. End with moral choices to drive comment threads.</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="mt-6">
+        <Card className="bg-card border-border">
+          <CardHeader className="border-b border-border bg-secondary/50">
+            <CardTitle className="uppercase text-sm tracking-wider text-primary flex items-center gap-2">
+              <Film className="w-4 h-4" /> 2026 Distribution Waterfall
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[
+                {
+                  step: "01",
+                  label: "Micro-Niche Injection",
+                  desc: "Seed the right communities with Spark Posts targeting High-Intent curators",
+                  color: "border-primary/50",
+                },
+                {
+                  step: "02",
+                  label: "High-Retention Signal",
+                  desc: "First 60 mins: 500+ niche viewers drive 90% completion rate",
+                  color: "border-primary/70",
+                },
+                {
+                  step: "03",
+                  label: "Algorithm Cascade",
+                  desc: "Platform detects Identity Loyalty signal and pushes to 1M+ general audience",
+                  color: "border-primary",
+                },
+              ].map((item) => (
+                <div key={item.step} className={`border ${item.color} p-4 relative`}>
+                  <div className="text-3xl font-black text-primary/20 absolute top-2 right-3">{item.step}</div>
+                  <div className="text-xs font-bold uppercase tracking-wider text-primary mb-2">{item.label}</div>
+                  <p className="text-xs text-muted-foreground">{item.desc}</p>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
