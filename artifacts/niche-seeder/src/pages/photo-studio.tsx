@@ -16,6 +16,8 @@ import {
   ShieldX,
   Layers,
   SlidersHorizontal,
+  Zap,
+  X,
 } from "lucide-react";
 import { artStyles, artStyleCategories, artStyleNegativeExtras, type ArtStyle } from "@/data/art-styles";
 
@@ -271,6 +273,32 @@ function buildArtStyleNegativePrompt(style: ArtStyle): string {
   return parts.join(", ");
 }
 
+function buildFusionPrompt(
+  primary: ArtStyle,
+  secondary: ArtStyle,
+  notes: string,
+  tuning: PromptTuning
+): string {
+  const identityPrompt = getOptionPrompt(identityOptions, tuning.identity);
+  const stylePrompt = getOptionPrompt(styleOptions, tuning.style);
+  const finishPrompt = getOptionPrompt(finishOptions, tuning.finish);
+  const structures = [
+    `Use the user's source photo as the reference. ${identityPrompt} Fuse two art styles together: primarily ${primary.name} — ${primary.prompt} — blended with the aesthetic of ${secondary.name} — ${secondary.prompt} — letting the two styles complement and contrast each other. ${stylePrompt} ${finishPrompt} Make the result striking, coherent, and social-media ready.`,
+    `Create a hybrid art style version of the user's source photo. ${identityPrompt} Primary style: ${primary.name} — ${primary.prompt} Infused with: ${secondary.name} — ${secondary.prompt} The blend should feel intentional, not accidental — let each style's strongest visual signature come through. ${stylePrompt} ${finishPrompt}`,
+    `Transform the user's photo through a ${primary.name} × ${secondary.name} style fusion. ${identityPrompt} ${primary.name} brings: ${primary.prompt} ${secondary.name} contributes: ${secondary.prompt} Synthesize both into a single unified aesthetic vision. ${stylePrompt} ${finishPrompt} Avoid generic results — the fusion should feel original and purposeful.`,
+  ];
+  const base = structures[tuning.variant % structures.length];
+  const trimmedNotes = notes.trim();
+  return trimmedNotes ? `${base} Extra subject direction: ${trimmedNotes}.` : base;
+}
+
+function buildFusionNegativePrompt(primary: ArtStyle, secondary: ArtStyle): string {
+  const extraA = artStyleNegativeExtras[primary.category] ?? "";
+  const extraB = artStyleNegativeExtras[secondary.category] ?? "";
+  const extras = [...new Set([extraA, extraB].filter(Boolean))];
+  return [baseNegativePrompt, ...extras].join(", ");
+}
+
 export function PhotoStudio() {
   const [mode, setMode] = useState<"filters" | "styles">("filters");
 
@@ -284,6 +312,8 @@ export function PhotoStudio() {
   const [styleQuery, setStyleQuery] = useState("");
   const [selectedStyle, setSelectedStyle] = useState<ArtStyle>(artStyles[0]);
   const [recentStyleNames, setRecentStyleNames] = useState<string[]>([]);
+  const [fusionMode, setFusionMode] = useState(false);
+  const [secondaryStyle, setSecondaryStyle] = useState<ArtStyle | null>(null);
 
   // Shared state
   const [copied, setCopied] = useState(false);
@@ -336,7 +366,25 @@ export function PhotoStudio() {
   };
 
   const applyStyle = (style: ArtStyle) => {
+    if (fusionMode) {
+      if (style.name === selectedStyle.name) {
+        setSecondaryStyle(null);
+        setPromptDraft(buildArtStylePrompt(selectedStyle, subjectNotes, currentTuning));
+        setNegativePrompt(buildArtStyleNegativePrompt(selectedStyle));
+        setRefreshMessage("Secondary cleared");
+      } else {
+        setSecondaryStyle(style);
+        setPromptDraft(buildFusionPrompt(selectedStyle, style, subjectNotes, currentTuning));
+        setNegativePrompt(buildFusionNegativePrompt(selectedStyle, style));
+        setRefreshMessage(`Fusing ${selectedStyle.name} × ${style.name}`);
+      }
+      setPromptEdited(false);
+      setCopied(false);
+      setCopiedNeg(false);
+      return;
+    }
     setSelectedStyle(style);
+    setSecondaryStyle(null);
     setPromptDraft(buildArtStylePrompt(style, subjectNotes, currentTuning));
     setNegativePrompt(buildArtStyleNegativePrompt(style));
     setPromptEdited(false);
@@ -349,8 +397,26 @@ export function PhotoStudio() {
     ].slice(0, 6));
   };
 
+  const toggleFusion = () => {
+    const next = !fusionMode;
+    setFusionMode(next);
+    if (!next) {
+      setSecondaryStyle(null);
+      setPromptDraft(buildArtStylePrompt(selectedStyle, subjectNotes, currentTuning));
+      setNegativePrompt(buildArtStyleNegativePrompt(selectedStyle));
+      setRefreshMessage("Fusion off");
+    } else {
+      setRefreshMessage("Fusion on — pick a second style");
+    }
+    setPromptEdited(false);
+    setCopied(false);
+    setCopiedNeg(false);
+  };
+
   const switchMode = (next: "filters" | "styles") => {
     setMode(next);
+    setFusionMode(false);
+    setSecondaryStyle(null);
     setRefreshMessage("");
     setCopied(false);
     setCopiedNeg(false);
@@ -412,6 +478,8 @@ export function PhotoStudio() {
     if (!promptEdited) {
       if (mode === "filters") {
         setPromptDraft(buildPrompt(selectedFilter, value, currentTuning));
+      } else if (fusionMode && secondaryStyle) {
+        setPromptDraft(buildFusionPrompt(selectedStyle, secondaryStyle, value, currentTuning));
       } else {
         setPromptDraft(buildArtStylePrompt(selectedStyle, value, currentTuning));
       }
@@ -436,6 +504,8 @@ export function PhotoStudio() {
     setPromptVariant(nextVariant);
     if (mode === "filters") {
       setPromptDraft(buildPrompt(selectedFilter, subjectNotes, nextTuning));
+    } else if (fusionMode && secondaryStyle) {
+      setPromptDraft(buildFusionPrompt(selectedStyle, secondaryStyle, subjectNotes, nextTuning));
     } else {
       setPromptDraft(buildArtStylePrompt(selectedStyle, subjectNotes, nextTuning));
     }
@@ -458,6 +528,8 @@ export function PhotoStudio() {
 
     if (mode === "filters") {
       setPromptDraft(buildPrompt(selectedFilter, subjectNotes, nextTuning));
+    } else if (fusionMode && secondaryStyle) {
+      setPromptDraft(buildFusionPrompt(selectedStyle, secondaryStyle, subjectNotes, nextTuning));
     } else {
       setPromptDraft(buildArtStylePrompt(selectedStyle, subjectNotes, nextTuning));
     }
@@ -516,6 +588,32 @@ export function PhotoStudio() {
                     <Palette className="w-8 h-8 opacity-80 shrink-0" />
                   </div>
                 </div>
+              ) : fusionMode && secondaryStyle ? (
+                <div className="space-y-1.5">
+                  <div className={cn("border bg-gradient-to-br p-3", toneClasses[selectedStyle.tone])}>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[9px] uppercase tracking-widest text-foreground/60 font-bold">Primary</span>
+                      <Badge className="bg-background/80 text-primary border border-primary/40 uppercase text-[8px]">
+                        {selectedStyle.category}
+                      </Badge>
+                    </div>
+                    <p className="text-base font-bold text-foreground leading-tight">{selectedStyle.name}</p>
+                  </div>
+                  <div className="flex items-center justify-center gap-2 py-0.5">
+                    <Zap className="w-3.5 h-3.5 text-amber-400" />
+                    <span className="text-[9px] uppercase tracking-widest text-amber-400 font-bold">Fusion</span>
+                    <Zap className="w-3.5 h-3.5 text-amber-400" />
+                  </div>
+                  <div className={cn("border bg-gradient-to-br p-3", toneClasses[secondaryStyle.tone])}>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[9px] uppercase tracking-widest text-foreground/60 font-bold">Secondary</span>
+                      <Badge className="bg-background/80 text-primary border border-primary/40 uppercase text-[8px]">
+                        {secondaryStyle.category}
+                      </Badge>
+                    </div>
+                    <p className="text-base font-bold text-foreground leading-tight">{secondaryStyle.name}</p>
+                  </div>
+                </div>
               ) : (
                 <div className={cn("border bg-gradient-to-br p-4", toneClasses[selectedStyle.tone])}>
                   <div className="flex items-start justify-between gap-3">
@@ -528,7 +626,13 @@ export function PhotoStudio() {
                         {selectedStyle.description}
                       </p>
                     </div>
-                    <Layers className="w-8 h-8 opacity-80 shrink-0" />
+                    {fusionMode ? (
+                      <div className="border border-amber-500/50 bg-amber-500/10 px-2 py-1 text-[9px] text-amber-400 uppercase tracking-wider font-bold shrink-0">
+                        Pick 2nd style
+                      </div>
+                    ) : (
+                      <Layers className="w-8 h-8 opacity-80 shrink-0" />
+                    )}
                   </div>
                 </div>
               )}
@@ -846,9 +950,40 @@ export function PhotoStudio() {
             <>
               <Card className="bg-card border-border">
                 <CardContent className="p-3 space-y-3">
-                  <div className="border border-primary/30 bg-primary/5 px-3 py-2 text-[11px] text-foreground/80 leading-relaxed">
-                    <span className="text-primary font-bold uppercase tracking-wider">Art Styles:</span>{" "}
-                    choose from {artStyles.length} curated world art styles — Photography, Painting, Digital Art, Cinematic, Cultural traditions, Fantasy, and more.
+                  <div className="flex items-center gap-2">
+                    <div className={cn(
+                      "flex-1 border px-3 py-2 text-[11px] leading-relaxed",
+                      fusionMode
+                        ? "border-amber-500/40 bg-amber-500/5 text-amber-200/80"
+                        : "border-primary/30 bg-primary/5 text-foreground/80"
+                    )}>
+                      {fusionMode ? (
+                        <>
+                          <span className="text-amber-400 font-bold uppercase tracking-wider">Fusion active</span>
+                          {" — "}{secondaryStyle
+                            ? `Blending ${selectedStyle.name} × ${secondaryStyle.name}. Click any style to change the secondary, or click the primary to clear it.`
+                            : `Primary is ${selectedStyle.name}. Click any other style to set the secondary blend.`}
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-primary font-bold uppercase tracking-wider">Art Styles:</span>{" "}
+                          {artStyles.length} curated world art styles — Photography, Painting, Digital Art, Cinematic, Cultural, Fantasy, and more.
+                        </>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={toggleFusion}
+                      className={cn(
+                        "shrink-0 flex items-center gap-1.5 border px-3 py-2 text-[10px] uppercase tracking-wider font-bold transition-colors",
+                        fusionMode
+                          ? "bg-amber-500/20 border-amber-500/60 text-amber-400 hover:bg-amber-500/30"
+                          : "border-border text-muted-foreground hover:text-amber-400 hover:border-amber-500/50"
+                      )}
+                    >
+                      {fusionMode ? <X className="w-3 h-3" /> : <Zap className="w-3 h-3" />}
+                      {fusionMode ? "Off" : "Fuse"}
+                    </button>
                   </div>
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
@@ -921,47 +1056,61 @@ export function PhotoStudio() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3 gap-2.5">
-                {filteredStyles.map((style) => (
-                  <button
-                    key={style.name}
-                    type="button"
-                    onClick={() => applyStyle(style)}
-                    className={cn(
-                      "group text-left border bg-card transition-all hover:border-primary hover:bg-primary/5",
-                      selectedStyle.name === style.name
-                        ? "border-primary bg-primary/10 theme-glow-box"
-                        : "border-border"
-                    )}
-                  >
-                    <div className="p-3 space-y-2.5">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className={cn("w-7 h-7 border bg-gradient-to-br flex items-center justify-center shrink-0", toneClasses[style.tone])}>
-                          <Layers className="w-3.5 h-3.5 opacity-80" />
+                {filteredStyles.map((style) => {
+                  const isPrimary = selectedStyle.name === style.name;
+                  const isSecondary = secondaryStyle?.name === style.name;
+                  return (
+                    <button
+                      key={style.name}
+                      type="button"
+                      onClick={() => applyStyle(style)}
+                      className={cn(
+                        "group text-left border bg-card transition-all",
+                        isPrimary
+                          ? "border-primary bg-primary/10 theme-glow-box"
+                          : isSecondary
+                          ? "border-amber-500/70 bg-amber-500/10"
+                          : "border-border hover:border-primary hover:bg-primary/5"
+                      )}
+                    >
+                      <div className="p-3 space-y-2.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className={cn("w-7 h-7 border bg-gradient-to-br flex items-center justify-center shrink-0", toneClasses[style.tone])}>
+                            {isSecondary ? (
+                              <Zap className="w-3.5 h-3.5 text-amber-400" />
+                            ) : (
+                              <Layers className="w-3.5 h-3.5 opacity-80" />
+                            )}
+                          </div>
+                          <Badge className="bg-secondary/60 text-primary border border-primary/30 uppercase text-[8px] px-1.5 py-0.5 max-w-[120px] truncate">
+                            {style.category}
+                          </Badge>
                         </div>
-                        <Badge className="bg-secondary/60 text-primary border border-primary/30 uppercase text-[8px] px-1.5 py-0.5 max-w-[120px] truncate">
-                          {style.category}
-                        </Badge>
+                        <div>
+                          <h3 className="text-sm font-bold text-foreground leading-tight truncate">
+                            {style.name}
+                          </h3>
+                          <p className="text-[10px] text-muted-foreground leading-relaxed mt-1 line-clamp-2 min-h-[32px]">
+                            {style.description}
+                          </p>
+                        </div>
+                        <div className="flex items-center justify-between text-[9px] uppercase tracking-wider pt-1 border-t border-border/50">
+                          <span className={cn("flex items-center gap-1", isSecondary ? "text-amber-400" : "text-primary")}>
+                            {isSecondary ? <Zap className="w-3 h-3" /> : <Layers className="w-3 h-3" />}
+                            {fusionMode ? (isPrimary ? "Primary" : isSecondary ? "Secondary" : "Set Secondary") : "Apply"}
+                          </span>
+                          <span className={cn(
+                            isPrimary ? "text-primary font-bold" :
+                            isSecondary ? "text-amber-400 font-bold" :
+                            "text-muted-foreground"
+                          )}>
+                            {isPrimary ? "Primary" : isSecondary ? "Fused" : "Select"}
+                          </span>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="text-sm font-bold text-foreground leading-tight truncate">
-                          {style.name}
-                        </h3>
-                        <p className="text-[10px] text-muted-foreground leading-relaxed mt-1 line-clamp-2 min-h-[32px]">
-                          {style.description}
-                        </p>
-                      </div>
-                      <div className="flex items-center justify-between text-[9px] uppercase tracking-wider pt-1 border-t border-border/50">
-                        <span className="flex items-center gap-1 text-primary">
-                          <Layers className="w-3 h-3" />
-                          Apply
-                        </span>
-                        <span className={cn(selectedStyle.name === style.name ? "text-primary font-bold" : "text-muted-foreground")}>
-                          {selectedStyle.name === style.name ? "Applied" : "Select"}
-                        </span>
-                      </div>
-                    </div>
-                  </button>
-                ))}
+                    </button>
+                  );
+                })}
               </div>
 
               {filteredStyles.length === 0 && (
