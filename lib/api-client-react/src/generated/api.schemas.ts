@@ -8,3 +8,73 @@
 export interface HealthStatus {
   status: string;
 }
+
+export type CreateAnalysisBodyPlatform =
+  (typeof CreateAnalysisBodyPlatform)[keyof typeof CreateAnalysisBodyPlatform];
+
+export const CreateAnalysisBodyPlatform = {
+  youtube: "youtube",
+  tiktok: "tiktok",
+  facebook: "facebook",
+} as const;
+
+export interface CreateAnalysisBody {
+  url: string;
+  platform: CreateAnalysisBodyPlatform;
+}
+
+export interface Analysis {
+  id: number;
+  url: string;
+  platform: string;
+  title: string;
+  microNiche: string;
+  moodKeywords: string[];
+  audienceProfile: string;
+  hookSuggestion: string;
+  status: string;
+  createdAt: string;
+}
+
+export interface Community {
+  id: number;
+  analysisId: number;
+  name: string;
+  platform: string;
+  url: string;
+  memberCount: string;
+  relevanceScore: number;
+  reason: string;
+}
+
+export interface SparkPost {
+  id: number;
+  analysisId: number;
+  communityId: number;
+  targetPlatform: string;
+  content: string;
+  tone: string;
+  callToAction: string;
+}
+
+export type DashboardStatsPlatformBreakdown = {
+  youtube: number;
+  tiktok: number;
+  facebook: number;
+};
+
+export interface DashboardStats {
+  totalAnalyses: number;
+  totalCommunities: number;
+  totalSparkPosts: number;
+  platformBreakdown: DashboardStatsPlatformBreakdown;
+  recentNiches: string[];
+}
+
+export interface StrategyTips {
+  platform: string;
+  waterfallTrigger: string;
+  microHook: string;
+  contentPillars: string[];
+  wildcardIdea: string;
+}

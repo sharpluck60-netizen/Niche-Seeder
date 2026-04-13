@@ -14,3 +14,155 @@ import * as zod from "zod";
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * @summary List all analyses
+ */
+export const ListAnalysesResponseItem = zod.object({
+  id: zod.number(),
+  url: zod.string(),
+  platform: zod.string(),
+  title: zod.string(),
+  microNiche: zod.string(),
+  moodKeywords: zod.array(zod.string()),
+  audienceProfile: zod.string(),
+  hookSuggestion: zod.string(),
+  status: zod.string(),
+  createdAt: zod.coerce.date(),
+});
+export const ListAnalysesResponse = zod.array(ListAnalysesResponseItem);
+
+/**
+ * @summary Analyze a video link
+ */
+export const CreateAnalysisBody = zod.object({
+  url: zod.string(),
+  platform: zod.enum(["youtube", "tiktok", "facebook"]),
+});
+
+/**
+ * @summary Get a specific analysis
+ */
+export const GetAnalysisParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetAnalysisResponse = zod.object({
+  id: zod.number(),
+  url: zod.string(),
+  platform: zod.string(),
+  title: zod.string(),
+  microNiche: zod.string(),
+  moodKeywords: zod.array(zod.string()),
+  audienceProfile: zod.string(),
+  hookSuggestion: zod.string(),
+  status: zod.string(),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Delete an analysis
+ */
+export const DeleteAnalysisParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+/**
+ * @summary Get communities for an analysis
+ */
+export const GetCommunitiesParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetCommunitiesResponseItem = zod.object({
+  id: zod.number(),
+  analysisId: zod.number(),
+  name: zod.string(),
+  platform: zod.string(),
+  url: zod.string(),
+  memberCount: zod.string(),
+  relevanceScore: zod.number(),
+  reason: zod.string(),
+});
+export const GetCommunitiesResponse = zod.array(GetCommunitiesResponseItem);
+
+/**
+ * @summary Discover communities for an analysis using AI
+ */
+export const DiscoverCommunitiesParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+/**
+ * @summary Get spark posts for an analysis
+ */
+export const GetSparkPostsParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetSparkPostsResponseItem = zod.object({
+  id: zod.number(),
+  analysisId: zod.number(),
+  communityId: zod.number(),
+  targetPlatform: zod.string(),
+  content: zod.string(),
+  tone: zod.string(),
+  callToAction: zod.string(),
+});
+export const GetSparkPostsResponse = zod.array(GetSparkPostsResponseItem);
+
+/**
+ * @summary Generate spark posts for an analysis using AI
+ */
+export const GenerateSparkPostsParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+/**
+ * @summary Get dashboard statistics
+ */
+export const GetDashboardStatsResponse = zod.object({
+  totalAnalyses: zod.number(),
+  totalCommunities: zod.number(),
+  totalSparkPosts: zod.number(),
+  platformBreakdown: zod.object({
+    youtube: zod.number(),
+    tiktok: zod.number(),
+    facebook: zod.number(),
+  }),
+  recentNiches: zod.array(zod.string()),
+});
+
+/**
+ * @summary Get the 5 most recent analyses
+ */
+export const GetRecentAnalysesResponseItem = zod.object({
+  id: zod.number(),
+  url: zod.string(),
+  platform: zod.string(),
+  title: zod.string(),
+  microNiche: zod.string(),
+  moodKeywords: zod.array(zod.string()),
+  audienceProfile: zod.string(),
+  hookSuggestion: zod.string(),
+  status: zod.string(),
+  createdAt: zod.coerce.date(),
+});
+export const GetRecentAnalysesResponse = zod.array(
+  GetRecentAnalysesResponseItem,
+);
+
+/**
+ * @summary Get platform-specific strategy tips for an analysis
+ */
+export const GetStrategyParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetStrategyResponse = zod.object({
+  platform: zod.string(),
+  waterfallTrigger: zod.string(),
+  microHook: zod.string(),
+  contentPillars: zod.array(zod.string()),
+  wildcardIdea: zod.string(),
+});

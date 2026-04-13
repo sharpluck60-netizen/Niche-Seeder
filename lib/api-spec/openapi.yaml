@@ -10,6 +10,10 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: analyses
+    description: Video analysis operations
+  - name: dashboard
+    description: Dashboard operations
 paths:
   /healthz:
     get:
@@ -24,6 +28,200 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /analyses:
+    get:
+      operationId: listAnalyses
+      tags: [analyses]
+      summary: List all analyses
+      responses:
+        "200":
+          description: List of analyses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Analysis"
+    post:
+      operationId: createAnalysis
+      tags: [analyses]
+      summary: Analyze a video link
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAnalysisBody"
+      responses:
+        "201":
+          description: Analysis created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Analysis"
+
+  /analyses/{id}:
+    get:
+      operationId: getAnalysis
+      tags: [analyses]
+      summary: Get a specific analysis
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Analysis details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Analysis"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteAnalysis
+      tags: [analyses]
+      summary: Delete an analysis
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /analyses/{id}/communities:
+    get:
+      operationId: getCommunities
+      tags: [analyses]
+      summary: Get communities for an analysis
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Communities list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Community"
+    post:
+      operationId: discoverCommunities
+      tags: [analyses]
+      summary: Discover communities for an analysis using AI
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "201":
+          description: Communities discovered
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Community"
+
+  /analyses/{id}/spark-posts:
+    get:
+      operationId: getSparkPosts
+      tags: [analyses]
+      summary: Get spark posts for an analysis
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Spark posts list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SparkPost"
+    post:
+      operationId: generateSparkPosts
+      tags: [analyses]
+      summary: Generate spark posts for an analysis using AI
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "201":
+          description: Spark posts generated
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SparkPost"
+
+  /dashboard/stats:
+    get:
+      operationId: getDashboardStats
+      tags: [dashboard]
+      summary: Get dashboard statistics
+      responses:
+        "200":
+          description: Dashboard statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+  /analyses/recent:
+    get:
+      operationId: getRecentAnalyses
+      tags: [analyses]
+      summary: Get the 5 most recent analyses
+      responses:
+        "200":
+          description: Recent analyses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Analysis"
+
+  /analyses/{id}/strategy:
+    get:
+      operationId: getStrategy
+      tags: [analyses]
+      summary: Get platform-specific strategy tips for an analysis
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Strategy tips
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StrategyTips"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +232,162 @@ components:
       required:
         - status
 
+    CreateAnalysisBody:
+      type: object
+      properties:
+        url:
+          type: string
+        platform:
+          type: string
+          enum: [youtube, tiktok, facebook]
+      required:
+        - url
+        - platform
+
+    Analysis:
+      type: object
+      properties:
+        id:
+          type: integer
+        url:
+          type: string
+        platform:
+          type: string
+        title:
+          type: string
+        microNiche:
+          type: string
+        moodKeywords:
+          type: array
+          items:
+            type: string
+        audienceProfile:
+          type: string
+        hookSuggestion:
+          type: string
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - url
+        - platform
+        - title
+        - microNiche
+        - moodKeywords
+        - audienceProfile
+        - hookSuggestion
+        - status
+        - createdAt
+
+    Community:
+      type: object
+      properties:
+        id:
+          type: integer
+        analysisId:
+          type: integer
+        name:
+          type: string
+        platform:
+          type: string
+        url:
+          type: string
+        memberCount:
+          type: string
+        relevanceScore:
+          type: integer
+        reason:
+          type: string
+      required:
+        - id
+        - analysisId
+        - name
+        - platform
+        - url
+        - memberCount
+        - relevanceScore
+        - reason
+
+    SparkPost:
+      type: object
+      properties:
+        id:
+          type: integer
+        analysisId:
+          type: integer
+        communityId:
+          type: integer
+        targetPlatform:
+          type: string
+        content:
+          type: string
+        tone:
+          type: string
+        callToAction:
+          type: string
+      required:
+        - id
+        - analysisId
+        - communityId
+        - targetPlatform
+        - content
+        - tone
+        - callToAction
+
+    DashboardStats:
+      type: object
+      properties:
+        totalAnalyses:
+          type: integer
+        totalCommunities:
+          type: integer
+        totalSparkPosts:
+          type: integer
+        platformBreakdown:
+          type: object
+          properties:
+            youtube:
+              type: integer
+            tiktok:
+              type: integer
+            facebook:
+              type: integer
+          required:
+            - youtube
+            - tiktok
+            - facebook
+        recentNiches:
+          type: array
+          items:
+            type: string
+      required:
+        - totalAnalyses
+        - totalCommunities
+        - totalSparkPosts
+        - platformBreakdown
+        - recentNiches
+
+    StrategyTips:
+      type: object
+      properties:
+        platform:
+          type: string
+        waterfallTrigger:
+          type: string
+        microHook:
+          type: string
+        contentPillars:
+          type: array
+          items:
+            type: string
+        wildcardIdea:
+          type: string
+      required:
+        - platform
+        - waterfallTrigger
+        - microHook
+        - contentPillars
+        - wildcardIdea

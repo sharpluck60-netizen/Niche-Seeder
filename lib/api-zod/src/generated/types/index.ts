@@ -6,4 +6,12 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./analysis";
+export * from "./community";
+export * from "./createAnalysisBody";
+export * from "./createAnalysisBodyPlatform";
+export * from "./dashboardStats";
+export * from "./dashboardStatsPlatformBreakdown";
 export * from "./healthStatus";
+export * from "./sparkPost";
+export * from "./strategyTips";

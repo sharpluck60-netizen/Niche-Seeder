@@ -5,18 +5,29 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
+  MutationFunction,
   QueryFunction,
   QueryKey,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
 } from "@tanstack/react-query";
 
-import type { HealthStatus } from "./api.schemas";
+import type {
+  Analysis,
+  Community,
+  CreateAnalysisBody,
+  DashboardStats,
+  HealthStatus,
+  SparkPost,
+  StrategyTips,
+} from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
-import type { ErrorType } from "../custom-fetch";
+import type { ErrorType, BodyType } from "../custom-fetch";
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
@@ -92,6 +103,917 @@ export function useHealthCheck<
   request?: SecondParameter<typeof customFetch>;
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getHealthCheckQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary List all analyses
+ */
+export const getListAnalysesUrl = () => {
+  return `/api/analyses`;
+};
+
+export const listAnalyses = async (
+  options?: RequestInit,
+): Promise<Analysis[]> => {
+  return customFetch<Analysis[]>(getListAnalysesUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListAnalysesQueryKey = () => {
+  return [`/api/analyses`] as const;
+};
+
+export const getListAnalysesQueryOptions = <
+  TData = Awaited<ReturnType<typeof listAnalyses>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listAnalyses>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListAnalysesQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listAnalyses>>> = ({
+    signal,
+  }) => listAnalyses({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listAnalyses>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListAnalysesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listAnalyses>>
+>;
+export type ListAnalysesQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List all analyses
+ */
+
+export function useListAnalyses<
+  TData = Awaited<ReturnType<typeof listAnalyses>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listAnalyses>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListAnalysesQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Analyze a video link
+ */
+export const getCreateAnalysisUrl = () => {
+  return `/api/analyses`;
+};
+
+export const createAnalysis = async (
+  createAnalysisBody: CreateAnalysisBody,
+  options?: RequestInit,
+): Promise<Analysis> => {
+  return customFetch<Analysis>(getCreateAnalysisUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createAnalysisBody),
+  });
+};
+
+export const getCreateAnalysisMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createAnalysis>>,
+    TError,
+    { data: BodyType<CreateAnalysisBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createAnalysis>>,
+  TError,
+  { data: BodyType<CreateAnalysisBody> },
+  TContext
+> => {
+  const mutationKey = ["createAnalysis"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createAnalysis>>,
+    { data: BodyType<CreateAnalysisBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createAnalysis(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateAnalysisMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createAnalysis>>
+>;
+export type CreateAnalysisMutationBody = BodyType<CreateAnalysisBody>;
+export type CreateAnalysisMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Analyze a video link
+ */
+export const useCreateAnalysis = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createAnalysis>>,
+    TError,
+    { data: BodyType<CreateAnalysisBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createAnalysis>>,
+  TError,
+  { data: BodyType<CreateAnalysisBody> },
+  TContext
+> => {
+  return useMutation(getCreateAnalysisMutationOptions(options));
+};
+
+/**
+ * @summary Get a specific analysis
+ */
+export const getGetAnalysisUrl = (id: number) => {
+  return `/api/analyses/${id}`;
+};
+
+export const getAnalysis = async (
+  id: number,
+  options?: RequestInit,
+): Promise<Analysis> => {
+  return customFetch<Analysis>(getGetAnalysisUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetAnalysisQueryKey = (id: number) => {
+  return [`/api/analyses/${id}`] as const;
+};
+
+export const getGetAnalysisQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAnalysis>>,
+  TError = ErrorType<void>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getAnalysis>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetAnalysisQueryKey(id);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getAnalysis>>> = ({
+    signal,
+  }) => getAnalysis(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAnalysis>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAnalysisQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAnalysis>>
+>;
+export type GetAnalysisQueryError = ErrorType<void>;
+
+/**
+ * @summary Get a specific analysis
+ */
+
+export function useGetAnalysis<
+  TData = Awaited<ReturnType<typeof getAnalysis>>,
+  TError = ErrorType<void>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getAnalysis>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAnalysisQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Delete an analysis
+ */
+export const getDeleteAnalysisUrl = (id: number) => {
+  return `/api/analyses/${id}`;
+};
+
+export const deleteAnalysis = async (
+  id: number,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getDeleteAnalysisUrl(id), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteAnalysisMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteAnalysis>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteAnalysis>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["deleteAnalysis"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteAnalysis>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return deleteAnalysis(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteAnalysisMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteAnalysis>>
+>;
+
+export type DeleteAnalysisMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Delete an analysis
+ */
+export const useDeleteAnalysis = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteAnalysis>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteAnalysis>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getDeleteAnalysisMutationOptions(options));
+};
+
+/**
+ * @summary Get communities for an analysis
+ */
+export const getGetCommunitiesUrl = (id: number) => {
+  return `/api/analyses/${id}/communities`;
+};
+
+export const getCommunities = async (
+  id: number,
+  options?: RequestInit,
+): Promise<Community[]> => {
+  return customFetch<Community[]>(getGetCommunitiesUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetCommunitiesQueryKey = (id: number) => {
+  return [`/api/analyses/${id}/communities`] as const;
+};
+
+export const getGetCommunitiesQueryOptions = <
+  TData = Awaited<ReturnType<typeof getCommunities>>,
+  TError = ErrorType<unknown>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getCommunities>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetCommunitiesQueryKey(id);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getCommunities>>> = ({
+    signal,
+  }) => getCommunities(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getCommunities>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetCommunitiesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getCommunities>>
+>;
+export type GetCommunitiesQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get communities for an analysis
+ */
+
+export function useGetCommunities<
+  TData = Awaited<ReturnType<typeof getCommunities>>,
+  TError = ErrorType<unknown>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getCommunities>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetCommunitiesQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Discover communities for an analysis using AI
+ */
+export const getDiscoverCommunitiesUrl = (id: number) => {
+  return `/api/analyses/${id}/communities`;
+};
+
+export const discoverCommunities = async (
+  id: number,
+  options?: RequestInit,
+): Promise<Community[]> => {
+  return customFetch<Community[]>(getDiscoverCommunitiesUrl(id), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getDiscoverCommunitiesMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof discoverCommunities>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof discoverCommunities>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["discoverCommunities"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof discoverCommunities>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return discoverCommunities(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DiscoverCommunitiesMutationResult = NonNullable<
+  Awaited<ReturnType<typeof discoverCommunities>>
+>;
+
+export type DiscoverCommunitiesMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Discover communities for an analysis using AI
+ */
+export const useDiscoverCommunities = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof discoverCommunities>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof discoverCommunities>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getDiscoverCommunitiesMutationOptions(options));
+};
+
+/**
+ * @summary Get spark posts for an analysis
+ */
+export const getGetSparkPostsUrl = (id: number) => {
+  return `/api/analyses/${id}/spark-posts`;
+};
+
+export const getSparkPosts = async (
+  id: number,
+  options?: RequestInit,
+): Promise<SparkPost[]> => {
+  return customFetch<SparkPost[]>(getGetSparkPostsUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetSparkPostsQueryKey = (id: number) => {
+  return [`/api/analyses/${id}/spark-posts`] as const;
+};
+
+export const getGetSparkPostsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getSparkPosts>>,
+  TError = ErrorType<unknown>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getSparkPosts>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetSparkPostsQueryKey(id);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getSparkPosts>>> = ({
+    signal,
+  }) => getSparkPosts(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getSparkPosts>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetSparkPostsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getSparkPosts>>
+>;
+export type GetSparkPostsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get spark posts for an analysis
+ */
+
+export function useGetSparkPosts<
+  TData = Awaited<ReturnType<typeof getSparkPosts>>,
+  TError = ErrorType<unknown>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getSparkPosts>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetSparkPostsQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Generate spark posts for an analysis using AI
+ */
+export const getGenerateSparkPostsUrl = (id: number) => {
+  return `/api/analyses/${id}/spark-posts`;
+};
+
+export const generateSparkPosts = async (
+  id: number,
+  options?: RequestInit,
+): Promise<SparkPost[]> => {
+  return customFetch<SparkPost[]>(getGenerateSparkPostsUrl(id), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getGenerateSparkPostsMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateSparkPosts>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof generateSparkPosts>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["generateSparkPosts"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof generateSparkPosts>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return generateSparkPosts(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type GenerateSparkPostsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof generateSparkPosts>>
+>;
+
+export type GenerateSparkPostsMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Generate spark posts for an analysis using AI
+ */
+export const useGenerateSparkPosts = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateSparkPosts>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof generateSparkPosts>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getGenerateSparkPostsMutationOptions(options));
+};
+
+/**
+ * @summary Get dashboard statistics
+ */
+export const getGetDashboardStatsUrl = () => {
+  return `/api/dashboard/stats`;
+};
+
+export const getDashboardStats = async (
+  options?: RequestInit,
+): Promise<DashboardStats> => {
+  return customFetch<DashboardStats>(getGetDashboardStatsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetDashboardStatsQueryKey = () => {
+  return [`/api/dashboard/stats`] as const;
+};
+
+export const getGetDashboardStatsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getDashboardStats>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getDashboardStats>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetDashboardStatsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getDashboardStats>>
+  > = ({ signal }) => getDashboardStats({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getDashboardStats>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetDashboardStatsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getDashboardStats>>
+>;
+export type GetDashboardStatsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get dashboard statistics
+ */
+
+export function useGetDashboardStats<
+  TData = Awaited<ReturnType<typeof getDashboardStats>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getDashboardStats>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetDashboardStatsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Get the 5 most recent analyses
+ */
+export const getGetRecentAnalysesUrl = () => {
+  return `/api/analyses/recent`;
+};
+
+export const getRecentAnalyses = async (
+  options?: RequestInit,
+): Promise<Analysis[]> => {
+  return customFetch<Analysis[]>(getGetRecentAnalysesUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetRecentAnalysesQueryKey = () => {
+  return [`/api/analyses/recent`] as const;
+};
+
+export const getGetRecentAnalysesQueryOptions = <
+  TData = Awaited<ReturnType<typeof getRecentAnalyses>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getRecentAnalyses>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetRecentAnalysesQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getRecentAnalyses>>
+  > = ({ signal }) => getRecentAnalyses({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getRecentAnalyses>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetRecentAnalysesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getRecentAnalyses>>
+>;
+export type GetRecentAnalysesQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get the 5 most recent analyses
+ */
+
+export function useGetRecentAnalyses<
+  TData = Awaited<ReturnType<typeof getRecentAnalyses>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getRecentAnalyses>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetRecentAnalysesQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Get platform-specific strategy tips for an analysis
+ */
+export const getGetStrategyUrl = (id: number) => {
+  return `/api/analyses/${id}/strategy`;
+};
+
+export const getStrategy = async (
+  id: number,
+  options?: RequestInit,
+): Promise<StrategyTips> => {
+  return customFetch<StrategyTips>(getGetStrategyUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetStrategyQueryKey = (id: number) => {
+  return [`/api/analyses/${id}/strategy`] as const;
+};
+
+export const getGetStrategyQueryOptions = <
+  TData = Awaited<ReturnType<typeof getStrategy>>,
+  TError = ErrorType<unknown>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getStrategy>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetStrategyQueryKey(id);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getStrategy>>> = ({
+    signal,
+  }) => getStrategy(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getStrategy>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetStrategyQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getStrategy>>
+>;
+export type GetStrategyQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get platform-specific strategy tips for an analysis
+ */
+
+export function useGetStrategy<
+  TData = Awaited<ReturnType<typeof getStrategy>>,
+  TError = ErrorType<unknown>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getStrategy>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetStrategyQueryOptions(id, options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
