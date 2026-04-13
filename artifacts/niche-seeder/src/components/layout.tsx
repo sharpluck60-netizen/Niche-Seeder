@@ -8,6 +8,7 @@ import {
   X,
   Palette,
   Type,
+  Instagram,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -22,6 +23,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { href: "/", label: "COMMAND CENTER", icon: Activity },
     { href: "/analyze", label: "NEW INJECTION", icon: Zap },
     { href: "/analyses", label: "DATABANKS", icon: Database },
+    { href: "/image-lab", label: "IMAGE LAB", icon: Instagram },
   ];
 
   const currentTheme = themes.find((t) => t.id === theme) ?? themes[0];
