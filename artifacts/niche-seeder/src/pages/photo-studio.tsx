@@ -11,6 +11,7 @@ import {
   Upload,
   X,
   Palette,
+  RefreshCw,
   Search,
   Sparkles,
   Wand2,
@@ -78,6 +79,13 @@ const toneClasses: Record<string, string> = {
   orange: "from-orange-500/20 to-orange-500/5 border-orange-400/40 text-orange-200",
 };
 
+function buildPrompt(filter: StudioFilter, notes: string) {
+  const basePrompt = `Use my uploaded photo as the source. Preserve the subject's identity, key facial structure, expression, hairstyle, skin tone, pose, outfit cues, and overall likeness. Generate a new image using the ${filter.name} filter: ${filter.prompt} Keep the result vivid, polished, and social-media ready.`;
+  const trimmedNotes = notes.trim();
+  if (!trimmedNotes) return basePrompt;
+  return `${basePrompt} Extra subject direction: ${trimmedNotes}.`;
+}
+
 export function PhotoStudio() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [query, setQuery] = useState("");
@@ -85,6 +93,8 @@ export function PhotoStudio() {
   const [copied, setCopied] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [subjectNotes, setSubjectNotes] = useState("");
+  const [promptDraft, setPromptDraft] = useState(() => buildPrompt(studioFilters[0], ""));
+  const [promptEdited, setPromptEdited] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const filteredFilters = useMemo(() => {
@@ -99,17 +109,10 @@ export function PhotoStudio() {
   }, [activeCategory, query]);
 
   const copyPrompt = async () => {
-    await navigator.clipboard.writeText(generatedPrompt);
+    await navigator.clipboard.writeText(promptDraft);
     setCopied(true);
     setTimeout(() => setCopied(false), 1800);
   };
-
-  const generatedPrompt = useMemo(() => {
-    const basePrompt = `Use my uploaded photo as the source. Preserve the subject's identity, key facial structure, expression, hairstyle, skin tone, pose, outfit cues, and overall likeness. Generate a new image using the ${selectedFilter.name} filter: ${selectedFilter.prompt} Keep the result vivid, polished, and social-media ready.`;
-    const notes = subjectNotes.trim();
-    if (!notes) return basePrompt;
-    return `${basePrompt} Extra subject direction: ${notes}.`;
-  }, [selectedFilter, subjectNotes]);
 
   const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -126,8 +129,37 @@ export function PhotoStudio() {
   const clearUploadedImage = () => {
     setUploadedImage(null);
     setSubjectNotes("");
+    setPromptDraft(buildPrompt(selectedFilter, ""));
+    setPromptEdited(false);
     setCopied(false);
     if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const applyFilter = (filter: StudioFilter) => {
+    setSelectedFilter(filter);
+    setPromptDraft(buildPrompt(filter, subjectNotes));
+    setPromptEdited(false);
+    setCopied(false);
+  };
+
+  const handleNotesChange = (value: string) => {
+    setSubjectNotes(value);
+    if (!promptEdited) {
+      setPromptDraft(buildPrompt(selectedFilter, value));
+    }
+    setCopied(false);
+  };
+
+  const handlePromptChange = (value: string) => {
+    setPromptDraft(value);
+    setPromptEdited(true);
+    setCopied(false);
+  };
+
+  const regeneratePrompt = () => {
+    setPromptDraft(buildPrompt(selectedFilter, subjectNotes));
+    setPromptEdited(false);
+    setCopied(false);
   };
 
   return (
@@ -229,20 +261,40 @@ export function PhotoStudio() {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">
-                    Generated Prompt
+                    Editable Prompt
                   </p>
-                  <button
-                    type="button"
-                    onClick={copyPrompt}
-                    className="text-[10px] text-primary hover:text-primary/80 flex items-center gap-1"
-                  >
-                    {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                    {copied ? "Copied" : "Copy"}
-                  </button>
+                  <div className="flex items-center gap-3">
+                    {promptEdited && (
+                      <span className="text-[10px] text-accent uppercase tracking-wider">
+                        Edited
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={regeneratePrompt}
+                      className="text-[10px] text-primary hover:text-primary/80 flex items-center gap-1"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                      Regenerate
+                    </button>
+                    <button
+                      type="button"
+                      onClick={copyPrompt}
+                      className="text-[10px] text-primary hover:text-primary/80 flex items-center gap-1"
+                    >
+                      {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                      {copied ? "Copied" : "Copy"}
+                    </button>
+                  </div>
                 </div>
-                <div className="bg-secondary/50 border border-border p-3 text-xs text-foreground/80 leading-relaxed font-mono">
-                  {generatedPrompt}
-                </div>
+                <textarea
+                  value={promptDraft}
+                  onChange={(event) => handlePromptChange(event.target.value)}
+                  className="w-full min-h-56 bg-secondary/50 border border-border p-3 text-xs text-foreground/80 leading-relaxed font-mono focus:outline-none focus:border-primary resize-y"
+                />
+                <p className="mt-2 text-[10px] text-muted-foreground leading-relaxed">
+                  Clicking any filter rewrites this prompt for that style. You can edit it after applying a filter.
+                </p>
               </div>
 
               <div>
@@ -251,7 +303,7 @@ export function PhotoStudio() {
                 </label>
                 <textarea
                   value={subjectNotes}
-                  onChange={(event) => setSubjectNotes(event.target.value)}
+                  onChange={(event) => handleNotesChange(event.target.value)}
                   placeholder="Example: keep the same jacket, make the background sunset, add confident creator energy..."
                   className="w-full min-h-24 bg-secondary/40 border border-border px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary resize-none"
                 />
@@ -277,6 +329,10 @@ export function PhotoStudio() {
         <section className="space-y-4 min-w-0">
           <Card className="bg-card border-border">
             <CardContent className="p-4 space-y-4">
+              <div className="border border-primary/30 bg-primary/5 p-3 text-xs text-foreground/80 leading-relaxed">
+                <span className="text-primary font-bold uppercase tracking-wider">How it works:</span>{" "}
+                click a filter card to apply that style to the prompt, then edit the prompt if needed before copying.
+              </div>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input
@@ -311,7 +367,7 @@ export function PhotoStudio() {
               <button
                 key={filter.name}
                 type="button"
-                onClick={() => setSelectedFilter(filter)}
+                onClick={() => applyFilter(filter)}
                 className={cn(
                   "group text-left border bg-card transition-all hover:border-primary hover:theme-glow-box",
                   selectedFilter.name === filter.name ? "border-primary theme-glow-box" : "border-border"
@@ -333,10 +389,16 @@ export function PhotoStudio() {
                   <div className="flex items-center justify-between text-[10px] uppercase tracking-wider">
                     <span className="flex items-center gap-1 text-primary">
                       <Palette className="w-3 h-3" />
-                      Load Filter
+                      Apply to Prompt
                     </span>
-                    <span className="text-muted-foreground">
-                      {selectedFilter.name === filter.name ? "Active" : "Studio"}
+                    <span
+                      className={cn(
+                        selectedFilter.name === filter.name
+                          ? "text-primary font-bold"
+                          : "text-muted-foreground"
+                      )}
+                    >
+                      {selectedFilter.name === filter.name ? "Applied" : "Select"}
                     </span>
                   </div>
                 </div>
