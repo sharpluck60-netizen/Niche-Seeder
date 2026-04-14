@@ -98,6 +98,7 @@ const maleStyles: HairStyle[] = [
 ═══════════════════════════════════════════════════════ */
 const explorerTools = [
   { id: "midjourney", label: "Midjourney", note: "Use --v 7 for realism" },
+  { id: "nano-banana", label: "Nano Banana", note: "Use for fast image editing with references" },
   { id: "flux", label: "Flux Pro", note: "Best for photorealism" },
   { id: "dalle3", label: "DALL-E 3", note: "Via ChatGPT or API" },
   { id: "firefly", label: "Adobe Firefly", note: "Generative fill works great" },
@@ -109,6 +110,19 @@ const explorerTools = [
    VENDOR STUDIO AI TOOLS
 ═══════════════════════════════════════════════════════ */
 const vendorTools = [
+  {
+    id: "nano-banana",
+    label: "Nano Banana",
+    color: "text-yellow-300 border-yellow-400/40 bg-yellow-400/5",
+    instructions: `HOW TO USE IN NANO BANANA:
+1. Upload TWO reference images when possible:
+   - Reference 1: the hair product image
+   - Reference 2: the female model image
+2. Paste the prompt below and tell Nano Banana to preserve the model's face, skin tone, pose, body shape, and identity.
+3. Tell it to replace ONLY the hair area using the uploaded hair product reference.
+4. If the first result glitches, regenerate with: "keep face identical, fix hairline, blend lace naturally, preserve ears and forehead."
+5. Use the negative prompt section to reduce warped hairlines, floating wigs, and melted strands.`,
+  },
   {
     id: "midjourney",
     label: "Midjourney",
@@ -216,6 +230,7 @@ function buildExplorerPrompt(
 
   const toolSuffix: Record<string, string> = {
     midjourney: "photorealistic, 8K, fashion photography, --v 7 --ar 4:5",
+    "nano-banana": "Nano Banana image edit prompt, preserve face and identity, realistic hair replacement, clean reference-guided result",
     flux: "photorealistic, hyperdetailed hair texture, 8K resolution, Flux Pro quality",
     dalle3: "photorealistic photography style, hyperdetailed, professional hair portrait",
     firefly: "photorealistic, Adobe Firefly generative, detailed hair texture, editorial",
@@ -223,9 +238,18 @@ function buildExplorerPrompt(
     "stable-diffusion": "photorealistic, SDXL, highly detailed hair, 8K, RAW photo, sharp focus",
   };
 
-  return `Photorealistic portrait of ${subjectLine} with ${skinTone}, wearing ${style.name} hairstyle. 
+  return `SELECTED HAIRSTYLE SETTINGS:
+Gender: ${gender}
+Style: ${style.name}
+Category: ${style.category}
+Skin tone: ${skinTone}
+Hair length: ${gender === "female" ? length : "natural length for this male style"}
+Lighting: ${lightingOptions.find((l) => l.id === lighting)?.label ?? lighting}
+Image model: ${explorerTools.find((t) => t.id === toolId)?.label ?? toolId}
 
-HAIR DETAIL: ${style.visualDetail}. Hair length: ${length}. ${style.technicalDetail}.
+Photorealistic portrait of ${subjectLine} with ${skinTone}, wearing ${style.name} hairstyle. 
+
+HAIR DETAIL: ${style.visualDetail}. Hair length: ${gender === "female" ? length : "natural length for this male style"}. ${style.technicalDetail}.
 
 LIGHTING & SETTING: ${light}. Clean background that complements the hair color. Professional hairstyle photography composition, the hair is the hero of the image.
 
@@ -236,15 +260,39 @@ ${toolSuffix[toolId] ?? "photorealistic, 8K, hyperdetailed"}`;
 
 function buildVendorPrompt(
   hairDesc: string,
+  modelDesc: string,
   skinToneId: string,
   length: string,
   lighting: string,
-  toolId: string
+  toolId: string,
+  hasHairReference: boolean,
+  hasModelReference: boolean
 ): string {
   const skinTone = skinTones.find((s) => s.id === skinToneId)?.desc ?? skinToneId;
   const light = lightingOptions.find((l) => l.id === lighting)?.desc ?? lighting;
+  const toolName = vendorTools.find((t) => t.id === toolId)?.label ?? toolId;
+  const modelReferenceRule = hasModelReference
+    ? `MODEL REFERENCE: Use the uploaded female model reference image as the base. Preserve her face, pose, body shape, skin tone, expression, camera angle, and identity. Replace only the hairstyle/hair area. ${modelDesc.trim() ? `Model notes: ${modelDesc.trim()}.` : ""}`
+    : `MODEL CREATION: Create a female model with ${skinTone}. ${modelDesc.trim() ? `Model notes: ${modelDesc.trim()}.` : "Use a clean professional beauty model pose."}`;
+  const hairReferenceRule = hasHairReference
+    ? "HAIR REFERENCE: Use the uploaded hair product reference image as the exact source for hair color, texture, density, curl/wave pattern, lace/frontal style, shine, fullness, and length behavior."
+    : "HAIR REFERENCE: No hair product image is uploaded yet, so follow the written hair description exactly.";
 
-  return `Ultra-photorealistic commercial beauty portrait of a female model only with ${skinTone}, wearing ${hairDesc || "the exact hair product shown in the uploaded reference image"} at ${length} length. This is a hair brand / hair vendor sales image for a real product listing, so the hair must remain the hero and must match the uploaded product reference.
+  return `SELECTED VENDOR SETTINGS:
+Image model: ${toolName}
+Hair reference uploaded: ${hasHairReference ? "yes" : "no"}
+Model reference uploaded: ${hasModelReference ? "yes" : "no"}
+Model gender: female only
+Target skin tone: ${skinTone}
+Target hair length: ${length}
+Lighting: ${lightingOptions.find((l) => l.id === lighting)?.label ?? lighting}
+
+Ultra-photorealistic commercial beauty portrait of a female model only with ${skinTone}, wearing ${hairDesc || "the exact hair product shown in the uploaded hair reference image"} at ${length} length. This is a hair brand / hair vendor sales image for a real product listing, so the hair must remain the hero and must match the uploaded product reference.
+
+REFERENCE IMAGE COMMANDS:
+${hairReferenceRule}
+${modelReferenceRule}
+If using an image model that accepts multiple references, treat the hair product as Reference Image 1 and the female model as Reference Image 2. Do not blend the two faces or change the model identity. Apply the hair from Reference Image 1 onto the head of the female model in Reference Image 2.
 
 HAIR PLACEMENT: The hair sits perfectly on the female model's head with a natural hairline — no visible lace, no synthetic sheen, no floating edges, no warped scalp, no unnatural hairline. The hair follows the skull shape, temples, forehead curve, ears, shoulders, and gravity correctly. Individual strands at the hairline blend seamlessly into the scalp. The hair part (if applicable) shows a natural scalp below.
 
@@ -622,19 +670,24 @@ function StyleExplorer() {
 ═══════════════════════════════════════════════════════ */
 function VendorStudio() {
   const { toast } = useToast();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const hairFileInputRef = useRef<HTMLInputElement>(null);
+  const modelFileInputRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [modelDragActive, setModelDragActive] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [modelPreview, setModelPreview] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [modelUploadError, setModelUploadError] = useState<string | null>(null);
   const [hairDesc, setHairDesc] = useState("");
+  const [modelDesc, setModelDesc] = useState("");
   const [skin, setSkin] = useState("rich");
   const [length, setLength] = useState("Shoulder");
   const [lighting, setLighting] = useState("studio");
-  const [tool, setTool] = useState("midjourney");
+  const [tool, setTool] = useState("nano-banana");
   const [copied, setCopied] = useState(false);
   const [instructionsOpen, setInstructionsOpen] = useState(false);
 
-  const processFile = useCallback((file: File) => {
+  const processHairFile = useCallback((file: File) => {
     if (!file.type.startsWith("image/")) {
       setUploadError("Please upload a JPG, PNG, or WebP hair product image.");
       return;
@@ -649,14 +702,45 @@ function VendorStudio() {
     reader.readAsDataURL(file);
   }, []);
 
+  const processModelFile = useCallback((file: File) => {
+    if (!file.type.startsWith("image/")) {
+      setModelUploadError("Please upload a JPG, PNG, or WebP female model image.");
+      return;
+    }
+    if (file.size > 15 * 1024 * 1024) {
+      setModelUploadError("Model reference image must be under 15MB.");
+      return;
+    }
+    setModelUploadError(null);
+    const reader = new FileReader();
+    reader.onload = (e) => setModelPreview(e.target?.result as string);
+    reader.readAsDataURL(file);
+  }, []);
+
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setDragActive(false);
     const file = e.dataTransfer.files[0];
-    if (file) processFile(file);
-  }, [processFile]);
+    if (file) processHairFile(file);
+  }, [processHairFile]);
 
-  const prompt = buildVendorPrompt(hairDesc, skin, length, lighting, tool);
+  const handleModelDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setModelDragActive(false);
+    const file = e.dataTransfer.files[0];
+    if (file) processModelFile(file);
+  }, [processModelFile]);
+
+  const prompt = buildVendorPrompt(
+    hairDesc,
+    modelDesc,
+    skin,
+    length,
+    lighting,
+    tool,
+    Boolean(imagePreview),
+    Boolean(modelPreview)
+  );
   const currentTool = vendorTools.find((t) => t.id === tool) ?? vendorTools[0];
 
   async function copyPrompt() {
@@ -674,7 +758,7 @@ function VendorStudio() {
           <Star className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
           <div>
             <p className="font-bold text-amber-400 text-[11px] uppercase tracking-wider mb-1">For Hair Vendors & Brands</p>
-            <p className="text-[12px]">Upload a photo of hair you sell, describe it, choose a female model skin tone and length — get a precision prompt + platform instructions to composite it onto a female model as cleanly as possible using AI. Works with Midjourney, Flux, Stable Diffusion, Firefly, and Runway.</p>
+            <p className="text-[12px]">Upload a photo of hair you sell and optionally upload the female model you want to use. The prompt will tell the image model to use the hair image as the product reference and the model image as the preserved identity/body reference. Works with Nano Banana, Midjourney, Flux, Stable Diffusion, Firefly, and Runway.</p>
           </div>
         </div>
       </div>
@@ -695,7 +779,7 @@ function VendorStudio() {
                   onDragLeave={() => setDragActive(false)}
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={handleDrop}
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={() => hairFileInputRef.current?.click()}
                   className={cn(
                     "border-2 border-dashed cursor-pointer transition-all flex flex-col items-center justify-center gap-4 min-h-[260px]",
                     dragActive
@@ -734,7 +818,63 @@ function VendorStudio() {
                   {uploadError}
                 </div>
               )}
-              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) processFile(f); }} />
+              <input ref={hairFileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) processHairFile(f); }} />
+            </div>
+          </div>
+
+          <div className="border border-border bg-card">
+            <div className="border-b border-border bg-secondary/50 px-4 py-3 flex items-center gap-2 text-[10px] uppercase tracking-wider text-amber-400 font-bold">
+              <Upload className="w-3 h-3" />
+              Female Model Reference Image
+              <span className="text-[8px] border border-border px-1.5 py-0.5 text-muted-foreground">Optional</span>
+            </div>
+            <div className="p-4">
+              {!modelPreview ? (
+                <div
+                  onDragEnter={() => setModelDragActive(true)}
+                  onDragLeave={() => setModelDragActive(false)}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={handleModelDrop}
+                  onClick={() => modelFileInputRef.current?.click()}
+                  className={cn(
+                    "border-2 border-dashed cursor-pointer transition-all flex flex-col items-center justify-center gap-4 min-h-[220px]",
+                    modelDragActive
+                      ? "border-primary/60 bg-primary/5"
+                      : "border-border hover:border-primary/40 hover:bg-primary/3"
+                  )}
+                >
+                  <ImageIcon className={cn("w-10 h-10", modelDragActive ? "text-primary" : "text-muted-foreground/40")} />
+                  <div className="text-center">
+                    <p className="text-sm font-bold uppercase tracking-wider text-foreground mb-1">Upload the female model photo</p>
+                    <p className="text-[10px] text-muted-foreground">The prompt will preserve her face, pose, body, and identity</p>
+                  </div>
+                  <div className="text-[10px] text-primary border border-primary/40 px-3 py-1.5">
+                    or click to browse
+                  </div>
+                </div>
+              ) : (
+                <div className="relative">
+                  <img src={modelPreview} alt="Female model reference" className="w-full max-h-[360px] object-contain border border-border" />
+                  <button
+                    type="button"
+                    onClick={() => setModelPreview(null)}
+                    className="absolute top-2 right-2 bg-card border border-border p-1.5 text-muted-foreground hover:text-primary"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                  <div className="mt-2 flex items-center gap-2 text-[10px] text-green-400 border border-green-500/30 bg-green-500/5 px-3 py-2">
+                    <Check className="w-3 h-3" />
+                    Model image loaded — prompt will preserve this female model and replace only the hair
+                  </div>
+                </div>
+              )}
+              {modelUploadError && (
+                <div className="mt-3 flex items-start gap-2 text-[10px] text-destructive border border-destructive/40 bg-destructive/10 px-3 py-2">
+                  <AlertCircle className="w-3 h-3 shrink-0 mt-0.5" />
+                  {modelUploadError}
+                </div>
+              )}
+              <input ref={modelFileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) processModelFile(f); }} />
             </div>
           </div>
 
@@ -753,6 +893,20 @@ function VendorStudio() {
             <p className="text-[9px] text-muted-foreground">Include: length, texture, color, finish (matte/shine), and any unique features</p>
           </div>
 
+          <div className="border border-border bg-card p-4 space-y-2">
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">
+              Female Model Notes <span className="text-muted-foreground/50 normal-case font-normal">(optional)</span>
+            </div>
+            <textarea
+              value={modelDesc}
+              onChange={(e) => setModelDesc(e.target.value)}
+              placeholder="e.g. preserve the model's exact face and pose, keep the gold dress visible, shoulder-up crop, soft smile..."
+              rows={3}
+              className="w-full bg-background border border-border px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/40 resize-none focus:outline-none focus:border-primary leading-relaxed"
+            />
+            <p className="text-[9px] text-muted-foreground">If you upload a model image, these notes tell the image model what to preserve.</p>
+          </div>
+
           {/* Pro tips */}
           <div className="border border-border bg-card p-4 space-y-2">
             <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Tips for Perfect Results</div>
@@ -761,6 +915,7 @@ function VendorStudio() {
                 "Use a clean white or neutral background product photo — no model wearing it yet",
                 "Shoot the hair laid flat or on a mannequin head for best AI reference",
                 "For lace frontals/closures, photograph them installed on a wig cap if possible",
+                "Upload a female model reference when you want the AI to preserve a specific face, pose, or body",
                 "The more accurate your hair description, the better the AI match",
                 "Use the generated negative prompt to reduce floating wigs, bad lace, warped hairlines, and other glitches",
                 "Midjourney image weight (--iw 2.0) gives the strongest hair reference",
