@@ -167,26 +167,26 @@ const vendorTools = [
     label: "Nano Banana",
     color: "text-yellow-300 border-yellow-400/40 bg-yellow-400/5",
     instructions: `HOW TO USE IN NANO BANANA:
-1. Upload your hair product reference image (the product photo)
-2. Paste the complete prompt below into Nano Banana
-3. No model photo required — the prompt builds a professional model for you
-4. If using your own model photo: upload it as a second reference and add: "preserve her face, pose, and identity exactly"
-5. If the first result glitches, regenerate with: "keep face identical, fix hairline, blend naturally, preserve forehead"
-6. Use the negative prompt section to reduce warped hairlines, floating hair, and artifacts
-7. Try 3-5 generations and cherry-pick the best result`,
+1. Upload REFERENCE 1: your hair product photo
+2. Upload REFERENCE 2: your face reference photo (if using one)
+3. Paste the complete prompt below — it already contains priority-ordered instructions
+4. Tell Nano Banana: "Reference 1 is the hair product. Reference 2 is the face — do not change it."
+5. If face identity drifts: regenerate and add "keep face identical to reference 2, no changes"
+6. If hairline looks fake: add "seamless hairline, natural irregularity, no visible lace"
+7. Try 3–5 generations — strict realism requires multiple attempts`,
   },
   {
     id: "midjourney",
     label: "Midjourney",
     color: "text-blue-400 border-blue-500/40 bg-blue-500/5",
     instructions: `HOW TO USE IN MIDJOURNEY:
-1. Upload your hair product image to Discord (drag & drop into chat)
-2. Right-click the uploaded image → Copy Link
-3. Paste the image URL at the START of your /imagine prompt
-4. Then paste the full prompt below after the image URL
-5. Use image weight flag: --iw 1.5 to 2.0 for strong hair reference
-6. The prompt already ends with --v 7 --ar 4:5 parameters
-7. Example: /imagine [your-image-url] [full prompt below] --iw 2.0 --v 7`,
+1. Upload your HAIR PRODUCT photo to Discord → right-click → Copy Link
+2. Upload your FACE REFERENCE photo (if using) → right-click → Copy Link
+3. Start your /imagine with: [face-url] [hair-url] [full prompt below]
+4. Face URL must come FIRST — Midjourney reads images left-to-right by weight
+5. Add --iw 2.0 to lock the hair reference strongly
+6. Add --cref [face-url] if you want character reference locking for the face
+7. The prompt already ends with --v 7 --ar 4:5 parameters`,
   },
   {
     id: "flux",
@@ -194,11 +194,12 @@ const vendorTools = [
     color: "text-purple-400 border-purple-500/40 bg-purple-500/5",
     instructions: `HOW TO USE WITH FLUX PRO:
 1. Go to fal.ai, Replicate, or ComfyUI with Flux Pro loaded
-2. Upload your hair product photo as the IP-Adapter or Style Reference image
-3. Set IP-Adapter weight to 0.8-1.0 for strong hair fidelity
-4. Paste the full prompt below into the text prompt field
-5. Set steps to 30-40, guidance scale 7.0 for best quality
-6. Flux Pro renders hyperdetailed strands — generate 3-5 variations`,
+2. Upload HAIR PRODUCT photo as IP-Adapter or Style Reference (weight 0.8–1.0)
+3. Upload FACE REFERENCE photo as a second IP-Adapter or ControlNet (FaceID or InstantID)
+4. FaceID/InstantID weight: 0.9–1.0 to prevent identity drift
+5. Paste the full prompt below — priority order is built in
+6. Steps: 30–40, guidance scale 7.0 for realism
+7. Generate 3–5 variations — strict realism requires multiple passes`,
   },
   {
     id: "dalle3",
@@ -367,6 +368,7 @@ function buildVendorPrompt(
   lighting: string,
   toolId: string,
   hasHairReference: boolean,
+  hasFaceReference: boolean,
   gender: "female" | "male"
 ): string {
   const skinToneObj = skinTones.find((s) => s.id === skinToneId);
@@ -377,38 +379,75 @@ function buildVendorPrompt(
   const lightDesc = light?.desc ?? lighting;
   const toolName = vendorTools.find((t) => t.id === toolId)?.label ?? toolId;
   const engine = engineDirectives[toolId] ?? engineDirectives["nano-banana"];
+  const genderWord = gender === "female" ? "female" : "male";
 
-  const hairReferenceRule = hasHairReference
-    ? "HAIR REFERENCE IMAGE: Use the uploaded hair product photo as the exact source for hair color, texture, density, curl/wave pattern, lace/frontal style, shine level, bundle fullness, and length behavior. Match the uploaded hair product exactly — do not invent a different texture or color."
-    : "HAIR DESCRIPTION: No hair product image is uploaded. Follow the written hair description exactly to recreate the hair style and texture described.";
+  const faceSection = hasFaceReference
+    ? `PRIORITY 1 — FACE REFERENCE (DO NOT CHANGE):
+Use the uploaded face reference image.
+Preserve the subject's identity with 95–100% exact likeness.
+Do not alter facial structure, skin tone, proportions, or expression.
+No beautification, no symmetry correction, no feature enhancement.
+The face must be indistinguishable from the reference at completion.`
+    : `PRIORITY 1 — SUBJECT:
+Create ${modelDesc}.
+Professional ${genderWord} beauty model, natural composed expression, light or no makeup.
+No distracting accessories. Identity is consistent and believable throughout.`;
 
-  return `${engine.prefix}
+  const hairSection = hasHairReference
+    ? `PRIORITY 2 — HAIR PRODUCT REFERENCE (EXACT MATCH REQUIRED):
+Use the uploaded hair product image as the sole source of truth for:
+- Color: match exactly, no reinterpretation
+- Texture: replicate the exact surface quality (straight, wavy, curly, coily, etc.)
+- Density: match bundle fullness and volume as shown
+- Curl/wave pattern: reproduce precisely at ${length} length
+- Finish: natural shine level only — not glossy, not plastic
+No enhancement, no idealization. The hair must look like the exact product the customer will receive.`
+    : `PRIORITY 2 — HAIR PRODUCT (FROM DESCRIPTION):
+${hairDesc || "Hair product as described — follow the written details exactly."}
+Length: ${length}.
+Reproduce the described texture, color, density, and pattern faithfully.
+No enhancement, no reinterpretation. Natural finish — not glossy, not plastic.`;
 
-VENDOR HAIR PRODUCT SHOWCASE — ${toolName}
+  return `MODE: Photorealistic hair product render (strict realism) — ${toolName}
 
-SUBJECT & IDENTITY: Create ${modelDesc}. Professional beauty model, composed and elegant expression, natural or light editorial makeup. No distracting accessories. Head-and-shoulders portrait composition. The model is NOT described by the vendor — she is a generated editorial beauty model built to showcase the hair.
+${faceSection}
 
-${hairReferenceRule}
+${hairSection}
 
-HAIRSTYLE FOCUS (Hero): ${hairDesc || "The exact hair product shown in the uploaded hair product reference image"} at ${length} length. This is a professional hair vendor / hair brand product listing image, so the hair is the absolute hero of the shot. Every strand, wave, curl, or loc must be rendered with maximum photographic fidelity.
+PRIORITY 3 — INSTALLATION REALISM:
+The hair must appear naturally installed on the model's head:
+- Seamless hairline with no visible lace, glue, wig cap, or synthetic edge
+- Slight natural irregularity at the hairline (not a perfect computer-generated line)
+- Correct temple and sideburn transition — hair tapers naturally into the skin
+- Hair follows the shape of the skull and responds to gravity at ${length} length
+- Individual strands at the perimeter blend into the scalp organically
+- No floating edges, no gap between hair and skin, no warped scalp
 
-HAIR PLACEMENT: The hair sits perfectly on the model's head with a completely natural hairline — no visible lace edges, no synthetic sheen, no floating hair, no warped scalp, no unnatural hairline. The hair follows the skull shape, temples, forehead curve, and gravity correctly. Individual strands at the hairline blend seamlessly into the scalp.
+COMPOSITION:
+Head-and-shoulders portrait, eye-level angle, centered framing.
+The hair is the primary subject of the image.
+Shallow depth of field — soft background blur isolates the subject cleanly.
 
-HAIR DETAIL: ${length} length hair, every strand hyperdetailed from root to end, natural movement and texture consistent throughout. The hair color, density, wave pattern, curl pattern, shine level, bundle fullness, and texture match the reference product exactly.
+LIGHTING: ${lightLabel} — ${lightDesc}.
+Soft, balanced studio exposure with no harsh shadows.
+Hair shine must appear natural — soft highlight, not wet or plastic gloss.
+Lighting reveals hair texture, movement, and density without overexposing.
 
-COMPOSITION: Head-and-shoulders portrait, eye-level angle, centered framing. Professional hairstyle photography where the hair is the primary subject. Shallow depth of field — soft background blur isolates the hair beautifully.
+SKIN:
+Natural skin texture with subtle SSS (subsurface scattering).
+No plastic smoothing, no over-retouching, no artificial skin softening.
+Pores and micro-texture retained for photographic realism.
 
-LIGHTING: ${lightLabel} — ${lightDesc}. Key light positioned to maximize the hair's shine, texture, and movement. Rim light to define hair edges and give dimension. This is a commercial beauty photography setup.
+BACKGROUND:
+Clean, neutral, softly blurred studio background.
+No distractions. Complements the hair and skin tone.
 
-SKIN RENDERING: Natural authentic skin with subtle SSS (subsurface scattering) — soft and dimensional, not plastic or over-retouched. Pores and micro-texture visible for realism. Polished editorial finish.
+TECHNICAL: ${engine.technicalAdditions}.
+8K resolution, RAW photo quality, ultra-sharp focus on hair texture from root to end.
+No watermarks, no artifacts, no duplicated face, no extra limbs.
+The finished image must be indistinguishable from a professional product photography shoot.
 
-BACKGROUND: Clean minimal studio background that makes the hair the undeniable focus. Neutral, slightly warm, or on-brand tone. No distractions. E-commerce quality backdrop.
-
-TECHNICAL: ${engine.technicalAdditions}. Commercial beauty photography, 8K resolution, RAW photo quality, ultra-sharp focus on hair texture, no watermarks, no artifacts, no extra limbs, no duplicated face, no distorted ears, no melted strands, no glitching around the forehead or edges. Hair appears indistinguishable from professionally photographed real installed hair.
-
-COLOR GRADING: True-to-life color — the hair color must accurately represent what the customer will receive. Balanced contrast, clean highlights, rich shadows for hair depth.
-
-NEGATIVE PROMPT: male model (if female selected), mannequin, child, floating wig, detached hair, bad lace, visible wig cap, melted hairline, plastic shine, synthetic-looking fibers, blurry hair, distorted face, extra face, duplicated head, warped ears, hair clipping through skin, gaps at hairline, artifacts, watermark, text overlay, censored, blurred.
+NEGATIVE: fake hairline, wig look, visible lace, wig cap, plastic shine, wet gloss, distorted face, blurred face, identity drift, melted strands, broken curls, floating hair, hair clipping through skin, artifacts, watermark, text.
 
 ${engine.suffix}`;
 }
@@ -777,9 +816,13 @@ function StyleExplorer() {
 function VendorStudio() {
   const { toast } = useToast();
   const hairFileInputRef = useRef<HTMLInputElement>(null);
+  const faceFileInputRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [faceDragActive, setFaceDragActive] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [facePreview, setFacePreview] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [faceUploadError, setFaceUploadError] = useState<string | null>(null);
   const [hairDesc, setHairDesc] = useState("");
   const [skin, setSkin] = useState("rich");
   const [length, setLength] = useState("Shoulder");
@@ -804,12 +847,34 @@ function VendorStudio() {
     reader.readAsDataURL(file);
   }, []);
 
+  const processFaceFile = useCallback((file: File) => {
+    if (!file.type.startsWith("image/")) {
+      setFaceUploadError("Please upload a JPG, PNG, or WebP face reference image.");
+      return;
+    }
+    if (file.size > 15 * 1024 * 1024) {
+      setFaceUploadError("Face reference image must be under 15MB.");
+      return;
+    }
+    setFaceUploadError(null);
+    const reader = new FileReader();
+    reader.onload = (e) => setFacePreview(e.target?.result as string);
+    reader.readAsDataURL(file);
+  }, []);
+
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setDragActive(false);
     const file = e.dataTransfer.files[0];
     if (file) processHairFile(file);
   }, [processHairFile]);
+
+  const handleFaceDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setFaceDragActive(false);
+    const file = e.dataTransfer.files[0];
+    if (file) processFaceFile(file);
+  }, [processFaceFile]);
 
   const prompt = buildVendorPrompt(
     hairDesc,
@@ -818,6 +883,7 @@ function VendorStudio() {
     lighting,
     tool,
     Boolean(imagePreview),
+    Boolean(facePreview),
     vendorGender
   );
   const currentTool = vendorTools.find((t) => t.id === tool) ?? vendorTools[0];
@@ -825,7 +891,7 @@ function VendorStudio() {
   async function copyPrompt() {
     await navigator.clipboard.writeText(prompt);
     setCopied(true);
-    toast({ title: "Prompt copied!", description: "Follow the platform instructions to use with your hair image." });
+    toast({ title: "Prompt copied!", description: "Follow the platform instructions to use with your reference images." });
     setTimeout(() => setCopied(false), 2000);
   }
 
@@ -837,7 +903,7 @@ function VendorStudio() {
           <Star className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
           <div>
             <p className="font-bold text-amber-400 text-[11px] uppercase tracking-wider mb-1">For Hair Vendors & Brands</p>
-            <p className="text-[12px]">Upload your hair product photo, select skin tone and settings — the AI builds a professional model for you. No model photo upload and no model description required. Just pick your product, choose settings, copy the prompt, and go.</p>
+            <p className="text-[12px]">Upload your hair product photo (required) and optionally a face reference. The prompt follows a strict priority order — face identity is locked first, then the hair is matched exactly to your product, then installation realism is enforced. No model description needed.</p>
           </div>
         </div>
       </div>
@@ -901,33 +967,110 @@ function VendorStudio() {
             </div>
           </div>
 
+          {/* Face reference upload */}
+          <div className="border border-border bg-card">
+            <div className="border-b border-border bg-secondary/50 px-4 py-3 flex items-center gap-2 text-[10px] uppercase tracking-wider text-primary font-bold">
+              <Upload className="w-3 h-3" />
+              Face Reference Image
+              <span className="text-[8px] border border-border px-1.5 py-0.5 text-muted-foreground ml-1">Optional</span>
+            </div>
+            <div className="p-4">
+              {!facePreview ? (
+                <div
+                  onDragEnter={() => setFaceDragActive(true)}
+                  onDragLeave={() => setFaceDragActive(false)}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={handleFaceDrop}
+                  onClick={() => faceFileInputRef.current?.click()}
+                  className={cn(
+                    "border-2 border-dashed cursor-pointer transition-all flex flex-col items-center justify-center gap-3 min-h-[180px]",
+                    faceDragActive
+                      ? "border-primary/60 bg-primary/5"
+                      : "border-border hover:border-primary/40 hover:bg-primary/3"
+                  )}
+                >
+                  <ImageIcon className={cn("w-8 h-8", faceDragActive ? "text-primary" : "text-muted-foreground/30")} />
+                  <div className="text-center">
+                    <p className="text-sm font-bold uppercase tracking-wider text-foreground mb-1">Upload face reference</p>
+                    <p className="text-[10px] text-muted-foreground">The AI will lock the face identity — no alteration allowed</p>
+                  </div>
+                  <div className="text-[10px] text-primary border border-primary/40 px-3 py-1.5">
+                    or click to browse
+                  </div>
+                </div>
+              ) : (
+                <div className="relative">
+                  <img src={facePreview} alt="Face reference" className="w-full max-h-[300px] object-contain border border-border" />
+                  <button
+                    type="button"
+                    onClick={() => setFacePreview(null)}
+                    className="absolute top-2 right-2 bg-card border border-border p-1.5 text-muted-foreground hover:text-primary"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                  <div className="mt-2 flex items-center gap-2 text-[10px] text-green-400 border border-green-500/30 bg-green-500/5 px-3 py-2">
+                    <Check className="w-3 h-3" />
+                    Face reference loaded — prompt will enforce 95–100% identity lock (Priority 1)
+                  </div>
+                </div>
+              )}
+              {faceUploadError && (
+                <div className="mt-3 flex items-start gap-2 text-[10px] text-destructive border border-destructive/40 bg-destructive/10 px-3 py-2">
+                  <AlertCircle className="w-3 h-3 shrink-0 mt-0.5" />
+                  {faceUploadError}
+                </div>
+              )}
+              <input ref={faceFileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) processFaceFile(f); }} />
+            </div>
+          </div>
+
           {/* Hair description */}
           <div className="border border-border bg-card p-4 space-y-2">
             <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">
-              Describe Your Hair Product <span className="text-muted-foreground/50 normal-case font-normal">(optional — image reference takes priority)</span>
+              Describe Your Hair Product <span className="text-muted-foreground/50 normal-case font-normal">(optional — uploaded image takes priority)</span>
             </div>
             <textarea
               value={hairDesc}
               onChange={(e) => setHairDesc(e.target.value)}
-              placeholder="e.g. 30-inch bone straight Brazilian weave in natural black (1B), silky smooth with a high-gloss finish..."
+              placeholder="e.g. 30-inch bone straight Brazilian weave in natural black (1B), low-shine matte finish, silky smooth texture..."
               rows={3}
               className="w-full bg-background border border-border px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/40 resize-none focus:outline-none focus:border-primary leading-relaxed"
             />
-            <p className="text-[9px] text-muted-foreground">Include: length, texture, color, finish (matte/shine), and any unique product features</p>
+            <p className="text-[9px] text-muted-foreground">Include: length, texture, color, finish (matte/low-shine), curl/wave pattern, and any unique product features</p>
+          </div>
+
+          {/* Priority legend */}
+          <div className="border border-border bg-card p-4 space-y-2">
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">How This Prompt Works</div>
+            <div className="space-y-2">
+              {[
+                { priority: "1", label: "Face Reference", color: "text-primary border-primary/40", note: "Identity locked at 95–100%. No alteration. Upload a face photo to activate." },
+                { priority: "2", label: "Hair Product Reference", color: "text-amber-400 border-amber-400/40", note: "Hair matched exactly — color, texture, density, curl pattern, finish. No reinterpretation." },
+                { priority: "3", label: "Installation Realism", color: "text-green-400 border-green-400/40", note: "Seamless hairline, correct temple transition, natural irregularity, gravity-correct placement." },
+              ].map((p) => (
+                <div key={p.priority} className={cn("flex items-start gap-3 border px-3 py-2", p.color.split(" ")[1], p.color.split(" ")[2] || "")}>
+                  <span className={cn("text-[9px] font-black border px-1.5 py-0.5 shrink-0 mt-0.5", p.color)}>P{p.priority}</span>
+                  <div>
+                    <div className={cn("text-[9px] font-bold uppercase tracking-wider", p.color.split(" ")[0])}>{p.label}</div>
+                    <div className="text-[9px] text-muted-foreground mt-0.5 leading-relaxed">{p.note}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Pro tips */}
           <div className="border border-border bg-card p-4 space-y-2">
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Tips for Perfect Results</div>
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Tips for Best Results</div>
             <ul className="space-y-2">
               {[
-                "Upload a clean white or neutral background product photo — the AI reads it as the hair reference",
-                "Shoot the hair laid flat, on a mannequin head, or on a hanger for maximum AI clarity",
-                "For lace frontals or closures: photograph them installed on a wig cap if possible",
-                "No model photo needed — the prompt auto-generates a professional editorial model for you",
-                "Select the skin tone that best matches your target customer or marketing audience",
-                "Midjourney: paste your product image URL before the prompt + use --iw 2.0 for strongest hair fidelity",
-                "Generate 3-5 variations in any AI and cherry-pick the most commercial-ready result",
+                "Hair product photo: clean neutral background, laid flat or on a mannequin — no person wearing it",
+                "Face reference: use a clear front-facing photo with good lighting and no heavy filters",
+                "For lace frontals or closures: photograph installed on a wig cap for the clearest AI read",
+                "Without a face upload, the AI builds a professional editorial model from your skin tone selection",
+                "Hair shine in the prompt is set to natural — not glossy. This avoids the plastic/wet look",
+                "Midjourney: paste hair product URL first, then face URL, then prompt — use --iw 2.0",
+                "Generate 3–5 variations and select the most realistic installation result",
               ].map((tip, i) => (
                 <li key={i} className="flex items-start gap-2 text-[10px] text-muted-foreground leading-relaxed">
                   <span className="text-amber-400 font-bold shrink-0">{i + 1}.</span>
