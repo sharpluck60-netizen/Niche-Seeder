@@ -3,9 +3,11 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import {
+  Bot,
   Check,
   Copy,
   Film,
+  Globe,
   RefreshCw,
   Search,
   Sparkles,
@@ -98,6 +100,30 @@ const videoEffects: VideoEffect[] = [
   { name: "Origami Paper Fold", category: "Transition FX", description: "Scene folds like origami paper to reveal next", tone: "green", tool: "Kling AI", duration: "3–4s", prompt: "The scene folds along geometric crease lines like a piece of origami paper — triangular and rectangular panels fold away in sequence to reveal the next scene underneath. The folds cast realistic shadows on each other. Clean, geometric, and satisfying to watch." },
   { name: "Shatter Glass Cut", category: "Transition FX", description: "Frame shatters like a mirror, reveals new scene", tone: "blue", tool: "Pika 2.0", duration: "2–3s", prompt: "The current scene shatters like a mirror or glass pane into hundreds of fragments, revealing the new scene behind it. Each glass shard catches and reflects light as it falls away. The break begins from a point of impact and radiates outward. High-impact dramatic transition." },
   { name: "Waterfall Dissolve", category: "Transition FX", description: "Scene liquefies and flows down like a waterfall", tone: "blue", tool: "Runway Gen-3", duration: "3–4s", prompt: "The pixels of the current scene liquify and flow downward like a waterfall of digital water, dissolving the image from top to bottom in flowing streams. The new scene is revealed underneath as the old scene washes away. Beautiful fluid simulation with light refraction." },
+
+  // ── Veo 3 FX ─────────────────────────────────────────────────────────────
+  { name: "Photorealistic Scene Build", category: "Veo 3 FX", description: "Full photorealistic environment generated from scratch", tone: "green", tool: "Veo 3", duration: "6–8s", prompt: "Generate a complete photorealistic cinematic environment from scratch — perfect volumetric lighting, depth of field, realistic surface textures, physically accurate shadows, and seamless atmospheric haze. Every detail should look as if captured by a high-end cinema camera. No artificial or digital look — pure photographic realism." },
+  { name: "Fluid Physics Master", category: "Veo 3 FX", description: "Hyperrealistic water, fire, and smoke with true physics", tone: "blue", tool: "Veo 3", duration: "5–8s", prompt: "Hyperrealistic fluid dynamics simulation: water splashes with accurate surface tension, refraction, and foam. Fire flickers with convection currents and ember trails. Smoke billows with turbulent fluid behavior. All physics are photorealistic and scientifically accurate — no artificial or CGI quality." },
+  { name: "Crowd Life Simulation", category: "Veo 3 FX", description: "Photorealistic crowd moves naturally in a public scene", tone: "slate", tool: "Veo 3", duration: "6–8s", prompt: "A photorealistic crowd of diverse people moves naturally through a public space — each person has unique clothing, gait, body language, and interaction. No cloning or repetition. Ambient sound implied by the scene. Captured from a wide cinema lens. Completely believable and human." },
+  { name: "Weather Event Spectacle", category: "Veo 3 FX", description: "Storm, lightning, tornado, or blizzard with physics", tone: "slate", tool: "Veo 3", duration: "6–10s", prompt: "A dramatic meteorological event unfolds with photorealistic physics: dark storm clouds rotate and billow, lightning arcs from sky to earth with branching patterns, rain streaks at high speed, wind bends trees with realistic force. The atmospheric pressure and light change are palpable. Ultra-cinematic weather." },
+  { name: "Nature Timelapse Bloom", category: "Veo 3 FX", description: "Flower blooms, seasons change, clouds roll — all real", tone: "green", tool: "Veo 3", duration: "8s", prompt: "A photorealistic nature timelapse compressed into 8 seconds: flowers unfurl petal by petal, sunlight traces arcs across the sky, clouds build and dissolve, shadows shift dramatically. Every element — plant cell growth, dew forming, insects visiting — is captured with macro realism. Pure organic beauty." },
+  { name: "Wildlife Documentary", category: "Veo 3 FX", description: "Naturalistic animal behavior, BBC documentary grade", tone: "amber", tool: "Veo 3", duration: "6–8s", prompt: "A photorealistic wildlife documentary-quality scene: an animal behaves completely naturally in its native habitat — breathing, blinking, reacting to surroundings. Coat or skin texture is perfect. Eyes are alive and expressive. Natural lighting, shallow depth of field. David Attenborough BBC Earth production level." },
+  { name: "Aerial Drone Reveal", category: "Veo 3 FX", description: "Cinematic drone camera rises to epic aerial reveal", tone: "blue", tool: "Veo 3", duration: "6–8s", prompt: "A cinematic drone camera rises smoothly from ground level, revealing a sweeping aerial landscape below. The motion is perfectly stabilized with slight atmospheric shimmer. Below, streets, buildings, or natural terrain come into full view. Golden hour or blue hour lighting. Epic establishing shot quality." },
+  { name: "Underwater Bioluminescence", category: "Veo 3 FX", description: "Glowing deep sea life drifts through dark ocean", tone: "cyan", tool: "Veo 3", duration: "6–8s", prompt: "A photorealistic deep ocean environment: bioluminescent creatures emit pulsing blue-green light in the total darkness of the deep sea. Jellyfish trail glowing tentacles, plankton sparkle, strange fish drift past. Water pressure and volumetric light rays create authentic deep-sea atmosphere. Awe-inspiring and otherworldly." },
+  { name: "Architecture Cinematic Reveal", category: "Veo 3 FX", description: "Sweeping cinematic camera reveals stunning architecture", tone: "amber", tool: "Veo 3", duration: "5–8s", prompt: "A smooth cinematic camera movement reveals a piece of architecture in a dramatic sweep — from a tight detail to the full facade, or a wide exterior to an interior reveal. Light plays perfectly across surfaces. The building's materiality — glass, stone, wood, metal — is photorealistic. Architectural photography magazine quality." },
+  { name: "Cosmic Space Environment", category: "Veo 3 FX", description: "Photorealistic nebula, planets, and asteroids in space", tone: "purple", tool: "Veo 3", duration: "6–8s", prompt: "A photorealistic space environment: a massive nebula fills the background with gas and dust in deep reds, purples, and blues. Planets hang in the void with accurate atmospheric glow and surface detail. An asteroid field drifts past. A star burns in the far distance. NASA-quality cosmic photorealism." },
+
+  // ── Grok FX ──────────────────────────────────────────────────────────────
+  { name: "Surreal Dream Reality", category: "Grok FX", description: "Impossible dreamlike world with photographic detail", tone: "purple", tool: "Grok Aurora", duration: "6–8s", prompt: "A surreal dreamlike reality that defies physics but feels visually photographic — impossible architecture floats in sky, stairways lead to clouds, clocks melt, shadows fall in wrong directions. Salvador Dalí meets hyperrealism. Every impossible element is rendered with photographic precision and emotional resonance." },
+  { name: "Abstract Dimension Storm", category: "Grok FX", description: "Swirling abstract dimensions, color, and geometry collide", tone: "pink", tool: "Grok Aurora", duration: "5–7s", prompt: "An explosive abstract dimension: swirling geometric forms in vivid neon and jewel tones collide and orbit. Fractals unfold infinitely, color fields bleed into each other, impossible shapes rotate in non-Euclidean space. The motion is rhythmic and hypnotic. Kandinsky meets digital physics." },
+  { name: "Cyberpunk Mega-City", category: "Grok FX", description: "Vast neon cyberpunk city at night, extreme detail", tone: "cyan", tool: "Grok Aurora", duration: "6–8s", prompt: "A sprawling cyberpunk mega-city at night: holographic advertisements tower above rain-soaked streets, flying vehicles stream between skyscrapers, neon kanji signs reflect in puddles. Dense population of diverse humans and androids. Blade Runner 2049 production design meets Ghost in the Shell density. Hyper-detailed world-building." },
+  { name: "Fantasy Epic Horizon", category: "Grok FX", description: "Sweeping fantasy world with mountains, magic, and scale", tone: "amber", tool: "Grok Aurora", duration: "6–8s", prompt: "An epic fantasy world panorama: dragon-scale mountain ranges pierce clouds, floating islands bear ancient castles, rivers of molten gold wind through mystical forests. The sky has three moons. Massive scale makes humans feel microscopic. Tolkien meets Studio Ghibli meets concept art grandeur." },
+  { name: "Psychedelic Reality Break", category: "Grok FX", description: "Visual reality fractures into multi-dimensional psychedelia", tone: "pink", tool: "Grok Aurora", duration: "5–6s", prompt: "Reality fractures and unfolds into multi-layered psychedelic dimensions: fractal patterns cascade from the center outward, rainbow light diffracts through impossible prisms, geometric mandalas rotate in multiple axes simultaneously. DMT aesthetic meets fine art precision. Alex Grey meets IMAX." },
+  { name: "Biopunk Living World", category: "Grok FX", description: "Organic biological architecture breathes and pulses", tone: "green", tool: "Grok Aurora", duration: "6–8s", prompt: "A biopunk world where all architecture is grown from living biological material: buildings have skin-like facades that breathe and pulse, veins of bioluminescent fluid run through structural columns, organs the size of houses pump visible fluids. Grotesque yet beautiful. H.R. Giger meets Hayao Miyazaki organics." },
+  { name: "Neon Noir Rain City", category: "Grok FX", description: "Rain-drenched noir city drenched in neon and shadow", tone: "cyan", tool: "Grok Aurora", duration: "6–8s", prompt: "A rain-soaked noir city at night: neon signs in magenta, electric blue, and acid yellow reflect in every wet surface. Steam rises from grates. A lone figure walks in silhouette. Every raindrop catches a different colored light. Smoke and fog obscure the upper floors of buildings. Dark, moody, impossibly beautiful." },
+  { name: "Mythological Creature", category: "Grok FX", description: "Photorealistic ancient mythological creature in the wild", tone: "amber", tool: "Grok Aurora", duration: "5–8s", prompt: "A photorealistic mythological creature exists in its natural habitat with complete believability: scales, fur, feathers, or skin have perfect biological detail. Eyes are intelligent and alive. Movement is naturalistic and weighted. The environment reacts to its presence — birds flee, water ripples, trees bend. National Geographic meets myth." },
+  { name: "Interdimensional Rift", category: "Grok FX", description: "Two realities tear open and merge through a rift", tone: "purple", tool: "Grok Aurora", duration: "6–8s", prompt: "Reality tears open at a central rift, and two entirely different dimensions bleed into each other — one might be a lush forest, the other a barren alien world. The rift distorts light around its edges with gravitational lensing. Objects and particles from both worlds mix at the boundary. Epic scale and production quality." },
+  { name: "Living Abstract Data", category: "Grok FX", description: "Information becomes living visual art in motion", tone: "blue", tool: "Grok Aurora", duration: "5–7s", prompt: "Abstract data takes on physical form and moves like a living organism: information flows as luminous rivers of light, data nodes pulse and connect like neurons, algorithms visualized as blooming fractals, network graphs become three-dimensional webs of glowing threads. Beautiful, intelligent-feeling motion art." },
 ];
 
 const effectCategories = ["All", ...Array.from(new Set(videoEffects.map((e) => e.category)))];
@@ -117,6 +143,8 @@ const toolBadgeColors: Record<string, string> = {
   "Runway Gen-3": "bg-purple-500/20 border-purple-400/40 text-purple-300",
   "Kling AI": "bg-blue-500/20 border-blue-400/40 text-blue-300",
   "Pika 2.0": "bg-pink-500/20 border-pink-400/40 text-pink-300",
+  "Veo 3": "bg-emerald-500/20 border-emerald-400/40 text-emerald-300",
+  "Grok Aurora": "bg-orange-500/20 border-orange-400/40 text-orange-300",
 };
 
 const categoryIcons: Record<string, React.ElementType> = {
@@ -127,6 +155,8 @@ const categoryIcons: Record<string, React.ElementType> = {
   "Portrait FX": Star,
   "Fantasy FX": Triangle,
   "Transition FX": Layers,
+  "Veo 3 FX": Globe,
+  "Grok FX": Bot,
 };
 
 function buildVideoPrompt(effect: VideoEffect, subject: string): string {
@@ -201,13 +231,13 @@ export function CreativeStudio() {
               Creative Studio
             </h1>
             <p className="text-muted-foreground mt-2 font-mono text-sm max-w-3xl">
-              Pick an AI video effect template, describe your subject, then copy the prompt into Runway, Kling, Pika, or Sora.
+              Pick an AI video effect template, describe your subject, then copy the prompt into Runway Gen-3, Kling AI, Pika 2.0, Veo 3, or Grok Aurora.
             </p>
           </div>
           <div className="grid grid-cols-3 gap-2 text-center min-w-[280px]">
             <Metric label="Effects" value={videoEffects.length.toString()} />
             <Metric label="Categories" value={(effectCategories.length - 1).toString()} />
-            <Metric label="Tools" value="3" />
+            <Metric label="Tools" value="5" />
           </div>
         </div>
       </header>
@@ -324,9 +354,11 @@ export function CreativeStudio() {
                   Recommended AI Tools
                 </p>
                 {[
-                  { name: "Runway Gen-3", desc: "Best for cinematic & transform effects" },
-                  { name: "Kling AI", desc: "Best for motion & cultural effects" },
-                  { name: "Pika 2.0", desc: "Best for portrait & atmosphere effects" },
+                  { name: "Runway Gen-3", desc: "Cinematic & transform effects" },
+                  { name: "Kling AI", desc: "Motion & parallax effects" },
+                  { name: "Pika 2.0", desc: "Portrait & atmosphere effects" },
+                  { name: "Veo 3", desc: "Photorealistic scenes & physics" },
+                  { name: "Grok Aurora", desc: "Surreal & creative generation" },
                 ].map((t) => (
                   <div key={t.name} className="flex items-center justify-between text-[10px]">
                     <span className={cn("border px-1.5 py-0.5 uppercase tracking-wider", toolBadgeColors[t.name])}>
@@ -346,7 +378,7 @@ export function CreativeStudio() {
             <CardContent className="p-3 space-y-3">
               <div className="border border-primary/30 bg-primary/5 px-3 py-2 text-[11px] text-foreground/80 leading-relaxed">
                 <span className="text-primary font-bold uppercase tracking-wider">How it works:</span>{" "}
-                select an AI video effect, describe your subject, then copy the generated prompt into Runway Gen-3, Kling AI, Pika 2.0, or Sora.
+                select an AI video effect, describe your subject, then copy the generated prompt into Runway Gen-3, Kling AI, Pika 2.0, Veo 3, or Grok Aurora. New: Veo 3 FX and Grok FX categories now available.
               </div>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
