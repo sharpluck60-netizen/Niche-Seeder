@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { type AppFont, appFonts, applyBodyFont, DEFAULT_FONT_ID, FONT_KEY } from "./fonts";
 
 export type ThemeId = "light" | "neon" | "dark";
 export type ScaleId = "sm" | "md" | "lg";
@@ -25,6 +26,8 @@ type ThemeContextValue = {
   setTheme: (theme: ThemeId) => void;
   scale: ScaleId;
   setScale: (scale: ScaleId) => void;
+  font: AppFont;
+  setFont: (font: AppFont) => void;
 };
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
@@ -41,9 +44,15 @@ function getInitialScale(): ScaleId {
   return scales.some((s) => s.id === stored) ? (stored as ScaleId) : "md";
 }
 
+function getInitialFont(): AppFont {
+  const stored = localStorage.getItem(FONT_KEY);
+  return appFonts.find((f) => f.id === stored) ?? appFonts.find((f) => f.id === DEFAULT_FONT_ID) ?? appFonts[0];
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<ThemeId>(getInitialTheme);
   const [scale, setScaleState] = useState<ScaleId>(getInitialScale);
+  const [font, setFontState] = useState<AppFont>(getInitialFont);
 
   useEffect(() => {
     const html = document.documentElement;
@@ -57,14 +66,21 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem(scaleKey, scale);
   }, [scale]);
 
+  useEffect(() => {
+    applyBodyFont(font);
+    localStorage.setItem(FONT_KEY, font.id);
+  }, [font]);
+
   const value = useMemo(
     () => ({
       theme,
       setTheme: setThemeState,
       scale,
       setScale: setScaleState,
+      font,
+      setFont: setFontState,
     }),
-    [theme, scale]
+    [theme, scale, font]
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;

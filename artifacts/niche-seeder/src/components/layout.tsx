@@ -15,10 +15,14 @@ import {
   EyeOff,
   Lock,
   Music,
+  Search,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { themes, scales, useTheme } from "@/lib/theme";
+import { appFonts, fontCategories, loadGoogleFont, type FontCategory } from "@/lib/fonts";
 
 function getNodeId(): string {
   const stored = localStorage.getItem("seeder-node-id");
@@ -46,9 +50,21 @@ const MARQUEE_CONTENT =
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const { theme, setTheme, scale, setScale } = useTheme();
+  const { theme, setTheme, scale, setScale, font, setFont } = useTheme();
   const nodeId = useMemo(() => getNodeId(), []);
   const sessionKey = useMemo(() => getSessionKey(), []);
+  const [fontSearch, setFontSearch] = useState("");
+  const [fontCat, setFontCat] = useState<FontCategory | "all">("all");
+  const [fontOpen, setFontOpen] = useState(false);
+
+  const filteredFonts = useMemo(() => {
+    const q = fontSearch.trim().toLowerCase();
+    return appFonts.filter((f) => {
+      const matchCat = fontCat === "all" || f.category === fontCat;
+      const matchQ = !q || f.label.toLowerCase().includes(q);
+      return matchCat && matchQ;
+    });
+  }, [fontSearch, fontCat]);
   const [uptime, setUptime] = useState(0);
 
   useEffect(() => {
@@ -312,6 +328,88 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 </button>
               ))}
             </div>
+
+            {/* Font Picker */}
+            <button
+              type="button"
+              onClick={() => setFontOpen((v) => !v)}
+              className="w-full flex items-center justify-between text-[10px] uppercase tracking-wider text-muted-foreground font-bold hover:text-primary transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <Type className="w-3 h-3 text-primary" />
+                <span>Font</span>
+                <span className="text-[8px] border border-border px-1.5 py-0.5 text-primary/70">
+                  {appFonts.length}+
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[8px] text-primary/60 truncate max-w-[70px]">{font.label}</span>
+                {fontOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+              </div>
+            </button>
+
+            {fontOpen && (
+              <div className="space-y-2">
+                {/* Search */}
+                <div className="relative">
+                  <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-2.5 h-2.5 text-muted-foreground" />
+                  <input
+                    value={fontSearch}
+                    onChange={(e) => setFontSearch(e.target.value)}
+                    placeholder="Search fonts..."
+                    className="w-full bg-background border border-border pl-6 pr-2 py-1.5 text-[10px] text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary"
+                  />
+                </div>
+
+                {/* Category tabs */}
+                <div className="flex flex-wrap gap-1">
+                  {fontCategories.map((cat) => (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setFontCat(cat.id)}
+                      className={cn(
+                        "px-2 py-0.5 text-[8px] uppercase tracking-wider border transition-colors",
+                        fontCat === cat.id
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "border-border text-muted-foreground hover:text-primary hover:border-primary/60"
+                      )}
+                    >
+                      {cat.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Font list */}
+                <div className="max-h-48 overflow-y-auto space-y-0.5 pr-0.5">
+                  {filteredFonts.length === 0 && (
+                    <p className="text-[9px] text-muted-foreground text-center py-3">No fonts matched</p>
+                  )}
+                  {filteredFonts.map((f) => (
+                    <button
+                      key={f.id}
+                      type="button"
+                      onMouseEnter={() => loadGoogleFont(f)}
+                      onClick={() => setFont(f)}
+                      className={cn(
+                        "w-full text-left px-2 py-1.5 text-[12px] border transition-all truncate",
+                        font.id === f.id
+                          ? "border-primary bg-primary/15 text-primary theme-glow-box"
+                          : "border-transparent hover:border-border hover:bg-card text-foreground/70 hover:text-foreground"
+                      )}
+                      style={{ fontFamily: `"${f.family}", system-ui` }}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Count */}
+                <p className="text-[8px] text-muted-foreground text-right">
+                  {filteredFonts.length} / {appFonts.length} fonts
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
