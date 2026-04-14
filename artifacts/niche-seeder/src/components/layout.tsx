@@ -14,6 +14,7 @@ import {
   Wifi,
   EyeOff,
   Lock,
+  Music,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -70,6 +71,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { href: "/photo-studio", label: "PHOTO STUDIO", icon: Camera },
     { href: "/creative-studio", label: "CREATIVE STUDIO", icon: Film },
     { href: "/caption-lab", label: "CAPTION LAB", icon: Type },
+    { href: "/dance-studio", label: "DANCE STUDIO", icon: Music },
   ];
 
   const currentTheme = themes.find((t) => t.id === theme) ?? themes[0];
@@ -234,6 +236,26 @@ export function Layout({ children }: { children: React.ReactNode }) {
               </div>
               <div className="mt-2 text-[9px] text-muted-foreground leading-relaxed">
                 10 vibes · 8 tones · ready-to-post captions + hashtag packs.
+              </div>
+            </div>
+          </Link>
+
+          <Link href="/dance-studio">
+            <div
+              onClick={() => setIsMobileOpen(false)}
+              className={cn(
+                "mt-2 mx-3 border p-3 cursor-pointer transition-colors dw-bracket",
+                location === "/dance-studio"
+                  ? "border-primary bg-primary/10 theme-glow-box"
+                  : "border-pink-500/40 bg-pink-500/10 hover:border-primary hover:bg-primary/10"
+              )}
+            >
+              <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider text-pink-300 font-bold">
+                <Music className="w-3 h-3" />
+                Dance Studio
+              </div>
+              <div className="mt-2 text-[9px] text-muted-foreground leading-relaxed">
+                12 styles · trending picks · AI dance video prompt builder.
               </div>
             </div>
           </Link>
