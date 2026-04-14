@@ -2,7 +2,7 @@ import { useState, useRef, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import {
-  Copy, Check, Shuffle, Upload, X, ImageIcon,
+  Copy, Check, Shuffle, Upload, X, ImageIcon, Lock,
   ChevronDown, ChevronUp, Sparkles, Star, AlertCircle,
 } from "lucide-react";
 
@@ -416,10 +416,9 @@ ${engine.suffix}`;
 }
 
 function buildVendorPrompt(
-  hairDesc: string,
+  hairstyleVariant: string,
   skinToneId: string,
   length: string,
-  lighting: string,
   toolId: string,
   hasHairReference: boolean,
   hasFaceReference: boolean,
@@ -428,103 +427,125 @@ function buildVendorPrompt(
   const skinToneObj = skinTones.find((s) => s.id === skinToneId);
   const skinDesc = skinToneObj?.desc ?? skinToneId;
   const modelDesc = skinToneObj?.vendorDesc ?? `a professional ${gender} model with ${skinDesc}`;
-  const light = lightingOptions.find((l) => l.id === lighting);
-  const lightLabel = light?.label ?? lighting;
-  const lightDesc = light?.desc ?? lighting;
   const toolName = vendorTools.find((t) => t.id === toolId)?.label ?? toolId;
   const engine = engineDirectives[toolId] ?? engineDirectives["nano-banana"];
   const genderWord = gender === "female" ? "female" : "male";
 
-  const faceSection = hasFaceReference
-    ? `IDENTITY ANCHOR (CRITICAL — HIGHEST PRIORITY):
-Use the uploaded face reference as the permanent identity anchor.
-Lock the face structure exactly — same across every generation:
-- Same bone structure: cranial shape, facial width, and depth
-- Same eye shape and spacing: identical placement, size, and contour
-- Same nose width and contour: exact shape and tip definition
-- Same lip shape and proportions: upper/lower lip ratio and curvature
-- Same jawline and cheekbone structure: same angles and prominence
-Do NOT reinterpret, enhance, beautify, symmetry-correct, or average the face.
-If multiple images are generated, ALL must look like the SAME PERSON from the same photoshoot.
+  const identityBlock = hasFaceReference
+    ? `Use the face reference image as a fixed identity embedding.
+Do not alter facial structure, proportions, skin tone, or expression.
+No beautification, no face reconstruction, no symmetry correction, no drift.`
+    : `Generate ${modelDesc}.
+Professional ${genderWord} beauty model — consistent facial identity across all outputs.
+Natural composed expression, light or no makeup. Same face every generation.`;
 
-IDENTITY PRESERVATION:
-Maintain 95–100% likeness across every output.
-Preserve skin tone, undertone, and natural texture exactly.
-No face morphing, no drift between generations.`
-    : `IDENTITY ANCHOR — GENERATED SUBJECT:
-Create ${modelDesc}.
-Professional ${genderWord} beauty model with consistent facial identity across all outputs.
-Natural composed expression, light or no makeup. No distracting accessories.
-The same subject must be maintained across every generation — same face, same proportions.`;
+  const hairBlock = hasHairReference
+    ? `Match the hair product reference image exactly:
+- Texture: replicate exact surface quality from the reference
+- Color: exact match — no reinterpretation
+- Density: match bundle fullness as shown
+- Curl/wave/twist pattern: reproduce precisely at ${length} length
+- Shine response: natural only — not glossy, not wet, not plastic
+No enhancement. The hair must look like the exact product the customer receives.`
+    : `Reproduce the hairstyle as specified in the HAIRSTYLE VARIANT field below.
+Length behavior: ${length}.
+Natural finish — soft highlight only, not wet gloss, not plastic.
+No reinterpretation or enhancement.`;
 
-  const hairSection = hasHairReference
-    ? `PRIORITY 2 — HAIR PRODUCT REFERENCE (EXACT MATCH REQUIRED):
-Use the uploaded hair product image as the sole source of truth for:
-- Color: match exactly, no reinterpretation or enhancement
-- Texture: replicate the exact surface quality (straight, wavy, curly, coily, etc.)
-- Density: match bundle fullness and volume as shown in the reference
-- Curl/wave pattern: reproduce precisely at ${length} length
-- Finish: natural shine level only — not glossy, not wet, not plastic
-No idealization. The hair must look exactly like the product the customer will receive.`
-    : `PRIORITY 2 — HAIR PRODUCT (FROM DESCRIPTION):
-${hairDesc || "Hair product as described — follow the written details exactly."}
-Length: ${length}.
-Reproduce texture, color, density, and pattern faithfully.
-No reinterpretation. Natural finish — soft highlight only, not wet or plastic gloss.`;
+  const variantLabel = hairstyleVariant.trim()
+    ? hairstyleVariant.trim()
+    : "[ENTER HAIRSTYLE VARIANT — e.g. Havana Twists (jumbo, shoulder length, thick volume)]";
 
-  return `MODE: Photorealistic hair product render — identity locked — ${toolName}
+  return `SYSTEM: ZERO-DRIFT HAIR VENDOR RENDER ENGINE — ${toolName}
+${engine.prefix}
 
-${faceSection}
+INPUTS:
+- Face Reference Image: ${hasFaceReference ? "✓ LOADED — LOCKED IDENTITY" : "✗ Not provided — auto-generating model"}
+- Hair Product Reference Image: ${hasHairReference ? "✓ LOADED — SOURCE OF TRUTH" : "✗ Not provided — using variant description"}
 
-${hairSection}
+RULES:
+1. Face reference overrides all text descriptions
+2. Hair reference overrides all styling instructions
+3. Only hairstyle changes are allowed between outputs
 
-PRIORITY 3 — INSTALLATION REALISM:
-The hair must appear naturally installed — same placement across all outputs:
-- Seamless hairline with no visible lace, glue, wig cap, or synthetic edge
-- Slight natural irregularity at the hairline (not a computer-perfect line)
-- Same hairline position on forehead across every generation — no shifting or resizing
-- Correct temple and sideburn transition — hair tapers naturally into the skin
-- Hair follows skull shape and responds to gravity at ${length} length
-- Individual strands at the perimeter blend into the scalp organically
-- No floating hair, no gaps, no clipping into skin
+-------------------------------------
 
-COMPOSITION:
-Head-and-shoulders portrait, eye-level angle, centered framing.
-Same framing across all outputs — no zoom variation, no angle drift.
-The hair is the primary subject of the image.
-Shallow depth of field — soft background blur isolates the subject cleanly.
+IDENTITY LOCK (DO NOT OVERRIDE):
+${identityBlock}
 
-LIGHTING: ${lightLabel} — ${lightDesc}.
-Soft, balanced studio lighting — repeatable and consistent across outputs.
-No dramatic lighting changes between generations.
-Hair shine must be natural — soft highlight only, not wet gloss, not plastic.
-Balanced exposure, no harsh shadows.
+-------------------------------------
 
-SKIN:
-Natural skin texture with subtle SSS (subsurface scattering).
-No plastic smoothing, no retouching changes between outputs.
-Pores and micro-texture retained. Same skin rendering across every generation.
+HAIR SYSTEM (REFERENCE CONTROLLED):
+${hairBlock}
+
+-------------------------------------
+
+INSTALLATION ENGINE:
+Hair must behave like real installed product:
+- Natural scalp integration — seamless, no visible lace, wig cap, or glue
+- Invisible lace/hairline realism — slight natural irregularity, not computer-perfect
+- Same hairline position across every generation — no shifting or resizing
+- Correct gravity physics at ${length} length
+- Individual perimeter strands blend into scalp organically
+- No floating hair, no gaps between hair and skin
+
+-------------------------------------
+
+VISUAL STYLE:
+Professional studio hair photography
+Head-and-shoulders framing — same crop every generation
+Hair is the hero subject
+Shallow depth of field, soft background blur
+
+-------------------------------------
+
+LIGHTING SYSTEM:
+Fixed studio lighting setup — no variation between outputs:
+- Softbox left and right for even fill
+- Controlled key light for dimension
+- Soft rim light for hair edge separation
+Hair shine: natural only — soft highlight, not wet gloss, not plastic
+
+-------------------------------------
+
+SKIN RENDER:
+Natural skin with subtle SSS (subsurface scattering)
+Real pores and micro-texture — no over-smoothing or plastic effect
+Same skin rendering parameters across every generation
+
+-------------------------------------
 
 BACKGROUND:
-Clean, neutral, softly blurred studio background.
-Consistent tone and brightness across all outputs — no variation between generations.
+Neutral studio backdrop — no variation between outputs
+Consistent tone and brightness — no distractions
 
-TECHNICAL CONSISTENCY LOCK:
-${engine.technicalAdditions}.
-Use identical rendering conditions for every generation:
-- Face structure: locked — no randomness
-- Lighting intensity: consistent — no variation
-- Camera distance and angle: fixed — no drift
-- Skin rendering: same parameters every output
-8K resolution, RAW photo quality, ultra-sharp focus on hair texture from root to end.
-No watermarks, no artifacts, no duplicated face, no extra limbs.
+-------------------------------------
 
-NEGATIVE: identity drift, different face, altered proportions, inconsistent features, changing face shape, fake hairline, wig look, visible lace, wig cap, plastic shine, wet gloss, distorted face, blurred face, melted strands, floating hair, hair clipping through skin, artifacts, watermark, text.
+TECHNICAL LOCK:
+${engine.technicalAdditions}
+- Fixed camera angle: eye-level
+- Fixed framing: head and shoulders
+- Fixed depth of field: consistent across all outputs
+- Consistent exposure: no variation
+8K resolution, ultra-sharp focus on hair texture from root to end
+No artifacts, no watermarks, no duplicated face, no extra limbs
 
-FINAL DIRECTIVE:
-All generated images must appear as the SAME PERSON, SAME SESSION, SAME CAMERA SETUP.
-Only the hairstyle is allowed to change between generations.
-The face, skin, lighting, composition, and background must remain identical across all outputs.
+-------------------------------------
+
+NEGATIVE CONSTRAINTS:
+identity drift, face change, altered proportions, wig look, fake hairline, visible lace,
+plastic skin, wet gloss, blurred face, artifacts, extra limbs, warped anatomy,
+inconsistent identity, lighting change, framing change, camera drift
+
+-------------------------------------
+
+HAIRSTYLE VARIANT: ${variantLabel}
+
+-------------------------------------
+
+OUTPUT RULE:
+Only the hairstyle changes.
+Everything else — face, lighting, framing, skin, background — remains identical across all generations.
 
 ${engine.suffix}`;
 }
@@ -900,10 +921,9 @@ function VendorStudio() {
   const [facePreview, setFacePreview] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [faceUploadError, setFaceUploadError] = useState<string | null>(null);
-  const [hairDesc, setHairDesc] = useState("");
+  const [hairstyleVariant, setHairstyleVariant] = useState("");
   const [skin, setSkin] = useState("rich");
   const [length, setLength] = useState("Shoulder");
-  const [lighting, setLighting] = useState("studio");
   const [vendorGender, setVendorGender] = useState<"female" | "male">("female");
   const [tool, setTool] = useState("nano-banana");
   const [copied, setCopied] = useState(false);
@@ -954,10 +974,9 @@ function VendorStudio() {
   }, [processFaceFile]);
 
   const prompt = buildVendorPrompt(
-    hairDesc,
+    hairstyleVariant,
     skin,
     length,
-    lighting,
     tool,
     Boolean(imagePreview),
     Boolean(facePreview),
@@ -974,355 +993,342 @@ function VendorStudio() {
 
   return (
     <div className="space-y-6">
-      {/* Vendor intro */}
-      <div className="border border-amber-400/30 bg-amber-400/5 p-4 text-sm text-foreground/80 leading-relaxed">
+      {/* Zero-Drift Engine intro */}
+      <div className="border border-amber-400/40 bg-amber-400/5 p-4">
         <div className="flex items-start gap-3">
-          <Star className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
-          <div>
-            <p className="font-bold text-amber-400 text-[11px] uppercase tracking-wider mb-1">For Hair Vendors & Brands</p>
-            <p className="text-[12px]">Upload your hair product photo (required) and optionally a face reference. The prompt follows a strict priority order — face identity is locked first, then the hair is matched exactly to your product, then installation realism is enforced. No model description needed.</p>
+          <Sparkles className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-2 flex-wrap">
+              <p className="font-black text-amber-400 text-[11px] uppercase tracking-widest">Zero-Drift Vendor Engine</p>
+              <span className="text-[8px] border border-amber-400/40 px-1.5 py-0.5 text-amber-400/70 uppercase tracking-wider">Pipeline System</span>
+            </div>
+            <p className="text-[11px] text-foreground/70 leading-relaxed mb-3">A 3-layer pipeline — not just a prompt. Face = locked identity. Hair = controlled variable. Everything else = fixed environment. Only the hairstyle changes between generations.</p>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { n: "1", label: "Identity Anchor", sub: "Face ref = locked identity map", color: "border-primary/50 text-primary" },
+                { n: "2", label: "Master Engine", sub: "Fixed environment — never changes", color: "border-amber-400/50 text-amber-400" },
+                { n: "3", label: "Variant Slot", sub: "Only hairstyle changes here", color: "border-green-500/50 text-green-400" },
+              ].map((l) => (
+                <div key={l.n} className={cn("flex items-center gap-2 border px-2.5 py-1.5", l.color)}>
+                  <span className={cn("text-[10px] font-black border px-1 py-0.5", l.color)}>L{l.n}</span>
+                  <div>
+                    <div className={cn("text-[9px] font-bold uppercase tracking-wider", l.color.split(" ")[1])}>{l.label}</div>
+                    <div className="text-[8px] text-muted-foreground">{l.sub}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_420px] gap-6">
-        {/* LEFT: Upload + description */}
-        <div className="space-y-4">
-          {/* Hair product upload */}
-          <div className="border border-border bg-card">
-            <div className="border-b border-border bg-secondary/50 px-4 py-3 flex items-center gap-2 text-[10px] uppercase tracking-wider text-primary font-bold">
-              <Upload className="w-3 h-3" />
-              Hair Product Reference Image
+
+        {/* ── LEFT: Layer 1 (inputs) + Layer 3 (variant) ── */}
+        <div className="space-y-5">
+
+            {/* L1 header */}
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] font-black border border-primary/50 text-primary px-1.5 py-0.5">L1</span>
+              <span className="text-[10px] uppercase tracking-widest text-primary font-bold">Identity Anchor</span>
+              <span className="text-[9px] text-muted-foreground ml-auto">Load once — never reload</span>
             </div>
-            <div className="p-4">
-              {!imagePreview ? (
-                <div
-                  onDragEnter={() => setDragActive(true)}
-                  onDragLeave={() => setDragActive(false)}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={handleDrop}
-                  onClick={() => hairFileInputRef.current?.click()}
-                  className={cn(
-                    "border-2 border-dashed cursor-pointer transition-all flex flex-col items-center justify-center gap-4 min-h-[260px]",
-                    dragActive
-                      ? "border-amber-400/60 bg-amber-400/5"
-                      : "border-border hover:border-amber-400/40 hover:bg-amber-400/3"
+
+            {/* Uploads side-by-side */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+              {/* FACE REFERENCE */}
+              <div className="border border-primary/30 bg-card">
+                <div className="border-b border-primary/20 bg-primary/5 px-3 py-2.5 flex items-center gap-2">
+                  <Lock className="w-3 h-3 text-primary" />
+                  <span className="text-[9px] uppercase tracking-widest text-primary font-bold">Face Reference</span>
+                  <span className="ml-auto text-[8px] border border-primary/30 px-1.5 py-0.5 text-primary/70">Identity Map</span>
+                </div>
+                <div className="p-3">
+                  {!facePreview ? (
+                    <div
+                      onDragEnter={() => setFaceDragActive(true)}
+                      onDragLeave={() => setFaceDragActive(false)}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={handleFaceDrop}
+                      onClick={() => faceFileInputRef.current?.click()}
+                      className={cn(
+                        "border-2 border-dashed cursor-pointer transition-all flex flex-col items-center justify-center gap-3 min-h-[200px]",
+                        faceDragActive ? "border-primary/60 bg-primary/5" : "border-border hover:border-primary/40 hover:bg-primary/3"
+                      )}
+                    >
+                      <ImageIcon className={cn("w-9 h-9", faceDragActive ? "text-primary" : "text-muted-foreground/30")} />
+                      <div className="text-center px-2">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-foreground mb-0.5">Upload face reference</p>
+                        <p className="text-[9px] text-muted-foreground">Front-facing, good light, no filters</p>
+                      </div>
+                      <div className="text-[9px] text-primary border border-primary/40 px-2 py-1">click to browse</div>
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      <img src={facePreview} alt="Face reference" className="w-full max-h-[260px] object-contain border border-border" />
+                      <button type="button" onClick={() => setFacePreview(null)} className="absolute top-2 right-2 bg-card border border-border p-1 text-muted-foreground hover:text-primary">
+                        <X className="w-3 h-3" />
+                      </button>
+                      <div className="mt-2 flex items-center gap-1.5 text-[9px] text-green-400 border border-green-500/30 bg-green-500/5 px-2.5 py-1.5">
+                        <Check className="w-3 h-3" />
+                        Identity locked — 95–100% face lock active
+                      </div>
+                    </div>
                   )}
-                >
-                  <ImageIcon className={cn("w-12 h-12", dragActive ? "text-amber-400" : "text-muted-foreground/40")} />
-                  <div className="text-center">
-                    <p className="text-sm font-bold uppercase tracking-wider text-foreground mb-1">Upload your hair product photo</p>
-                    <p className="text-[10px] text-muted-foreground">JPG, PNG, WebP · The cleaner the product shot, the better</p>
-                  </div>
-                  <div className="text-[10px] text-amber-400 border border-amber-400/40 px-3 py-1.5">
-                    or click to browse
-                  </div>
-                </div>
-              ) : (
-                <div className="relative">
-                  <img src={imagePreview} alt="Hair product" className="w-full max-h-[400px] object-contain border border-border" />
-                  <button
-                    type="button"
-                    onClick={() => setImagePreview(null)}
-                    className="absolute top-2 right-2 bg-card border border-border p-1.5 text-muted-foreground hover:text-primary"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                  <div className="mt-2 flex items-center gap-2 text-[10px] text-green-400 border border-green-500/30 bg-green-500/5 px-3 py-2">
-                    <Check className="w-3 h-3" />
-                    Product image loaded — use this as your hair reference image in the AI platform
-                  </div>
-                </div>
-              )}
-              {uploadError && (
-                <div className="mt-3 flex items-start gap-2 text-[10px] text-destructive border border-destructive/40 bg-destructive/10 px-3 py-2">
-                  <AlertCircle className="w-3 h-3 shrink-0 mt-0.5" />
-                  {uploadError}
-                </div>
-              )}
-              <input ref={hairFileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) processHairFile(f); }} />
-            </div>
-          </div>
-
-          {/* Face reference upload */}
-          <div className="border border-border bg-card">
-            <div className="border-b border-border bg-secondary/50 px-4 py-3 flex items-center gap-2 text-[10px] uppercase tracking-wider text-primary font-bold">
-              <Upload className="w-3 h-3" />
-              Face Reference Image
-              <span className="text-[8px] border border-border px-1.5 py-0.5 text-muted-foreground ml-1">Optional</span>
-            </div>
-            <div className="p-4">
-              {!facePreview ? (
-                <div
-                  onDragEnter={() => setFaceDragActive(true)}
-                  onDragLeave={() => setFaceDragActive(false)}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={handleFaceDrop}
-                  onClick={() => faceFileInputRef.current?.click()}
-                  className={cn(
-                    "border-2 border-dashed cursor-pointer transition-all flex flex-col items-center justify-center gap-3 min-h-[180px]",
-                    faceDragActive
-                      ? "border-primary/60 bg-primary/5"
-                      : "border-border hover:border-primary/40 hover:bg-primary/3"
+                  {faceUploadError && (
+                    <div className="mt-2 flex items-start gap-1.5 text-[9px] text-destructive border border-destructive/40 bg-destructive/10 px-2.5 py-1.5">
+                      <AlertCircle className="w-3 h-3 shrink-0 mt-0.5" />
+                      {faceUploadError}
+                    </div>
                   )}
-                >
-                  <ImageIcon className={cn("w-8 h-8", faceDragActive ? "text-primary" : "text-muted-foreground/30")} />
-                  <div className="text-center">
-                    <p className="text-sm font-bold uppercase tracking-wider text-foreground mb-1">Upload face reference</p>
-                    <p className="text-[10px] text-muted-foreground">The AI will lock the face identity — no alteration allowed</p>
-                  </div>
-                  <div className="text-[10px] text-primary border border-primary/40 px-3 py-1.5">
-                    or click to browse
-                  </div>
+                  <input ref={faceFileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) processFaceFile(f); }} />
                 </div>
-              ) : (
-                <div className="relative">
-                  <img src={facePreview} alt="Face reference" className="w-full max-h-[300px] object-contain border border-border" />
-                  <button
-                    type="button"
-                    onClick={() => setFacePreview(null)}
-                    className="absolute top-2 right-2 bg-card border border-border p-1.5 text-muted-foreground hover:text-primary"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                  <div className="mt-2 flex items-center gap-2 text-[10px] text-green-400 border border-green-500/30 bg-green-500/5 px-3 py-2">
-                    <Check className="w-3 h-3" />
-                    Face reference loaded — prompt will enforce 95–100% identity lock (Priority 1)
-                  </div>
-                </div>
-              )}
-              {faceUploadError && (
-                <div className="mt-3 flex items-start gap-2 text-[10px] text-destructive border border-destructive/40 bg-destructive/10 px-3 py-2">
-                  <AlertCircle className="w-3 h-3 shrink-0 mt-0.5" />
-                  {faceUploadError}
-                </div>
-              )}
-              <input ref={faceFileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) processFaceFile(f); }} />
-            </div>
-          </div>
+              </div>
 
-          {/* Hair description */}
-          <div className="border border-border bg-card p-4 space-y-2">
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">
-              Describe Your Hair Product <span className="text-muted-foreground/50 normal-case font-normal">(optional — uploaded image takes priority)</span>
+              {/* HAIR PRODUCT REFERENCE */}
+              <div className="border border-amber-400/30 bg-card">
+                <div className="border-b border-amber-400/20 bg-amber-400/5 px-3 py-2.5 flex items-center gap-2">
+                  <Upload className="w-3 h-3 text-amber-400" />
+                  <span className="text-[9px] uppercase tracking-widest text-amber-400 font-bold">Hair Product</span>
+                  <span className="ml-auto text-[8px] border border-amber-400/30 px-1.5 py-0.5 text-amber-400/70">Source of Truth</span>
+                </div>
+                <div className="p-3">
+                  {!imagePreview ? (
+                    <div
+                      onDragEnter={() => setDragActive(true)}
+                      onDragLeave={() => setDragActive(false)}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={handleDrop}
+                      onClick={() => hairFileInputRef.current?.click()}
+                      className={cn(
+                        "border-2 border-dashed cursor-pointer transition-all flex flex-col items-center justify-center gap-3 min-h-[200px]",
+                        dragActive ? "border-amber-400/60 bg-amber-400/5" : "border-border hover:border-amber-400/40 hover:bg-amber-400/3"
+                      )}
+                    >
+                      <ImageIcon className={cn("w-9 h-9", dragActive ? "text-amber-400" : "text-muted-foreground/30")} />
+                      <div className="text-center px-2">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-foreground mb-0.5">Upload hair product photo</p>
+                        <p className="text-[9px] text-muted-foreground">Clean shot on neutral background</p>
+                      </div>
+                      <div className="text-[9px] text-amber-400 border border-amber-400/40 px-2 py-1">click to browse</div>
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      <img src={imagePreview} alt="Hair product" className="w-full max-h-[260px] object-contain border border-border" />
+                      <button type="button" onClick={() => setImagePreview(null)} className="absolute top-2 right-2 bg-card border border-border p-1 text-muted-foreground hover:text-primary">
+                        <X className="w-3 h-3" />
+                      </button>
+                      <div className="mt-2 flex items-center gap-1.5 text-[9px] text-green-400 border border-green-500/30 bg-green-500/5 px-2.5 py-1.5">
+                        <Check className="w-3 h-3" />
+                        Hair reference loaded — AI will match exactly
+                      </div>
+                    </div>
+                  )}
+                  {uploadError && (
+                    <div className="mt-2 flex items-start gap-1.5 text-[9px] text-destructive border border-destructive/40 bg-destructive/10 px-2.5 py-1.5">
+                      <AlertCircle className="w-3 h-3 shrink-0 mt-0.5" />
+                      {uploadError}
+                    </div>
+                  )}
+                  <input ref={hairFileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) processHairFile(f); }} />
+                </div>
+              </div>
             </div>
-            <textarea
-              value={hairDesc}
-              onChange={(e) => setHairDesc(e.target.value)}
-              placeholder="e.g. 30-inch bone straight Brazilian weave in natural black (1B), low-shine matte finish, silky smooth texture..."
-              rows={3}
-              className="w-full bg-background border border-border px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/40 resize-none focus:outline-none focus:border-primary leading-relaxed"
-            />
-            <p className="text-[9px] text-muted-foreground">Include: length, texture, color, finish (matte/low-shine), curl/wave pattern, and any unique product features</p>
-          </div>
 
-          {/* Priority legend */}
-          <div className="border border-border bg-card p-4 space-y-2">
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">How This Prompt Works</div>
-            <div className="space-y-2">
-              {[
-                { priority: "1", label: "Face Reference", color: "text-primary border-primary/40", note: "Identity locked at 95–100%. No alteration. Upload a face photo to activate." },
-                { priority: "2", label: "Hair Product Reference", color: "text-amber-400 border-amber-400/40", note: "Hair matched exactly — color, texture, density, curl pattern, finish. No reinterpretation." },
-                { priority: "3", label: "Installation Realism", color: "text-green-400 border-green-400/40", note: "Seamless hairline, correct temple transition, natural irregularity, gravity-correct placement." },
-              ].map((p) => (
-                <div key={p.priority} className={cn("flex items-start gap-3 border px-3 py-2", p.color.split(" ")[1], p.color.split(" ")[2] || "")}>
-                  <span className={cn("text-[9px] font-black border px-1.5 py-0.5 shrink-0 mt-0.5", p.color)}>P{p.priority}</span>
+            {/* No face ref: auto-model config */}
+            {!facePreview && (
+              <div className="border border-border bg-card p-3 space-y-3">
+                <div className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">No face reference — configure auto-generated model</div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <div className={cn("text-[9px] font-bold uppercase tracking-wider", p.color.split(" ")[0])}>{p.label}</div>
-                    <div className="text-[9px] text-muted-foreground mt-0.5 leading-relaxed">{p.note}</div>
+                    <div className="text-[9px] text-muted-foreground mb-1.5">Model Gender</div>
+                    <div className="flex gap-1.5">
+                      {(["female", "male"] as const).map((g) => (
+                        <button key={g} type="button" onClick={() => setVendorGender(g)}
+                          className={cn("flex-1 py-1.5 text-[9px] font-bold uppercase tracking-widest border transition-all",
+                            vendorGender === g ? "border-amber-400 bg-amber-400/10 text-amber-400" : "border-border text-muted-foreground hover:text-amber-400 hover:border-amber-400/40"
+                          )}
+                        >
+                          {g === "female" ? "♀ Female" : "♂ Male"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[9px] text-muted-foreground mb-1.5">Skin Tone</div>
+                    <div className="grid grid-cols-5 gap-1">
+                      {skinTones.map((s) => (
+                        <button key={s.id} type="button" onClick={() => setSkin(s.id)}
+                          className={cn("py-1.5 text-[8px] uppercase tracking-wider border transition-colors",
+                            skin === s.id ? "border-amber-400 bg-amber-400/10 text-amber-400" : "border-border text-muted-foreground hover:text-amber-400 hover:border-amber-400/40"
+                          )}
+                        >
+                          {s.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Pro tips */}
-          <div className="border border-border bg-card p-4 space-y-2">
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Tips for Best Results</div>
-            <ul className="space-y-2">
-              {[
-                "Hair product photo: clean neutral background, laid flat or on a mannequin — no person wearing it",
-                "Face reference: use a clear front-facing photo with good lighting and no heavy filters",
-                "For lace frontals or closures: photograph installed on a wig cap for the clearest AI read",
-                "Without a face upload, the AI builds a professional editorial model from your skin tone selection",
-                "Hair shine in the prompt is set to natural — not glossy. This avoids the plastic/wet look",
-                "Midjourney: paste hair product URL first, then face URL, then prompt — use --iw 2.0",
-                "Generate 3–5 variations and select the most realistic installation result",
-              ].map((tip, i) => (
-                <li key={i} className="flex items-start gap-2 text-[10px] text-muted-foreground leading-relaxed">
-                  <span className="text-amber-400 font-bold shrink-0">{i + 1}.</span>
-                  {tip}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        {/* RIGHT: Controls + output */}
-        <div className="space-y-4">
-          {/* Model Gender */}
-          <div className="border border-border bg-card p-4 space-y-2">
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Model Gender</div>
-            <div className="flex gap-2">
-              {(["female", "male"] as const).map((g) => (
-                <button
-                  key={g}
-                  type="button"
-                  onClick={() => setVendorGender(g)}
-                  className={cn(
-                    "flex-1 py-2 text-[10px] font-bold uppercase tracking-widest border transition-all",
-                    vendorGender === g
-                      ? "border-amber-400 bg-amber-400/10 text-amber-400"
-                      : "border-border text-muted-foreground hover:text-amber-400 hover:border-amber-400/40"
-                  )}
-                >
-                  {g === "female" ? "♀ Female" : "♂ Male"}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Skin tone */}
-          <div className="border border-border bg-card p-4 space-y-2">
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Model Skin Tone</div>
-            <div className="grid grid-cols-5 gap-1">
-              {skinTones.map((s) => (
-                <button
-                  key={s.id}
-                  type="button"
-                  onClick={() => setSkin(s.id)}
-                  className={cn(
-                    "py-2 text-[8px] uppercase tracking-wider border transition-colors",
-                    skin === s.id
-                      ? "border-amber-400 bg-amber-400/10 text-amber-400"
-                      : "border-border text-muted-foreground hover:text-amber-400 hover:border-amber-400/40"
-                  )}
-                >
-                  {s.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Length */}
-          <div className="border border-border bg-card p-4 space-y-2">
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Hair Length on Model</div>
-            <div className="flex flex-wrap gap-1">
-              {hairLengths.map((l) => (
-                <button
-                  key={l}
-                  type="button"
-                  onClick={() => setLength(l)}
-                  className={cn(
-                    "px-2 py-1 text-[9px] uppercase tracking-wider border transition-colors",
-                    length === l
-                      ? "border-amber-400 bg-amber-400/10 text-amber-400"
-                      : "border-border text-muted-foreground hover:text-amber-400 hover:border-amber-400/40"
-                  )}
-                >
-                  {l}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Lighting */}
-          <div className="border border-border bg-card p-4 space-y-2">
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Lighting Style</div>
-            <div className="grid grid-cols-2 gap-1">
-              {lightingOptions.map((l) => (
-                <button
-                  key={l.id}
-                  type="button"
-                  onClick={() => setLighting(l.id)}
-                  className={cn(
-                    "text-left px-2.5 py-2 border text-[9px] transition-colors",
-                    lighting === l.id
-                      ? "border-amber-400 bg-amber-400/10 text-amber-400"
-                      : "border-border text-muted-foreground hover:text-amber-400 hover:border-amber-400/40"
-                  )}
-                >
-                  <div className="font-bold uppercase tracking-wider">{l.label}</div>
-                  <div className="opacity-60 mt-0.5 text-[8px]">{l.desc.slice(0, 40)}{l.desc.length > 40 ? "…" : ""}</div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* AI Tool */}
-          <div className="border border-border bg-card p-4 space-y-2">
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">AI Platform</div>
-            <div className="flex flex-col gap-1.5">
-              {vendorTools.map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  onClick={() => setTool(t.id)}
-                  className={cn(
-                    "text-left px-3 py-2 border text-[10px] font-bold uppercase tracking-wider transition-all",
-                    tool === t.id
-                      ? t.color + " theme-glow-box"
-                      : "border-border text-muted-foreground hover:border-primary/60 hover:text-primary"
-                  )}
-                >
-                  {t.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Platform instructions */}
-          <div className="border border-border bg-card p-4 space-y-3">
-            <button
-              type="button"
-              onClick={() => setInstructionsOpen((v) => !v)}
-              className="w-full flex items-center justify-between text-[10px] uppercase tracking-wider text-muted-foreground font-bold hover:text-primary transition-colors"
-            >
-              <span>Platform Instructions — {currentTool.label}</span>
-              {instructionsOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-            </button>
-            {instructionsOpen && (
-              <pre className="text-[9px] text-foreground/70 leading-relaxed whitespace-pre-wrap font-mono bg-secondary/40 p-3 border border-border">
-                {currentTool.instructions}
-              </pre>
-            )}
-          </div>
-
-          {/* Prompt output */}
-          <div className="border border-amber-400/40 bg-amber-400/5 p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="text-[10px] uppercase tracking-wider text-amber-400 font-bold">
-                Composite Prompt — {currentTool.label}
               </div>
-              <button
-                type="button"
-                onClick={copyPrompt}
-                className={cn(
-                  "flex items-center gap-1.5 px-3 py-1 border text-[9px] uppercase tracking-wider font-bold transition-all",
-                  copied
-                    ? "border-green-500 text-green-400 bg-green-500/10"
-                    : "border-amber-400/60 text-amber-400 hover:bg-amber-400/10"
-                )}
+            )}
+
+            {/* L3 header */}
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] font-black border border-green-500/50 text-green-400 px-1.5 py-0.5">L3</span>
+              <span className="text-[10px] uppercase tracking-widest text-green-400 font-bold">Variation Control</span>
+              <span className="text-[9px] text-muted-foreground ml-auto">The only thing you change between outputs</span>
+            </div>
+
+            {/* Hairstyle variant input */}
+            <div className="border border-green-500/30 bg-card">
+              <div className="border-b border-green-500/20 bg-green-500/5 px-3 py-2.5 flex items-center gap-2">
+                <span className="text-[9px] uppercase tracking-widest text-green-400 font-bold">Hairstyle Variant</span>
+                <span className="ml-auto text-[8px] text-green-400/60">inject only this — everything else is locked</span>
+              </div>
+              <div className="p-3 space-y-3">
+                <textarea
+                  value={hairstyleVariant}
+                  onChange={(e) => setHairstyleVariant(e.target.value)}
+                  placeholder={"e.g. Havana Twists (jumbo, shoulder length, thick volume)\nor: Goddess Locs (locs with curly/wavy ends)\nor: Box Braids (short bob length, medium thickness)"}
+                  rows={3}
+                  className="w-full bg-background border border-green-500/20 focus:border-green-500/60 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/40 resize-none focus:outline-none leading-relaxed"
+                />
+                <p className="text-[9px] text-muted-foreground">One variant at a time. Name + key details (volume, length behavior, texture). This is the only field you change between catalog images.</p>
+                <div className="flex flex-wrap gap-1">
+                  {[
+                    "Havana Twists (jumbo, shoulder length)",
+                    "Goddess Locs (wavy ends, mid-back)",
+                    "Box Braids (classic, waist length)",
+                    "Knotless Box Braids (medium, collarbone)",
+                    "Senegalese Twists (slender, hip length)",
+                    "Kinky Curly (3C coils, shoulder)",
+                  ].map((v) => (
+                    <button key={v} type="button" onClick={() => setHairstyleVariant(v)}
+                      className="text-[8px] border border-green-500/20 text-green-400/70 px-2 py-1 hover:border-green-500/50 hover:text-green-400 transition-colors"
+                    >
+                      {v}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Hair length */}
+            <div className="border border-border bg-card p-3 space-y-2">
+              <div className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">Hair Length on Model</div>
+              <div className="flex flex-wrap gap-1">
+                {hairLengths.map((l) => (
+                  <button key={l} type="button" onClick={() => setLength(l)}
+                    className={cn("px-2 py-1 text-[9px] uppercase tracking-wider border transition-colors",
+                      length === l ? "border-amber-400 bg-amber-400/10 text-amber-400" : "border-border text-muted-foreground hover:text-amber-400 hover:border-amber-400/40"
+                    )}
+                  >
+                    {l}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+          </div>
+
+          {/* ── RIGHT: Layer 2 (master engine) + AI platform + prompt ── */}
+          <div className="space-y-4">
+
+            {/* L2 header */}
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] font-black border border-amber-400/50 text-amber-400 px-1.5 py-0.5">L2</span>
+              <span className="text-[10px] uppercase tracking-widest text-amber-400 font-bold">Master Engine</span>
+              <span className="text-[9px] text-muted-foreground ml-auto">Fixed — never changes</span>
+            </div>
+
+            {/* Engine lock status */}
+            <div className="border border-amber-400/20 bg-card p-3 space-y-2">
+              <div className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold mb-2">Engine Lock Status</div>
+              <div className="grid grid-cols-2 gap-1.5">
+                {[
+                  { label: "Identity Lock", active: Boolean(facePreview), note: facePreview ? "Face ref loaded" : "Auto-generating" },
+                  { label: "Hair Reference", active: Boolean(imagePreview), note: imagePreview ? "Product ref loaded" : "Using description" },
+                  { label: "Lighting System", active: true, note: "Softbox fixed" },
+                  { label: "Framing & Camera", active: true, note: "Eye-level fixed" },
+                  { label: "Skin Render", active: true, note: "SSS locked" },
+                  { label: "Background", active: true, note: "Neutral fixed" },
+                ].map((item) => (
+                  <div key={item.label} className={cn("flex items-center gap-2 border px-2 py-1.5 text-[8px]",
+                    item.active ? "border-green-500/30 bg-green-500/5" : "border-amber-400/20 bg-amber-400/5"
+                  )}>
+                    <div className={cn("w-1.5 h-1.5 rounded-full shrink-0", item.active ? "bg-green-400" : "bg-amber-400")} />
+                    <div>
+                      <div className={cn("font-bold uppercase tracking-wider", item.active ? "text-green-400" : "text-amber-400")}>{item.label}</div>
+                      <div className="text-muted-foreground">{item.note}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* AI Platform */}
+            <div className="border border-border bg-card p-3 space-y-2">
+              <div className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">AI Platform</div>
+              <div className="flex flex-col gap-1.5">
+                {vendorTools.map((t) => (
+                  <button key={t.id} type="button" onClick={() => setTool(t.id)}
+                    className={cn("text-left px-3 py-2 border text-[10px] font-bold uppercase tracking-wider transition-all",
+                      tool === t.id ? t.color + " theme-glow-box" : "border-border text-muted-foreground hover:text-foreground hover:border-primary/40"
+                    )}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Platform instructions */}
+            <div className="border border-border bg-card p-3 space-y-2">
+              <button type="button" onClick={() => setInstructionsOpen((v) => !v)}
+                className="w-full flex items-center justify-between text-[9px] uppercase tracking-wider text-muted-foreground font-bold hover:text-primary transition-colors"
               >
-                {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                {copied ? "Copied" : "Copy"}
+                <span>How to use — {currentTool.label}</span>
+                {instructionsOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
               </button>
+              {instructionsOpen && (
+                <pre className="text-[9px] text-foreground/70 leading-relaxed whitespace-pre-wrap font-mono bg-secondary/40 p-3 border border-border">
+                  {currentTool.instructions}
+                </pre>
+              )}
             </div>
-            <textarea
-              readOnly
-              value={prompt}
-              rows={14}
-              className="w-full bg-background/50 border border-border px-3 py-2.5 text-[10px] text-foreground/80 resize-none focus:outline-none leading-relaxed font-mono"
-            />
-            {!imagePreview && (
-              <div className="flex items-start gap-2 text-[9px] text-amber-400/70">
-                <AlertCircle className="w-3 h-3 shrink-0 mt-0.5" />
-                Upload your hair product image above for the AI to use as a visual reference. The prompt works without it if you describe the hair in text.
+
+            {/* Zero-Drift Prompt output */}
+            <div className="border border-amber-400/40 bg-amber-400/5 p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="text-[10px] uppercase tracking-wider text-amber-400 font-bold">
+                  Zero-Drift Prompt — {currentTool.label}
+                </div>
+                <button type="button" onClick={copyPrompt}
+                  className={cn("flex items-center gap-1.5 px-3 py-1 border text-[9px] uppercase tracking-wider font-bold transition-all",
+                    copied ? "border-green-500 text-green-400 bg-green-500/10" : "border-amber-400/60 text-amber-400 hover:bg-amber-400/10"
+                  )}
+                >
+                  {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                  {copied ? "Copied" : "Copy"}
+                </button>
               </div>
-            )}
+              <textarea
+                readOnly
+                value={prompt}
+                rows={18}
+                className="w-full bg-background/50 border border-border px-3 py-2.5 text-[10px] text-foreground/80 resize-none focus:outline-none leading-relaxed font-mono"
+              />
+              {!hairstyleVariant.trim() && (
+                <div className="flex items-start gap-2 text-[9px] text-green-400/70">
+                  <AlertCircle className="w-3 h-3 shrink-0 mt-0.5" />
+                  Fill in the Hairstyle Variant on the left — that is the only field you change between catalog images.
+                </div>
+              )}
+            </div>
+
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
 }
