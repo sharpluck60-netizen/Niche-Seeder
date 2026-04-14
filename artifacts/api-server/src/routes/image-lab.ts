@@ -85,4 +85,70 @@ Respond ONLY in this exact JSON format:
   }
 });
 
+router.post("/image-lab/combine", async (req, res): Promise<void> => {
+  const { ideaA, ideaB } = req.body ?? {};
+
+  if (!ideaA || !ideaB) {
+    res.status(400).json({ error: "ideaA and ideaB are required" });
+    return;
+  }
+
+  try {
+    const aiResponse = await openai.chat.completions.create({
+      model: "gpt-5.2",
+      max_completion_tokens: 4096,
+      messages: [
+        {
+          role: "system",
+          content: `You are a world-class creative director specializing in viral Instagram AI content. You are a master at combining two strong creative concepts into a single, jaw-dropping "WOW" idea that is greater than the sum of its parts.
+
+Your job: Take two killer Instagram image concepts and fuse them into ONE mega-concept that combines the strongest elements of both, creating something completely unexpected and uniquely powerful.
+
+The fusion must feel intentional and surprising — not just a mashup. Find the creative thread that connects the two ideas and build something new that neither idea could achieve alone.
+
+Respond ONLY in this exact JSON format:
+{
+  "fusionTitle": "The Fusion Title",
+  "fusionTagline": "One-sentence tagline that captures the wow factor",
+  "fusionConcept": "3-4 sentences describing exactly what the fused concept looks like and why it works as a single image",
+  "fusionReason": "Exactly why combining these two ideas creates something more powerful than either alone — the creative alchemy",
+  "visualPrompt": "Full, hyper-detailed AI image generation prompt for the fused concept — camera angle, composition, lighting, details, mood, style, technical specs",
+  "caption": "Ready-to-post Instagram caption with a powerful hook that highlights the unexpected fusion angle",
+  "hashtags": ["#tag1", "#tag2", "#tag3", "#tag4", "#tag5", "#tag6", "#tag7", "#tag8", "#tag9", "#tag10"],
+  "viralityScore": 10,
+  "postingTip": "Best posting strategy for maximum viral impact of this fusion concept"
+}`,
+        },
+        {
+          role: "user",
+          content: `Combine these two Instagram image concepts into one WOW mega-idea:
+
+CONCEPT A: "${ideaA.title}"
+${ideaA.concept}
+Visual approach: ${ideaA.visualPrompt}
+
+CONCEPT B: "${ideaB.title}"
+${ideaB.concept}
+Visual approach: ${ideaB.visualPrompt}
+
+Fuse these into a single, more powerful concept that uses the best of both.`,
+        },
+      ],
+    });
+
+    const content = aiResponse.choices[0]?.message?.content ?? "{}";
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      res.status(500).json({ error: "Failed to parse AI response" });
+      return;
+    }
+
+    const result = JSON.parse(jsonMatch[0]);
+    res.json(result);
+  } catch (error) {
+    req.log.error({ error }, "Image lab combine failed");
+    res.status(500).json({ error: "Idea combination failed. Please try again." });
+  }
+});
+
 export default router;

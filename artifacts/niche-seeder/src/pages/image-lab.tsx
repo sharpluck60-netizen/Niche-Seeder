@@ -17,6 +17,8 @@ import {
   TrendingUp,
   X,
   Instagram,
+  GitMerge,
+  FlameKindling,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -41,6 +43,18 @@ type KillerIdea = {
   postingTip: string;
 };
 
+type FusionResult = {
+  fusionTitle: string;
+  fusionTagline: string;
+  fusionConcept: string;
+  fusionReason: string;
+  visualPrompt: string;
+  caption: string;
+  hashtags: string[];
+  viralityScore: number;
+  postingTip: string;
+};
+
 type AnalysisResult = {
   imageAnalysis: ImageAnalysis;
   killerIdeas: KillerIdea[];
@@ -58,6 +72,12 @@ export function ImageLab() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
+  // Combiner state
+  const [selectedForFusion, setSelectedForFusion] = useState<number[]>([]);
+  const [isFusing, setIsFusing] = useState(false);
+  const [fusion, setFusion] = useState<FusionResult | null>(null);
+  const [fusionError, setFusionError] = useState<string | null>(null);
+
   const processFile = useCallback((file: File) => {
     if (!file.type.startsWith("image/")) {
       setError("Please upload an image file (JPG, PNG, WebP).");
@@ -69,6 +89,8 @@ export function ImageLab() {
     }
     setError(null);
     setResult(null);
+    setFusion(null);
+    setSelectedForFusion([]);
     setMimeType(file.type);
 
     const reader = new FileReader();
@@ -101,6 +123,8 @@ export function ImageLab() {
     setIsAnalyzing(true);
     setError(null);
     setResult(null);
+    setFusion(null);
+    setSelectedForFusion([]);
     setExpandedIdea(null);
 
     try {
@@ -127,11 +151,63 @@ export function ImageLab() {
     }
   };
 
+  const toggleFusionSelect = (index: number) => {
+    setSelectedForFusion((prev) => {
+      if (prev.includes(index)) return prev.filter((i) => i !== index);
+      if (prev.length >= 2) {
+        toast({ title: "Select only 2 ideas", description: "Deselect one first, then pick another." });
+        return prev;
+      }
+      return [...prev, index];
+    });
+  };
+
+  const handleFuse = async () => {
+    if (!result || selectedForFusion.length !== 2) return;
+    const [a, b] = selectedForFusion;
+    const ideaA = result.killerIdeas[a];
+    const ideaB = result.killerIdeas[b];
+
+    setIsFusing(true);
+    setFusionError(null);
+    setFusion(null);
+
+    try {
+      const baseUrl = import.meta.env.BASE_URL.replace(/\/$/, "");
+      const response = await fetch(`${baseUrl}/api/image-lab/combine`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ideaA, ideaB }),
+      });
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error ?? "Fusion failed");
+      }
+
+      const data: FusionResult = await response.json();
+      setFusion(data);
+      setSelectedForFusion([]);
+      // Scroll into view after render
+      setTimeout(() => {
+        document.getElementById("fusion-result")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Something went wrong";
+      setFusionError(msg);
+      toast({ title: "Fusion Failed", description: msg, variant: "destructive" });
+    } finally {
+      setIsFusing(false);
+    }
+  };
+
   const clearImage = () => {
     setImagePreview(null);
     setImageBase64(null);
     setResult(null);
     setError(null);
+    setFusion(null);
+    setSelectedForFusion([]);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -145,7 +221,7 @@ export function ImageLab() {
               Image Lab
             </h1>
             <p className="text-muted-foreground mt-2 font-mono text-sm">
-              Drop any AI image concept — get 6 killer Instagram ideas that surpass it
+              Drop any AI image concept — get 6 killer ideas, then fuse any 2 into a WOW mega-idea
             </p>
           </div>
           <div className="px-3 py-1 border border-primary text-primary text-xs uppercase hidden md:block">
@@ -372,6 +448,77 @@ export function ImageLab() {
             </span>
           </div>
 
+          {/* Fusion selector banner */}
+          <div className={cn(
+            "border p-4 transition-all duration-300",
+            selectedForFusion.length === 2
+              ? "border-amber-400/60 bg-amber-400/8 theme-glow-box"
+              : "border-border bg-card"
+          )}>
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <div className="flex items-center gap-3">
+                <GitMerge className={cn(
+                  "w-5 h-5 transition-colors",
+                  selectedForFusion.length === 2 ? "text-amber-400" : "text-muted-foreground"
+                )} />
+                <div>
+                  <p className={cn(
+                    "text-sm font-bold uppercase tracking-wider transition-colors",
+                    selectedForFusion.length === 2 ? "text-amber-400" : "text-foreground"
+                  )}>
+                    Idea Fusion Lab
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {selectedForFusion.length === 0 && "Select any 2 ideas to fuse them into one WOW mega-concept"}
+                    {selectedForFusion.length === 1 && "1 idea selected — pick one more to enable fusion"}
+                    {selectedForFusion.length === 2 && `Ideas #${selectedForFusion[0] + 1} + #${selectedForFusion[1] + 1} selected — ready to fuse!`}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {selectedForFusion.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedForFusion([])}
+                    className="text-[10px] uppercase tracking-wider text-muted-foreground hover:text-foreground border border-border px-3 py-1.5 transition-colors"
+                  >
+                    Clear
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={handleFuse}
+                  disabled={selectedForFusion.length !== 2 || isFusing}
+                  className={cn(
+                    "flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-widest border transition-all",
+                    selectedForFusion.length === 2 && !isFusing
+                      ? "border-amber-400 bg-amber-400/10 text-amber-400 hover:bg-amber-400/20 theme-glow-box"
+                      : "border-border text-muted-foreground opacity-50 cursor-not-allowed"
+                  )}
+                >
+                  {isFusing ? (
+                    <>
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      Fusing...
+                    </>
+                  ) : (
+                    <>
+                      <FlameKindling className="w-3 h-3" />
+                      Fuse into WOW
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {fusionError && (
+            <div className="flex items-start gap-3 p-4 border border-destructive bg-destructive/10 text-sm text-destructive">
+              <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+              {fusionError}
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {result.killerIdeas.map((idea, index) => (
               <IdeaCard
@@ -380,9 +527,39 @@ export function ImageLab() {
                 index={index}
                 isExpanded={expandedIdea === index}
                 onToggle={() => setExpandedIdea(expandedIdea === index ? null : index)}
+                isSelectedForFusion={selectedForFusion.includes(index)}
+                onFusionSelect={() => toggleFusionSelect(index)}
+                fusionSelectionCount={selectedForFusion.length}
               />
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Fusion Result */}
+      {isFusing && (
+        <div className="border border-amber-400/40 bg-amber-400/5 p-8 flex flex-col items-center gap-4">
+          <Loader2 className="w-10 h-10 text-amber-400 animate-spin" />
+          <div className="text-center">
+            <p className="text-sm font-bold uppercase tracking-wider text-amber-400">Fusing concepts...</p>
+            <p className="text-xs text-muted-foreground mt-1">AI is finding the creative alchemy between your two ideas</p>
+          </div>
+        </div>
+      )}
+
+      {fusion && (
+        <div id="fusion-result" className="space-y-4">
+          <div className="flex items-center gap-3 border-b border-amber-400/40 pb-4">
+            <FlameKindling className="w-5 h-5 text-amber-400" />
+            <h2 className="text-lg font-bold text-amber-400 uppercase tracking-wider">
+              WOW Fusion Result
+            </h2>
+            <span className="text-xs text-amber-400/60 border border-amber-400/30 px-2 py-0.5">
+              Mega-Concept
+            </span>
+          </div>
+
+          <FusionCard fusion={fusion} />
         </div>
       )}
     </div>
@@ -394,11 +571,17 @@ function IdeaCard({
   index,
   isExpanded,
   onToggle,
+  isSelectedForFusion,
+  onFusionSelect,
+  fusionSelectionCount,
 }: {
   idea: KillerIdea;
   index: number;
   isExpanded: boolean;
   onToggle: () => void;
+  isSelectedForFusion: boolean;
+  onFusionSelect: () => void;
+  fusionSelectionCount: number;
 }) {
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
@@ -412,10 +595,28 @@ function IdeaCard({
 
   return (
     <Card className={cn(
-      "bg-card border-border flex flex-col transition-all duration-200",
-      isExpanded && "theme-glow-box"
+      "bg-card border-border flex flex-col transition-all duration-200 relative",
+      isSelectedForFusion && "border-amber-400/60 theme-glow-box",
+      isExpanded && !isSelectedForFusion && "theme-glow-box"
     )}>
-      <CardHeader className="border-b border-border bg-secondary/50 pb-3">
+      {/* Fusion select button */}
+      <button
+        type="button"
+        onClick={onFusionSelect}
+        title={isSelectedForFusion ? "Deselect from fusion" : "Select for fusion"}
+        className={cn(
+          "absolute top-2 right-2 z-10 w-5 h-5 border flex items-center justify-center transition-all text-[8px] font-bold",
+          isSelectedForFusion
+            ? "border-amber-400 bg-amber-400/20 text-amber-400"
+            : fusionSelectionCount >= 2
+            ? "border-border text-muted-foreground/30 cursor-not-allowed"
+            : "border-border text-muted-foreground/50 hover:border-amber-400/60 hover:text-amber-400/60"
+        )}
+      >
+        {isSelectedForFusion ? "✓" : "+"}
+      </button>
+
+      <CardHeader className="border-b border-border bg-secondary/50 pb-3 pr-10">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
             <span className="text-primary text-xs font-bold shrink-0">
@@ -521,6 +722,121 @@ function IdeaCard({
             </div>
           </div>
         )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function FusionCard({ fusion }: { fusion: FusionResult }) {
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+
+  const copyToClipboard = async (text: string, field: string) => {
+    await navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(null), 2000);
+  };
+
+  return (
+    <Card className="bg-card border-amber-400/50 theme-glow-box overflow-hidden">
+      <CardHeader className="border-b border-amber-400/30 bg-amber-400/5">
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-amber-400/70 font-bold">
+              <FlameKindling className="w-3 h-3" />
+              Fusion Mega-Concept
+            </div>
+            <CardTitle className="text-xl text-amber-400 font-bold tracking-tight">
+              {fusion.fusionTitle}
+            </CardTitle>
+            <p className="text-sm text-foreground/70 italic">{fusion.fusionTagline}</p>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0 text-amber-400 font-bold">
+            <Star className="w-4 h-4 fill-amber-400" />
+            <span className="text-lg">{fusion.viralityScore}</span>
+            <span className="text-xs opacity-60">/10</span>
+          </div>
+        </div>
+      </CardHeader>
+
+      <CardContent className="p-6 space-y-5">
+        {/* Fusion concept */}
+        <div>
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-2">The Fused Concept</p>
+          <p className="text-sm text-foreground/90 leading-relaxed">{fusion.fusionConcept}</p>
+        </div>
+
+        {/* Why it works */}
+        <div className="border border-amber-400/30 bg-amber-400/5 p-4">
+          <p className="text-[10px] uppercase tracking-wider text-amber-400 font-bold mb-2">⚡ The Creative Alchemy</p>
+          <p className="text-sm text-foreground/80 leading-relaxed">{fusion.fusionReason}</p>
+        </div>
+
+        {/* Visual Prompt */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">AI Generation Prompt</p>
+            <button
+              type="button"
+              onClick={() => copyToClipboard(fusion.visualPrompt, "prompt")}
+              className="flex items-center gap-1 text-[10px] text-amber-400 hover:text-amber-300"
+            >
+              {copiedField === "prompt" ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+              {copiedField === "prompt" ? "Copied!" : "Copy Prompt"}
+            </button>
+          </div>
+          <div className="bg-secondary/60 border border-border p-3 text-xs text-foreground/80 leading-relaxed font-mono">
+            {fusion.visualPrompt}
+          </div>
+        </div>
+
+        {/* Caption */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Instagram Caption</p>
+            <button
+              type="button"
+              onClick={() => copyToClipboard(fusion.caption, "caption")}
+              className="flex items-center gap-1 text-[10px] text-amber-400 hover:text-amber-300"
+            >
+              {copiedField === "caption" ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+              {copiedField === "caption" ? "Copied!" : "Copy Caption"}
+            </button>
+          </div>
+          <div className="bg-secondary/60 border border-border p-3 text-sm text-foreground/80 leading-relaxed">
+            {fusion.caption}
+          </div>
+        </div>
+
+        {/* Hashtags */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Hashtags</p>
+            <button
+              type="button"
+              onClick={() => copyToClipboard(fusion.hashtags.join(" "), "hashtags")}
+              className="flex items-center gap-1 text-[10px] text-amber-400 hover:text-amber-300"
+            >
+              {copiedField === "hashtags" ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+              {copiedField === "hashtags" ? "Copied!" : "Copy All"}
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {fusion.hashtags.map((tag, i) => (
+              <span key={i} className="text-[10px] text-amber-400 border border-amber-400/30 bg-amber-400/5 px-2 py-0.5">
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Posting Tip */}
+        <div className="flex items-start gap-3 bg-accent/10 border border-accent/30 p-3">
+          <TrendingUp className="w-4 h-4 text-accent mt-0.5 flex-shrink-0" />
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-accent font-bold mb-1">Viral Strategy</p>
+            <p className="text-sm text-foreground/80 leading-relaxed">{fusion.postingTip}</p>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
