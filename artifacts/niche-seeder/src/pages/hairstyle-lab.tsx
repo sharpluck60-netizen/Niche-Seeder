@@ -334,29 +334,83 @@ function buildExplorerPrompt(
   const displayLength = gender === "female" ? length : "natural length appropriate for this male style";
   const subjectExtra = subject.trim() ? ` ${subject.trim()}.` : "";
 
-  return `${engine.prefix}
+  return `MODE: Photorealistic hairstyle render — identity locked
+${engine.prefix}
 
-IDENTITY PRESERVATION: Preserve the subject's identity with very high accuracy (90–100% likeness). Maintain key facial structure, expression, skin tone, pose, and overall likeness. No facial distortion, no identity drift, no over-smoothing.
+IDENTITY ANCHOR (CRITICAL — HIGHEST PRIORITY):
+Lock the following facial characteristics permanently across every generation:
+- Bone structure: same cranial shape, facial width, and depth
+- Eye shape and spacing: identical placement, size, and contour
+- Nose width and contour: exact shape and tip definition
+- Lip shape and proportions: same upper/lower lip ratio and curvature
+- Jawline and cheekbone structure: same angles and prominence
+Do NOT reinterpret, enhance, beautify, or average these features.
+If multiple images are generated, ALL must look like the SAME PERSON from the same photoshoot.
 
-SUBJECT: A ${genderWord} with ${skinDesc}.${subjectExtra} Authentic skin texture — natural pores and micro-detail retained for realism. Subtle subsurface scattering (SSS) so skin appears soft, dimensional, and lifelike, not plastic or overly retouched.
+IDENTITY PRESERVATION:
+Maintain 95–100% likeness across every output.
+Preserve skin tone, undertone, and natural skin texture.
+No symmetry correction, no face morphing, no identity drift between generations.
 
-HAIRSTYLE (Hero Focus): ${style.name} — ${style.visualDetail}. Hair length: ${displayLength}. ${style.technicalDetail}. Hairline must look completely natural and authentic — no synthetic or wig-like appearance. No artificial enhancements or digital artifacts on the hair.
+SUBJECT: A ${genderWord} with ${skinDesc}.${subjectExtra}
+Natural pores and micro-texture visible — authentic skin, not plastic.
+Subtle subsurface scattering (SSS) for realistic skin light diffusion — skin appears soft, dimensional, alive.
 
-COMPOSITION: Head-and-shoulders portrait, eye-level angle, centered framing. Professional hairstyle photography composition where the hair is the primary subject. Shallow depth of field with soft background blur to isolate the subject beautifully.
+HAIRSTYLE (HERO):
+${style.name} — ${style.visualDetail}.
+Hair length: ${displayLength}. ${style.technicalDetail}.
+Hair must:
+- Follow natural gravity and head shape
+- Maintain consistent density throughout
+- Show realistic strand separation
+- Present a natural hairline with slight irregularity (not a computer-perfect line)
+No wig effect, no synthetic shine, no artificial enhancements.
 
-LIGHTING: ${lightLabel} — ${lightDesc}. Soft directional key light with balanced fill. Subtle rim lighting to define the edges of the hair and jawline. Lighting specifically chosen to reveal the hair's texture, movement, and depth.
+INSTALLATION REALISM:
+Hairline placement must remain consistent across all outputs:
+- Same position on forehead
+- Same temple structure and sideburn transition
+- No shifting, resizing, or repositioning between generations
+No floating hair, no gaps between hair and skin, no clipping into scalp.
 
-SKIN RENDERING: Natural light diffusion across cheeks, nose, and ears with realistic SSS behavior. Maintain natural pores and micro-texture while keeping a polished editorial finish. Skin appears soft, dimensional, alive — not plastic, not overly retouched.
+COMPOSITION:
+Head-and-shoulders portrait, eye-level angle, centered framing.
+Same framing across all outputs — no zoom variation, no angle change.
+The hair is the primary subject of the image.
+Shallow depth of field with soft background blur.
 
-BACKGROUND: Clean, minimal, studio-style or softly blurred environment that complements the hair and skin tone. No distractions. Neutral or slightly warm tones preferred.
+LIGHTING: ${lightLabel} — ${lightDesc}.
+Soft, balanced studio-quality lighting setup — repeatable and consistent.
+No dramatic lighting changes between generations.
+Hair shine must be natural — soft highlight only, not wet or plastic gloss.
+Balanced exposure, no harsh shadows.
 
-COLOR GRADING: Balanced, true-to-life tones with slight warmth. Rich, accurate rendering of the skin tone. Moderate contrast with clean highlights and natural shadows.
+SKIN:
+Natural skin texture with subtle SSS.
+No smoothing changes between outputs — same skin rendering every generation.
 
-TECHNICAL: ${engine.technicalAdditions}. Ultra-sharp focus on hair texture and definition — every strand and detail clearly visible. High-resolution output, crisp edges, no noise, no artifacts. Professional editorial quality.
+BACKGROUND:
+Clean, neutral, softly blurred — consistent tone and brightness across all outputs.
+No variation in background between generations.
+
+TECHNICAL CONSISTENCY LOCK:
+${engine.technicalAdditions}.
+Use identical rendering conditions for every generation:
+- Face structure: locked, no randomness
+- Lighting intensity: consistent, no variation
+- Camera distance and angle: fixed, no drift
+- Skin rendering: same parameters every output
+High-resolution output, ultra-sharp focus on hair texture — every strand visible.
+Crisp edges, no noise, no artifacts. Professional editorial quality.
 
 OUTPUT FORMAT: 4:5 or 9:16 aspect ratio, optimized for Instagram/TikTok.
 
-NEGATIVE CONSTRAINTS: No wigs, no synthetic-looking hair, no artificial hairline, no blur on ${pronounWord} face, no over-smoothing, no plastic skin, no exaggerated features, no identity drift, no extra limbs, no low-detail rendering, no watermarks, no artifacts.
+NEGATIVE: identity drift, different face, altered proportions, inconsistent features, changing face shape, wig look, fake hairline, plastic skin, wet gloss shine, artifacts, blur on ${pronounWord} face, extra limbs, watermarks.
+
+FINAL DIRECTIVE:
+All generated images must appear as the SAME PERSON, SAME SESSION, SAME CAMERA SETUP.
+Only the hairstyle is allowed to change between generations.
+The face, skin, lighting, composition, and background must remain identical.
 
 ${engine.suffix}`;
 }
@@ -382,72 +436,95 @@ function buildVendorPrompt(
   const genderWord = gender === "female" ? "female" : "male";
 
   const faceSection = hasFaceReference
-    ? `PRIORITY 1 — FACE REFERENCE (DO NOT CHANGE):
-Use the uploaded face reference image.
-Preserve the subject's identity with 95–100% exact likeness.
-Do not alter facial structure, skin tone, proportions, or expression.
-No beautification, no symmetry correction, no feature enhancement.
-The face must be indistinguishable from the reference at completion.`
-    : `PRIORITY 1 — SUBJECT:
+    ? `IDENTITY ANCHOR (CRITICAL — HIGHEST PRIORITY):
+Use the uploaded face reference as the permanent identity anchor.
+Lock the face structure exactly — same across every generation:
+- Same bone structure: cranial shape, facial width, and depth
+- Same eye shape and spacing: identical placement, size, and contour
+- Same nose width and contour: exact shape and tip definition
+- Same lip shape and proportions: upper/lower lip ratio and curvature
+- Same jawline and cheekbone structure: same angles and prominence
+Do NOT reinterpret, enhance, beautify, symmetry-correct, or average the face.
+If multiple images are generated, ALL must look like the SAME PERSON from the same photoshoot.
+
+IDENTITY PRESERVATION:
+Maintain 95–100% likeness across every output.
+Preserve skin tone, undertone, and natural texture exactly.
+No face morphing, no drift between generations.`
+    : `IDENTITY ANCHOR — GENERATED SUBJECT:
 Create ${modelDesc}.
-Professional ${genderWord} beauty model, natural composed expression, light or no makeup.
-No distracting accessories. Identity is consistent and believable throughout.`;
+Professional ${genderWord} beauty model with consistent facial identity across all outputs.
+Natural composed expression, light or no makeup. No distracting accessories.
+The same subject must be maintained across every generation — same face, same proportions.`;
 
   const hairSection = hasHairReference
     ? `PRIORITY 2 — HAIR PRODUCT REFERENCE (EXACT MATCH REQUIRED):
 Use the uploaded hair product image as the sole source of truth for:
-- Color: match exactly, no reinterpretation
+- Color: match exactly, no reinterpretation or enhancement
 - Texture: replicate the exact surface quality (straight, wavy, curly, coily, etc.)
-- Density: match bundle fullness and volume as shown
+- Density: match bundle fullness and volume as shown in the reference
 - Curl/wave pattern: reproduce precisely at ${length} length
-- Finish: natural shine level only — not glossy, not plastic
-No enhancement, no idealization. The hair must look like the exact product the customer will receive.`
+- Finish: natural shine level only — not glossy, not wet, not plastic
+No idealization. The hair must look exactly like the product the customer will receive.`
     : `PRIORITY 2 — HAIR PRODUCT (FROM DESCRIPTION):
 ${hairDesc || "Hair product as described — follow the written details exactly."}
 Length: ${length}.
-Reproduce the described texture, color, density, and pattern faithfully.
-No enhancement, no reinterpretation. Natural finish — not glossy, not plastic.`;
+Reproduce texture, color, density, and pattern faithfully.
+No reinterpretation. Natural finish — soft highlight only, not wet or plastic gloss.`;
 
-  return `MODE: Photorealistic hair product render (strict realism) — ${toolName}
+  return `MODE: Photorealistic hair product render — identity locked — ${toolName}
 
 ${faceSection}
 
 ${hairSection}
 
 PRIORITY 3 — INSTALLATION REALISM:
-The hair must appear naturally installed on the model's head:
+The hair must appear naturally installed — same placement across all outputs:
 - Seamless hairline with no visible lace, glue, wig cap, or synthetic edge
-- Slight natural irregularity at the hairline (not a perfect computer-generated line)
+- Slight natural irregularity at the hairline (not a computer-perfect line)
+- Same hairline position on forehead across every generation — no shifting or resizing
 - Correct temple and sideburn transition — hair tapers naturally into the skin
-- Hair follows the shape of the skull and responds to gravity at ${length} length
+- Hair follows skull shape and responds to gravity at ${length} length
 - Individual strands at the perimeter blend into the scalp organically
-- No floating edges, no gap between hair and skin, no warped scalp
+- No floating hair, no gaps, no clipping into skin
 
 COMPOSITION:
 Head-and-shoulders portrait, eye-level angle, centered framing.
+Same framing across all outputs — no zoom variation, no angle drift.
 The hair is the primary subject of the image.
 Shallow depth of field — soft background blur isolates the subject cleanly.
 
 LIGHTING: ${lightLabel} — ${lightDesc}.
-Soft, balanced studio exposure with no harsh shadows.
-Hair shine must appear natural — soft highlight, not wet or plastic gloss.
-Lighting reveals hair texture, movement, and density without overexposing.
+Soft, balanced studio lighting — repeatable and consistent across outputs.
+No dramatic lighting changes between generations.
+Hair shine must be natural — soft highlight only, not wet gloss, not plastic.
+Balanced exposure, no harsh shadows.
 
 SKIN:
 Natural skin texture with subtle SSS (subsurface scattering).
-No plastic smoothing, no over-retouching, no artificial skin softening.
-Pores and micro-texture retained for photographic realism.
+No plastic smoothing, no retouching changes between outputs.
+Pores and micro-texture retained. Same skin rendering across every generation.
 
 BACKGROUND:
 Clean, neutral, softly blurred studio background.
-No distractions. Complements the hair and skin tone.
+Consistent tone and brightness across all outputs — no variation between generations.
 
-TECHNICAL: ${engine.technicalAdditions}.
+TECHNICAL CONSISTENCY LOCK:
+${engine.technicalAdditions}.
+Use identical rendering conditions for every generation:
+- Face structure: locked — no randomness
+- Lighting intensity: consistent — no variation
+- Camera distance and angle: fixed — no drift
+- Skin rendering: same parameters every output
 8K resolution, RAW photo quality, ultra-sharp focus on hair texture from root to end.
 No watermarks, no artifacts, no duplicated face, no extra limbs.
-The finished image must be indistinguishable from a professional product photography shoot.
 
-NEGATIVE: fake hairline, wig look, visible lace, wig cap, plastic shine, wet gloss, distorted face, blurred face, identity drift, melted strands, broken curls, floating hair, hair clipping through skin, artifacts, watermark, text.
+NEGATIVE: identity drift, different face, altered proportions, inconsistent features, changing face shape, fake hairline, wig look, visible lace, wig cap, plastic shine, wet gloss, distorted face, blurred face, melted strands, floating hair, hair clipping through skin, artifacts, watermark, text.
+
+FINAL DIRECTIVE:
+All generated images must appear as the SAME PERSON, SAME SESSION, SAME CAMERA SETUP.
+Only the hairstyle is allowed to change between generations.
+The face, skin, lighting, composition, and background must remain identical across all outputs.
 
 ${engine.suffix}`;
 }
