@@ -69,6 +69,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { href: "/image-lab", label: "IMAGE LAB", icon: Instagram },
     { href: "/photo-studio", label: "PHOTO STUDIO", icon: Camera },
     { href: "/creative-studio", label: "CREATIVE STUDIO", icon: Film },
+    { href: "/caption-lab", label: "CAPTION LAB", icon: Type },
   ];
 
   const currentTheme = themes.find((t) => t.id === theme) ?? themes[0];
@@ -212,7 +213,27 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 Creative Studio
               </div>
               <div className="mt-2 text-[9px] text-muted-foreground leading-relaxed">
-                60+ AI video effect prompts for Runway, Kling &amp; Pika.
+                86 AI video effect prompts for Runway, Kling, Pika, Veo 3 &amp; Grok.
+              </div>
+            </div>
+          </Link>
+
+          <Link href="/caption-lab">
+            <div
+              onClick={() => setIsMobileOpen(false)}
+              className={cn(
+                "mt-2 mx-3 border p-3 cursor-pointer transition-colors dw-bracket",
+                location === "/caption-lab"
+                  ? "border-primary bg-primary/10 theme-glow-box"
+                  : "border-emerald-500/40 bg-emerald-500/10 hover:border-primary hover:bg-primary/10"
+              )}
+            >
+              <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider text-emerald-300 font-bold">
+                <Type className="w-3 h-3" />
+                Caption Lab
+              </div>
+              <div className="mt-2 text-[9px] text-muted-foreground leading-relaxed">
+                10 vibes · 8 tones · ready-to-post captions + hashtag packs.
               </div>
             </div>
           </Link>

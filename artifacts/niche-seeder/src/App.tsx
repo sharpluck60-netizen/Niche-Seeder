@@ -11,6 +11,7 @@ import { AnalysisDetail } from "@/pages/analysis-detail";
 import { ImageLab } from "@/pages/image-lab";
 import { PhotoStudio } from "@/pages/photo-studio";
 import { CreativeStudio } from "@/pages/creative-studio";
+import { CaptionGenerator } from "@/pages/caption-generator";
 import { ThemeProvider } from "@/lib/theme";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ function Router() {
         <Route path="/image-lab" component={ImageLab} />
         <Route path="/photo-studio" component={PhotoStudio} />
         <Route path="/creative-studio" component={CreativeStudio} />
+        <Route path="/caption-lab" component={CaptionGenerator} />
         <Route component={NotFound} />
       </Switch>
     </Layout>
