@@ -87,6 +87,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { href: "/analyses", label: "INTEL ARCHIVE", icon: Database },
     { href: "/image-lab", label: "IMAGE LAB", icon: Instagram },
     { href: "/photo-studio", label: "PHOTO STUDIO", icon: Camera },
+    { href: "/hairstyle-lab", label: "HAIRSTYLE LAB", icon: Scissors },
     { href: "/creative-studio", label: "CREATIVE STUDIO", icon: Film },
     { href: "/caption-lab", label: "CAPTION LAB", icon: Type },
     { href: "/dance-studio", label: "DANCE STUDIO", icon: Music },
@@ -235,6 +236,26 @@ export function Layout({ children }: { children: React.ReactNode }) {
               </div>
               <div className="mt-2 text-[9px] text-muted-foreground leading-relaxed">
                 86 AI video effect prompts for Runway, Kling, Pika, Veo 3 &amp; Grok.
+              </div>
+            </div>
+          </Link>
+
+          <Link href="/hairstyle-lab">
+            <div
+              onClick={() => setIsMobileOpen(false)}
+              className={cn(
+                "mt-2 mx-3 border p-3 cursor-pointer transition-colors dw-bracket",
+                location === "/hairstyle-lab"
+                  ? "border-primary bg-primary/10 theme-glow-box"
+                  : "border-amber-500/40 bg-amber-500/10 hover:border-primary hover:bg-primary/10"
+              )}
+            >
+              <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider text-amber-300 font-bold">
+                <Scissors className="w-3 h-3" />
+                Hairstyle Lab
+              </div>
+              <div className="mt-2 text-[9px] text-muted-foreground leading-relaxed">
+                Male + female style prompts, plus female-only vendor hair fitting prompts.
               </div>
             </div>
           </Link>

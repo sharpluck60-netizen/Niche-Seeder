@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { eq, desc, sql, count } from "drizzle-orm";
 import { db, analysesTable, communitiesTable, sparkPostsTable } from "@workspace/db";
-import { openai } from "@workspace/integrations-openai-ai-server";
+import { openai } from "../lib/openai";
 import {
   CreateAnalysisBody,
   GetAnalysisParams,

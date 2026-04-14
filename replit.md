@@ -31,6 +31,7 @@ pnpm workspace monorepo using TypeScript.
 - **Metadata Optimizer**: YouTube/TikTok/Facebook titles, descriptions, posting times, search tags, hashtags, thumbnail concept, and A/B hook variants
 - **Content Series Planner**: 7-episode cinematic universe plans with recurring lore, episode hooks, cliffhangers, character arcs, and Identity Loyalty hook
 - **Photo Studio**: Sidebar-accessible prompt studio with 38 photo filter types inspired by user-provided examples, searchable categories, optional direction notes, prompt strength controls for identity/style/finish, filter-applied editable prompts, regenerate controls, recently used filters, and copyable output
+- **Hairstyle Lab**: Sidebar-accessible hair prompt studio with male/female hairstyle exploration and female-only Vendor Studio prompts for hair brands/vendors uploading product references for clean model composites
 
 ## Database Schema
 

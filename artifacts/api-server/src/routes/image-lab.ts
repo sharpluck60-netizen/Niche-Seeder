@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { openai } from "@workspace/integrations-openai-ai-server";
+import { openai } from "../lib/openai";
 
 const router: IRouter = Router();
 

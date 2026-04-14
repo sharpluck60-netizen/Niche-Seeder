@@ -244,17 +244,19 @@ function buildVendorPrompt(
   const skinTone = skinTones.find((s) => s.id === skinToneId)?.desc ?? skinToneId;
   const light = lightingOptions.find((l) => l.id === lighting)?.desc ?? lighting;
 
-  return `Ultra-photorealistic beauty portrait of a female model with ${skinTone}, wearing ${hairDesc || "the hair shown in the reference image"} at ${length} length.
+  return `Ultra-photorealistic commercial beauty portrait of a female model only with ${skinTone}, wearing ${hairDesc || "the exact hair product shown in the uploaded reference image"} at ${length} length. This is a hair brand / hair vendor sales image for a real product listing, so the hair must remain the hero and must match the uploaded product reference.
 
-HAIR PLACEMENT: The hair sits perfectly on the model's head with a natural hairline — no visible lace, no synthetic sheen, no unnatural hairline. The hair falls naturally according to gravity and the model's head shape. Individual strands at the hairline blend seamlessly into the scalp. The hair part (if applicable) shows a natural scalp below.
+HAIR PLACEMENT: The hair sits perfectly on the female model's head with a natural hairline — no visible lace, no synthetic sheen, no floating edges, no warped scalp, no unnatural hairline. The hair follows the skull shape, temples, forehead curve, ears, shoulders, and gravity correctly. Individual strands at the hairline blend seamlessly into the scalp. The hair part (if applicable) shows a natural scalp below.
 
-HAIR DETAIL: ${length} length hair, every strand hyperdetailed, natural movement and texture consistent throughout from root to end. The hair color, wave pattern, and texture match the uploaded reference product image exactly.
+HAIR DETAIL: ${length} length hair, every strand hyperdetailed, natural movement and texture consistent throughout from root to end. The hair color, density, lace/frontal style, wave pattern, curl pattern, shine level, bundle fullness, and texture match the uploaded reference product image exactly. Do not invent a different hair texture or color.
 
-FACE & BODY: The model's face is perfectly clear and unobstructed. Natural makeup or no makeup. No accessories covering the hairline. Shoulders visible for context.
+FACE & BODY: The model's face is perfectly clear and unobstructed. Natural makeup or no makeup. No accessories covering the hairline. Shoulders visible for context. Female model only; no male model, no mannequin, no child, no extra people.
 
-LIGHTING: ${light}. Lighting specifically chosen to showcase the hair's shine, texture, and movement. Key light on the hair for maximum product visibility.
+LIGHTING: ${light}. Lighting specifically chosen to showcase the hair's shine, texture, and movement. Key light on the hair for maximum product visibility. Clean e-commerce beauty campaign finish.
 
-TECHNICAL: Commercial beauty photography, 8K resolution, RAW photo quality, sharp focus on hair texture, natural skin rendering, no watermarks, no artifacts, the hair appears indistinguishable from professionally photographed real hair.`;
+TECHNICAL: Commercial beauty photography, 8K resolution, RAW photo quality, sharp focus on hair texture, natural skin rendering, no watermarks, no artifacts, no extra limbs, no duplicated face, no distorted ears, no melted strands, no broken curls, no glitching around the forehead or edges. The hair appears indistinguishable from professionally photographed real hair installed by an expert stylist.
+
+NEGATIVE PROMPT: male model, mannequin, child, floating wig, detached hair, bad lace, visible wig cap, melted hairline, plastic shine, synthetic-looking fibers, blurry hair, distorted face, extra face, duplicated head, warped ears, hair clipping through skin, gaps at hairline, artifacts, watermark, text.`;
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -275,7 +277,7 @@ export function HairstyleLab() {
           HAIR STUDIO
         </h1>
         <p className="text-sm text-muted-foreground mt-2 max-w-2xl">
-          Generate cinematic AI hair prompts for any style (male or female) — or upload a hair product and get prompts to place it flawlessly on any model.
+          Generate cinematic AI hair prompts for male or female styles — or upload a vendor hair product and get female-only prompts to place it cleanly on a model for sales visuals.
         </p>
         {/* Tabs */}
         <div className="flex gap-2 mt-4">
@@ -623,6 +625,7 @@ function VendorStudio() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [hairDesc, setHairDesc] = useState("");
   const [skin, setSkin] = useState("rich");
   const [length, setLength] = useState("Shoulder");
@@ -632,7 +635,15 @@ function VendorStudio() {
   const [instructionsOpen, setInstructionsOpen] = useState(false);
 
   const processFile = useCallback((file: File) => {
-    if (!file.type.startsWith("image/")) return;
+    if (!file.type.startsWith("image/")) {
+      setUploadError("Please upload a JPG, PNG, or WebP hair product image.");
+      return;
+    }
+    if (file.size > 15 * 1024 * 1024) {
+      setUploadError("Hair product image must be under 15MB.");
+      return;
+    }
+    setUploadError(null);
     const reader = new FileReader();
     reader.onload = (e) => setImagePreview(e.target?.result as string);
     reader.readAsDataURL(file);
@@ -663,7 +674,7 @@ function VendorStudio() {
           <Star className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
           <div>
             <p className="font-bold text-amber-400 text-[11px] uppercase tracking-wider mb-1">For Hair Vendors & Brands</p>
-            <p className="text-[12px]">Upload a photo of your hair product, describe it, choose a model skin tone and length — get a precision prompt + platform instructions to composite it onto a model seamlessly using AI. Works with Midjourney, Flux, Stable Diffusion, Firefly, and Runway.</p>
+            <p className="text-[12px]">Upload a photo of hair you sell, describe it, choose a female model skin tone and length — get a precision prompt + platform instructions to composite it onto a female model as cleanly as possible using AI. Works with Midjourney, Flux, Stable Diffusion, Firefly, and Runway.</p>
           </div>
         </div>
       </div>
@@ -717,6 +728,12 @@ function VendorStudio() {
                   </div>
                 </div>
               )}
+              {uploadError && (
+                <div className="mt-3 flex items-start gap-2 text-[10px] text-destructive border border-destructive/40 bg-destructive/10 px-3 py-2">
+                  <AlertCircle className="w-3 h-3 shrink-0 mt-0.5" />
+                  {uploadError}
+                </div>
+              )}
               <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) processFile(f); }} />
             </div>
           </div>
@@ -745,6 +762,7 @@ function VendorStudio() {
                 "Shoot the hair laid flat or on a mannequin head for best AI reference",
                 "For lace frontals/closures, photograph them installed on a wig cap if possible",
                 "The more accurate your hair description, the better the AI match",
+                "Use the generated negative prompt to reduce floating wigs, bad lace, warped hairlines, and other glitches",
                 "Midjourney image weight (--iw 2.0) gives the strongest hair reference",
               ].map((tip, i) => (
                 <li key={i} className="flex items-start gap-2 text-[10px] text-muted-foreground leading-relaxed">
@@ -761,6 +779,9 @@ function VendorStudio() {
           {/* Skin tone */}
           <div className="border border-border bg-card p-4 space-y-2">
             <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Model Skin Tone</div>
+            <div className="text-[9px] text-amber-400/80 border border-amber-400/30 bg-amber-400/5 px-2 py-1 uppercase tracking-wider">
+              Vendor Studio uses female models only
+            </div>
             <div className="grid grid-cols-5 gap-1">
               {skinTones.map((s) => (
                 <button
