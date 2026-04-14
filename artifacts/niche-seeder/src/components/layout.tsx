@@ -15,6 +15,7 @@ import {
   EyeOff,
   Lock,
   Music,
+  Globe,
   Search,
   ChevronDown,
   ChevronUp,
@@ -88,6 +89,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { href: "/creative-studio", label: "CREATIVE STUDIO", icon: Film },
     { href: "/caption-lab", label: "CAPTION LAB", icon: Type },
     { href: "/dance-studio", label: "DANCE STUDIO", icon: Music },
+    { href: "/phantom-passport", label: "MAP STUDIO", icon: Globe },
   ];
 
   const currentTheme = themes.find((t) => t.id === theme) ?? themes[0];
@@ -272,6 +274,26 @@ export function Layout({ children }: { children: React.ReactNode }) {
               </div>
               <div className="mt-2 text-[9px] text-muted-foreground leading-relaxed">
                 12 styles · trending picks · AI dance video prompt builder.
+              </div>
+            </div>
+          </Link>
+
+          <Link href="/phantom-passport">
+            <div
+              onClick={() => setIsMobileOpen(false)}
+              className={cn(
+                "mt-2 mx-3 border p-3 cursor-pointer transition-colors dw-bracket",
+                location === "/phantom-passport"
+                  ? "border-primary bg-primary/10 theme-glow-box"
+                  : "border-cyan-500/40 bg-cyan-500/10 hover:border-primary hover:bg-primary/10"
+              )}
+            >
+              <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider text-cyan-300 font-bold">
+                <Globe className="w-3 h-3" />
+                Map Studio
+              </div>
+              <div className="mt-2 text-[9px] text-muted-foreground leading-relaxed">
+                Pin any landmark · fake travel video prompts · Veo 3, Kling, Runway.
               </div>
             </div>
           </Link>

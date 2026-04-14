@@ -13,6 +13,7 @@ import { PhotoStudio } from "@/pages/photo-studio";
 import { CreativeStudio } from "@/pages/creative-studio";
 import { CaptionGenerator } from "@/pages/caption-generator";
 import { DanceStudio } from "@/pages/dance-studio";
+import { PhantomPassport } from "@/pages/phantom-passport";
 import { ThemeProvider } from "@/lib/theme";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ function Router() {
         <Route path="/creative-studio" component={CreativeStudio} />
         <Route path="/caption-lab" component={CaptionGenerator} />
         <Route path="/dance-studio" component={DanceStudio} />
+        <Route path="/phantom-passport" component={PhantomPassport} />
         <Route component={NotFound} />
       </Switch>
     </Layout>
