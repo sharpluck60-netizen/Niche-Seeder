@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "KTLSMSWyITKttaWInwPOg"
+uri = "file://exports/director-lab-cinematic-engine.pdf"
+type = "pdf"
+title = "Director Lab Cinematic Continuity Engine PDF"
