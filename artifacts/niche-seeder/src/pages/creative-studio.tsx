@@ -8,10 +8,13 @@ import {
   Copy,
   Film,
   Globe,
+  Layers2,
+  MapPin,
   RefreshCw,
   Search,
   Sparkles,
   Wand2,
+  X,
   Zap,
   Wind,
   Star,
@@ -124,6 +127,18 @@ const videoEffects: VideoEffect[] = [
   { name: "Mythological Creature", category: "Grok FX", description: "Photorealistic ancient mythological creature in the wild", tone: "amber", tool: "Grok Aurora", duration: "5–8s", prompt: "A photorealistic mythological creature exists in its natural habitat with complete believability: scales, fur, feathers, or skin have perfect biological detail. Eyes are intelligent and alive. Movement is naturalistic and weighted. The environment reacts to its presence — birds flee, water ripples, trees bend. National Geographic meets myth." },
   { name: "Interdimensional Rift", category: "Grok FX", description: "Two realities tear open and merge through a rift", tone: "purple", tool: "Grok Aurora", duration: "6–8s", prompt: "Reality tears open at a central rift, and two entirely different dimensions bleed into each other — one might be a lush forest, the other a barren alien world. The rift distorts light around its edges with gravitational lensing. Objects and particles from both worlds mix at the boundary. Epic scale and production quality." },
   { name: "Living Abstract Data", category: "Grok FX", description: "Information becomes living visual art in motion", tone: "blue", tool: "Grok Aurora", duration: "5–7s", prompt: "Abstract data takes on physical form and moves like a living organism: information flows as luminous rivers of light, data nodes pulse and connect like neurons, algorithms visualized as blooming fractals, network graphs become three-dimensional webs of glowing threads. Beautiful, intelligent-feeling motion art." },
+
+  // ── Location Zoom FX ─────────────────────────────────────────────────────
+  { name: "Earth to Street Descent", category: "Location Zoom FX", description: "Google Earth-style zoom from space down to the subject", tone: "blue", tool: "Veo 3", duration: "8–10s", prompt: "Begin from outer space — the curve of the Earth visible against a star field. The camera descends rapidly through the atmosphere, clouds parting below. Continents resolve into countries, countries into cities, cities into neighborhoods, neighborhoods into a single street. The descent ends at ground level, revealing the subject standing at their exact location. Cinematic satellite-to-street reveal. Ultra-realistic continuous zoom, no cuts." },
+  { name: "Google Maps Pin Drop", category: "Location Zoom FX", description: "Animated map tiles zoom from world view to a street pin", tone: "cyan", tool: "Runway Gen-3", duration: "6–8s", prompt: "Start with a stylized satellite map view of the world. Digital map tiles zoom in progressively — continent tiles load, then country tiles, then city tiles, then neighborhood street view. A red location pin drops and plants into the street at the final zoom level. The camera then transitions from the map aesthetic to a photorealistic street view of the location with the subject standing there. Clean cinematic motion, Google Maps aesthetic." },
+  { name: "Satellite to Rooftop", category: "Location Zoom FX", description: "Satellite view zooms to a rooftop, subject revealed from above", tone: "slate", tool: "Veo 3", duration: "8s", prompt: "Aerial satellite imagery zooms in on a city block from directly above. Resolution increases as altitude drops — the roof tiles and building details sharpen. The descent slows as it reaches a specific rooftop. The camera pivots smoothly from top-down to a low angled shot, revealing the subject standing on the rooftop with the city skyline behind them. Cinematic drone reveal." },
+  { name: "Stadium Crowd Finder", category: "Location Zoom FX", description: "Aerial stadium zoom — finding one person in a packed crowd", tone: "amber", tool: "Veo 3", duration: "8–10s", prompt: "Wide aerial shot of a packed stadium full of thousands of people. The camera begins to zoom in with purpose, scanning and descending. The crowd becomes larger and more detailed. The zoom slows as it homes in on one specific person in the crowd — the subject. The final frame is a close-up portrait of the subject surrounded by the blurred crowd. Dramatic documentary-style focus pull." },
+  { name: "City Window Find", category: "Location Zoom FX", description: "Night cityscape zoom — finding a character at their lit window", tone: "purple", tool: "Kling AI", duration: "8s", prompt: "Wide shot of a glittering city skyline at night. Windows are lit across dozens of buildings. The camera begins a slow deliberate zoom toward one specific building, descending between skyscrapers. The zoom locks onto one particular lit window. Through the window the subject is visible inside — the camera closes in until the window fills the frame and we can see the subject clearly. Cinematic city noir reveal." },
+  { name: "Beach Horizon Zoom", category: "Location Zoom FX", description: "Aerial ocean horizon zooms to beach to find the subject", tone: "cyan", tool: "Veo 3", duration: "8–10s", prompt: "Wide aerial shot looking out from above the ocean toward a distant coastline. The camera moves forward and descends simultaneously — the horizon approaches, the coastline grows, the beach resolves in increasing detail. The zoom slows as it approaches the shoreline, revealing the subject standing on the sand at the water's edge. Golden hour light, gentle waves, cinematic reveal." },
+  { name: "Mountain Summit Reveal", category: "Location Zoom FX", description: "Satellite zoom from mountain range to a lone summit climber", tone: "slate", tool: "Veo 3", duration: "8–10s", prompt: "Satellite view of a mountain range — peaks sharp against a blue sky. The camera descends and zooms toward the highest summit. As altitude decreases, individual ridges and snow fields come into focus. The descent slows dramatically as it approaches the very top, revealing a lone subject standing at the summit, wind in their clothes, the world spread below them. Epic scale contrast — vast mountains, one person." },
+  { name: "Festival Ground Zoom", category: "Location Zoom FX", description: "Aerial festival zoom finds a single dancing person in thousands", tone: "pink", tool: "Runway Gen-3", duration: "8s", prompt: "Aerial birds-eye view of a massive outdoor festival — thousands of people, stages, lights, crowds spread across a wide field. The camera descends with an energetic rhythm, zooming toward the crowd. It homes in on a specific section of dancing people and slows, finally locking onto the subject dancing freely in the middle of the crowd. The final frame is an intimate portrait — the subject in their element, festival energy all around." },
+  { name: "Neighborhood Drop-In", category: "Location Zoom FX", description: "Drone zooms from suburb aerial to a front door, subject inside", tone: "green", tool: "Kling AI", duration: "7–8s", prompt: "Wide aerial shot of a suburban neighborhood — streets, houses, trees visible from above. The drone descends toward one specific house, approaching from above and slightly behind. The camera slows as it reaches the front of the house, settling at ground level facing the front door. The subject steps out of the doorway to greet the camera. Warm neighborhood light, natural environment, intimate and personal reveal." },
+  { name: "Night Club VIP Zoom", category: "Location Zoom FX", description: "Aerial zoom into a club, finds the subject on the dance floor", tone: "purple", tool: "Runway Gen-3", duration: "7–8s", prompt: "Exterior aerial view of a city block at night. The camera descends toward one building with neon lights and a queue outside — a nightclub. The zoom passes through the exterior, into the interior, above the dance floor. Strobes, fog, and colored lights illuminate thousands of moving people below. The camera descends and locks onto the subject dancing confidently in the middle of the floor. Cinematic party energy reveal." },
 ];
 
 const effectCategories = ["All", ...Array.from(new Set(videoEffects.map((e) => e.category)))];
@@ -157,6 +172,7 @@ const categoryIcons: Record<string, React.ElementType> = {
   "Transition FX": Layers,
   "Veo 3 FX": Globe,
   "Grok FX": Bot,
+  "Location Zoom FX": MapPin,
 };
 
 function buildVideoPrompt(effect: VideoEffect, subject: string): string {
@@ -164,6 +180,13 @@ function buildVideoPrompt(effect: VideoEffect, subject: string): string {
     ? `Subject / scene: ${subject.trim()}. `
     : "";
   return `${subjectLine}${effect.prompt} Recommended tool: ${effect.tool}. Suggested duration: ${effect.duration}.`;
+}
+
+function buildStackPrompt(primary: VideoEffect, secondary: VideoEffect, subject: string): string {
+  const subjectLine = subject.trim() ? `Subject / scene: ${subject.trim()}. ` : "";
+  const tools = primary.tool === secondary.tool ? primary.tool : `${primary.tool} or ${secondary.tool}`;
+  const dur = primary.duration === secondary.duration ? primary.duration : `${primary.duration} / ${secondary.duration}`;
+  return `${subjectLine}This video stacks two cinematic effects simultaneously in a single continuous shot:\n\n[EFFECT 1 — ${primary.name}]: ${primary.prompt}\n\n[EFFECT 2 — ${secondary.name}]: ${secondary.prompt}\n\nBoth effects must coexist and reinforce each other — composited together, not sequential. The combined result should feel intentional and cinematic. Recommended tool: ${tools}. Suggested duration: ${dur}.`;
 }
 
 export function CreativeStudio() {
@@ -175,8 +198,12 @@ export function CreativeStudio() {
     buildVideoPrompt(videoEffects[0], "")
   );
   const [copied, setCopied] = useState(false);
-  const [refreshCount, setRefreshCount] = useState(0);
   const [refreshMsg, setRefreshMsg] = useState("");
+
+  // Stack mode state
+  const [stackMode, setStackMode] = useState(false);
+  const [stackPrimary, setStackPrimary] = useState<VideoEffect | null>(null);
+  const [stackSecondary, setStackSecondary] = useState<VideoEffect | null>(null);
 
   const filteredEffects = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -190,21 +217,59 @@ export function CreativeStudio() {
   }, [activeCategory, query]);
 
   const applyEffect = (effect: VideoEffect) => {
-    setSelectedEffect(effect);
-    setPromptDraft(buildVideoPrompt(effect, subject));
+    if (stackMode) {
+      if (!stackPrimary || (stackPrimary && stackSecondary)) {
+        setStackPrimary(effect);
+        setStackSecondary(null);
+        setSelectedEffect(effect);
+        setPromptDraft(buildVideoPrompt(effect, subject));
+        setRefreshMsg(`Stack primary: ${effect.name}`);
+      } else if (stackPrimary && effect.name !== stackPrimary.name) {
+        setStackSecondary(effect);
+        setSelectedEffect(effect);
+        setPromptDraft(buildStackPrompt(stackPrimary, effect, subject));
+        setRefreshMsg(`Stack built: ${stackPrimary.name} + ${effect.name}`);
+      }
+    } else {
+      setSelectedEffect(effect);
+      setPromptDraft(buildVideoPrompt(effect, subject));
+      setRefreshMsg(`${effect.name} loaded`);
+    }
     setCopied(false);
-    setRefreshMsg(`${effect.name} loaded`);
+  };
+
+  const toggleStack = () => {
+    const next = !stackMode;
+    setStackMode(next);
+    if (!next) {
+      setStackPrimary(null);
+      setStackSecondary(null);
+      setPromptDraft(buildVideoPrompt(selectedEffect, subject));
+      setRefreshMsg("Stack cleared");
+    } else {
+      setStackPrimary(selectedEffect);
+      setStackSecondary(null);
+      setRefreshMsg("Stack on — pick a second effect");
+    }
+    setCopied(false);
   };
 
   const handleSubjectChange = (value: string) => {
     setSubject(value);
-    setPromptDraft(buildVideoPrompt(selectedEffect, value));
+    if (stackMode && stackPrimary && stackSecondary) {
+      setPromptDraft(buildStackPrompt(stackPrimary, stackSecondary, value));
+    } else {
+      setPromptDraft(buildVideoPrompt(selectedEffect, value));
+    }
     setCopied(false);
   };
 
   const regenerate = () => {
-    setRefreshCount((n) => n + 1);
-    setPromptDraft(buildVideoPrompt(selectedEffect, subject));
+    if (stackMode && stackPrimary && stackSecondary) {
+      setPromptDraft(buildStackPrompt(stackPrimary, stackSecondary, subject));
+    } else {
+      setPromptDraft(buildVideoPrompt(selectedEffect, subject));
+    }
     setCopied(false);
     setRefreshMsg("Prompt refreshed");
   };
@@ -247,37 +312,104 @@ export function CreativeStudio() {
         <aside className="space-y-4 xl:sticky xl:top-6 self-start">
           <Card className="bg-card border-border theme-glow-box">
             <CardHeader className="border-b border-border bg-secondary/50">
-              <CardTitle className="uppercase text-sm tracking-wider text-primary flex items-center gap-2">
-                <PlayCircle className="w-4 h-4" />
-                Active Effect
+              <CardTitle className="uppercase text-sm tracking-wider text-primary flex items-center justify-between gap-2">
+                <span className="flex items-center gap-2">
+                  <PlayCircle className="w-4 h-4" />
+                  {stackMode ? "Effect Stack" : "Active Effect"}
+                </span>
+                <button
+                  type="button"
+                  onClick={toggleStack}
+                  className={cn(
+                    "flex items-center gap-1.5 border px-2.5 py-1 text-[9px] uppercase tracking-wider font-bold transition-colors",
+                    stackMode
+                      ? "bg-amber-500/20 border-amber-500/60 text-amber-400 hover:bg-amber-500/30"
+                      : "border-border text-muted-foreground hover:text-amber-400 hover:border-amber-500/50"
+                  )}
+                >
+                  {stackMode ? <X className="w-3 h-3" /> : <Layers2 className="w-3 h-3" />}
+                  {stackMode ? "Clear Stack" : "Stack FX"}
+                </button>
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 space-y-4">
-              {/* Effect preview card */}
-              <div className={cn("border bg-gradient-to-br p-4", toneClasses[selectedEffect.tone])}>
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <Badge className="bg-background/80 text-primary border border-primary/40 uppercase text-[10px]">
-                        {selectedEffect.category}
+              {/* Stack mode banner */}
+              {stackMode && (
+                <div className={cn(
+                  "border px-3 py-2 text-[11px] leading-relaxed",
+                  stackPrimary && stackSecondary
+                    ? "border-amber-500/40 bg-amber-500/5 text-amber-200/80"
+                    : "border-amber-500/30 bg-amber-500/5 text-amber-300/80"
+                )}>
+                  <span className="text-amber-400 font-bold uppercase tracking-wider">Stack Mode</span>
+                  {" — "}
+                  {!stackPrimary
+                    ? "Click any effect to set it as Layer 1."
+                    : !stackSecondary
+                    ? `Layer 1: ${stackPrimary.name}. Now click a second effect to set Layer 2.`
+                    : `${stackPrimary.name} + ${stackSecondary.name} — prompt merged. Click any card to restart the stack.`}
+                </div>
+              )}
+
+              {/* Effect preview card — single or stacked */}
+              {stackMode && stackPrimary && stackSecondary ? (
+                <div className="space-y-1.5">
+                  <div className={cn("border bg-gradient-to-br p-3", toneClasses[stackPrimary.tone])}>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[9px] uppercase tracking-widest text-foreground/60 font-bold">Layer 1</span>
+                      <Badge className="bg-background/80 text-primary border border-primary/40 uppercase text-[8px]">
+                        {stackPrimary.category}
                       </Badge>
                     </div>
-                    <h2 className="text-2xl font-bold text-foreground">{selectedEffect.name}</h2>
-                    <p className="text-sm mt-2 text-foreground/75 leading-relaxed">
-                      {selectedEffect.description}
-                    </p>
+                    <p className="text-base font-bold text-foreground leading-tight">{stackPrimary.name}</p>
+                    <span className={cn("text-[9px] border px-1.5 py-0.5 mt-1.5 inline-block uppercase tracking-wider", toolBadgeColors[stackPrimary.tool])}>
+                      {stackPrimary.tool}
+                    </span>
                   </div>
-                  <CategoryIcon className="w-8 h-8 opacity-80 shrink-0" />
+                  <div className="flex items-center justify-center gap-2 py-0.5">
+                    <Layers2 className="w-3.5 h-3.5 text-amber-400" />
+                    <span className="text-[9px] uppercase tracking-widest text-amber-400 font-bold">Stack +</span>
+                    <Layers2 className="w-3.5 h-3.5 text-amber-400" />
+                  </div>
+                  <div className={cn("border bg-gradient-to-br p-3", toneClasses[stackSecondary.tone])}>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[9px] uppercase tracking-widest text-foreground/60 font-bold">Layer 2</span>
+                      <Badge className="bg-background/80 text-primary border border-primary/40 uppercase text-[8px]">
+                        {stackSecondary.category}
+                      </Badge>
+                    </div>
+                    <p className="text-base font-bold text-foreground leading-tight">{stackSecondary.name}</p>
+                    <span className={cn("text-[9px] border px-1.5 py-0.5 mt-1.5 inline-block uppercase tracking-wider", toolBadgeColors[stackSecondary.tool])}>
+                      {stackSecondary.tool}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3 mt-3 pt-3 border-t border-foreground/20">
-                  <span className={cn("text-[9px] border px-2 py-0.5 uppercase tracking-wider", toolBadgeColors[selectedEffect.tool] ?? "bg-secondary text-muted-foreground border-border")}>
-                    {selectedEffect.tool}
-                  </span>
-                  <span className="text-[9px] text-foreground/60 uppercase tracking-wider">
-                    ⏱ {selectedEffect.duration}
-                  </span>
+              ) : (
+                <div className={cn("border bg-gradient-to-br p-4", toneClasses[selectedEffect.tone])}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Badge className="bg-background/80 text-primary border border-primary/40 uppercase text-[10px]">
+                          {selectedEffect.category}
+                        </Badge>
+                      </div>
+                      <h2 className="text-2xl font-bold text-foreground">{selectedEffect.name}</h2>
+                      <p className="text-sm mt-2 text-foreground/75 leading-relaxed">
+                        {selectedEffect.description}
+                      </p>
+                    </div>
+                    <CategoryIcon className="w-8 h-8 opacity-80 shrink-0" />
+                  </div>
+                  <div className="flex items-center gap-3 mt-3 pt-3 border-t border-foreground/20">
+                    <span className={cn("text-[9px] border px-2 py-0.5 uppercase tracking-wider", toolBadgeColors[selectedEffect.tool] ?? "bg-secondary text-muted-foreground border-border")}>
+                      {selectedEffect.tool}
+                    </span>
+                    <span className="text-[9px] text-foreground/60 uppercase tracking-wider">
+                      ⏱ {selectedEffect.duration}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Prompt output */}
               <div>
@@ -422,21 +554,33 @@ export function CreativeStudio() {
           <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3 gap-2.5">
             {filteredEffects.map((effect) => {
               const Icon = categoryIcons[effect.category] ?? Wand2;
-              const isSelected = selectedEffect.name === effect.name;
+              const isLayer1 = stackMode && stackPrimary?.name === effect.name;
+              const isLayer2 = stackMode && stackSecondary?.name === effect.name;
+              const isSelected = !stackMode && selectedEffect.name === effect.name;
               return (
                 <button
                   key={effect.name}
                   type="button"
                   onClick={() => applyEffect(effect)}
                   className={cn(
-                    "group text-left border bg-card transition-all hover:border-primary hover:bg-primary/5",
-                    isSelected ? "border-primary bg-primary/10 theme-glow-box" : "border-border"
+                    "group text-left border bg-card transition-all",
+                    isSelected
+                      ? "border-primary bg-primary/10 theme-glow-box"
+                      : isLayer1
+                      ? "border-primary bg-primary/10 theme-glow-box"
+                      : isLayer2
+                      ? "border-amber-500/70 bg-amber-500/10"
+                      : "border-border hover:border-primary hover:bg-primary/5"
                   )}
                 >
                   <div className="p-3 space-y-2.5">
                     <div className="flex items-center justify-between gap-2">
                       <div className={cn("w-7 h-7 border bg-gradient-to-br flex items-center justify-center shrink-0", toneClasses[effect.tone])}>
-                        <Icon className="w-3.5 h-3.5 opacity-80" />
+                        {isLayer2 ? (
+                          <Layers2 className="w-3.5 h-3.5 text-amber-400" />
+                        ) : (
+                          <Icon className="w-3.5 h-3.5 opacity-80" />
+                        )}
                       </div>
                       <Badge className="bg-secondary/60 text-primary border border-primary/30 uppercase text-[8px] px-1.5 py-0.5 max-w-[110px] truncate">
                         {effect.category}
@@ -454,8 +598,13 @@ export function CreativeStudio() {
                       <span className={cn("text-[8px] border px-1.5 py-0.5", toolBadgeColors[effect.tool] ?? "border-border text-muted-foreground")}>
                         {effect.tool}
                       </span>
-                      <span className={cn(isSelected ? "text-primary font-bold" : "text-muted-foreground")}>
-                        {isSelected ? "Active" : effect.duration}
+                      <span className={cn(
+                        isLayer1 ? "text-primary font-bold" :
+                        isLayer2 ? "text-amber-400 font-bold" :
+                        isSelected ? "text-primary font-bold" :
+                        "text-muted-foreground"
+                      )}>
+                        {isLayer1 ? "Layer 1" : isLayer2 ? "Layer 2" : isSelected ? "Active" : effect.duration}
                       </span>
                     </div>
                   </div>
