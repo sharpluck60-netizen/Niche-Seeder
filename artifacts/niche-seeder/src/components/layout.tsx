@@ -20,6 +20,7 @@ import {
   Search,
   ChevronDown,
   ChevronUp,
+  Clapperboard,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -89,6 +90,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { href: "/photo-studio", label: "PHOTO STUDIO", icon: Camera },
     { href: "/hairstyle-lab", label: "HAIRSTYLE LAB", icon: Scissors },
     { href: "/creative-studio", label: "CREATIVE STUDIO", icon: Film },
+    { href: "/director-lab", label: "DIRECTOR LAB", icon: Clapperboard },
     { href: "/caption-lab", label: "CAPTION LAB", icon: Type },
     { href: "/dance-studio", label: "DANCE STUDIO", icon: Music },
     { href: "/phantom-passport", label: "MAP STUDIO", icon: Globe },

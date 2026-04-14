@@ -32,6 +32,7 @@ pnpm workspace monorepo using TypeScript.
 - **Content Series Planner**: 7-episode cinematic universe plans with recurring lore, episode hooks, cliffhangers, character arcs, and Identity Loyalty hook
 - **Photo Studio**: Sidebar-accessible prompt studio with 38 photo filter types inspired by user-provided examples, searchable categories, optional direction notes, prompt strength controls for identity/style/finish, filter-applied editable prompts, regenerate controls, recently used filters, and copyable output
 - **Hairstyle Lab**: Sidebar-accessible hair prompt studio with male/female hairstyle exploration and female-only Vendor Studio prompts for hair brands/vendors uploading product references for clean model composites
+- **Director Lab**: Cinematic continuity engine that accepts 1-3 uploaded images as anchor frames, visually analyzes people/settings/props/mood, detects a movie idea, builds a 6-10 shot scene with camera/SFX/VFX/dialogue/next-shot prompts, explains creative choices with Director Notes, offers Creative Rescue options for mismatched images, and seeds Episode 1/2 direction
 
 ## Database Schema
 
