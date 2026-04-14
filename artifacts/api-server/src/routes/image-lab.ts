@@ -24,6 +24,7 @@ Your job is to:
 1. Analyze the uploaded reference image deeply — identify the visual technique, concept, style, and what makes it powerful
 2. Rate how viral it is currently (1-10)
 3. Generate exactly 6 killer Instagram image concepts that SURPASS the reference — each must be more emotionally charged, visually surprising, and algorithmically optimized than the original
+4. If the image contains a building, house, room, vehicle, street, shop, castle, bunker, spaceship, landscape, or any explorable setting, create a Location Scout package that imagines what spaces exist beyond the visible frame and what characters can interact with there. If there is no explorable location, set "locationScout" to null.
 
 For each idea, provide a complete, ready-to-use AI image generation prompt that is highly specific and detailed.
 
@@ -36,6 +37,33 @@ Respond ONLY in this exact JSON format:
     "conceptStrength": 7,
     "viralityFactors": ["factor1", "factor2", "factor3"],
     "weaknesses": ["what holds it back from being even more viral"]
+  },
+  "locationScout": {
+    "detectedLocation": "Specific location or structure detected, such as isolated house, apartment, bunker, spaceship, shop, street, castle, etc.",
+    "exteriorClues": ["visible clue from the image", "another visible clue"],
+    "storyFunction": "How this location can function in a short movie scene",
+    "continuityBridge": "How to move characters from the visible exterior/frame into explorable interior/action",
+    "directorTip": "Short co-director note about why this space is useful dramatically",
+    "interiorZones": [
+      {
+        "name": "Room or zone name",
+        "description": "What this interior/zone looks and feels like",
+        "connectedTo": "How it connects spatially to the visible image or other rooms",
+        "interactiveProps": ["fridge", "TV", "drawer", "window", "phone"],
+        "storyTriggers": ["TV news reveals something", "fridge contains a clue"],
+        "imagePrompt": "Detailed image generation prompt for this interior/zone"
+      }
+    ],
+    "characterActions": ["open the fridge", "turn on the TV", "sit on the couch", "search the drawer"],
+    "sceneShots": [
+      {
+        "title": "Shot title",
+        "shotDescription": "What the audience sees",
+        "camera": "Camera angle and movement",
+        "sound": "SFX/ambience/music cue",
+        "purpose": "Why this shot helps the scene"
+      }
+    ]
   },
   "killerIdeas": [
     {
@@ -56,7 +84,7 @@ Respond ONLY in this exact JSON format:
           content: [
             {
               type: "text",
-              text: "Analyze this image and generate 6 killer Instagram concepts that surpass it. Focus on Instagram only — the goal is maximum saves, shares, and reach on that platform.",
+              text: "Analyze this image and generate 6 killer Instagram concepts that surpass it. Also, if the image contains a building, house, room, street, vehicle, or explorable setting, create a Location Scout package that shows what is inside, what characters can interact with, and what shots/images to generate next. Focus Instagram concepts on maximum saves, shares, and reach.",
             },
             {
               type: "image_url",

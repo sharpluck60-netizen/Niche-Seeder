@@ -19,6 +19,11 @@ import {
   Instagram,
   GitMerge,
   FlameKindling,
+  Building2,
+  DoorOpen,
+  MousePointerClick,
+  Clapperboard,
+  Route,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -43,6 +48,34 @@ type KillerIdea = {
   postingTip: string;
 };
 
+type InteriorZone = {
+  name: string;
+  description: string;
+  connectedTo: string;
+  interactiveProps: string[];
+  storyTriggers: string[];
+  imagePrompt: string;
+};
+
+type LocationSceneShot = {
+  title: string;
+  shotDescription: string;
+  camera: string;
+  sound: string;
+  purpose: string;
+};
+
+type LocationScout = {
+  detectedLocation: string;
+  exteriorClues: string[];
+  storyFunction: string;
+  continuityBridge: string;
+  directorTip: string;
+  interiorZones: InteriorZone[];
+  characterActions: string[];
+  sceneShots: LocationSceneShot[];
+};
+
 type FusionResult = {
   fusionTitle: string;
   fusionTagline: string;
@@ -57,6 +90,7 @@ type FusionResult = {
 
 type AnalysisResult = {
   imageAnalysis: ImageAnalysis;
+  locationScout?: LocationScout | null;
   killerIdeas: KillerIdea[];
 };
 
@@ -435,6 +469,8 @@ export function ImageLab() {
         </div>
       </div>
 
+      {result?.locationScout && <LocationScoutCard scout={result.locationScout} />}
+
       {/* Killer Ideas Grid */}
       {result && (
         <div className="space-y-4">
@@ -563,6 +599,173 @@ export function ImageLab() {
         </div>
       )}
     </div>
+  );
+}
+
+function LocationScoutCard({ scout }: { scout: LocationScout }) {
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+
+  const copyToClipboard = async (text: string, field: string) => {
+    await navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(null), 2000);
+  };
+
+  return (
+    <Card className="bg-card border-cyan-400/50 theme-glow-box overflow-hidden">
+      <CardHeader className="border-b border-cyan-400/30 bg-cyan-400/5">
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-cyan-300/80 font-bold mb-2">
+              <Building2 className="w-3 h-3" />
+              Location Scout
+            </div>
+            <CardTitle className="text-xl text-cyan-300 font-bold tracking-tight">
+              {scout.detectedLocation}
+            </CardTitle>
+            <p className="text-sm text-foreground/70 mt-2 max-w-3xl leading-relaxed">
+              {scout.storyFunction}
+            </p>
+          </div>
+          <Badge className="bg-cyan-400/10 text-cyan-300 border border-cyan-400/40 uppercase">
+            Explorable Set
+          </Badge>
+        </div>
+      </CardHeader>
+
+      <CardContent className="p-5 space-y-5">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="border border-border bg-secondary/40 p-4">
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-3 flex items-center gap-2">
+              <Route className="w-3 h-3 text-cyan-300" />
+              Exterior Clues
+            </p>
+            <ul className="space-y-2">
+              {scout.exteriorClues.map((clue, index) => (
+                <li key={index} className="text-xs text-foreground/80 flex gap-2 leading-relaxed">
+                  <span className="text-cyan-300 mt-0.5">▸</span>
+                  {clue}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="border border-border bg-secondary/40 p-4 lg:col-span-2">
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-2">
+              Continuity Bridge
+            </p>
+            <p className="text-sm text-foreground/80 leading-relaxed mb-4">
+              {scout.continuityBridge}
+            </p>
+            <div className="border border-cyan-400/30 bg-cyan-400/5 p-3">
+              <p className="text-[10px] uppercase tracking-wider text-cyan-300 font-bold mb-1">
+                Director Tip
+              </p>
+              <p className="text-xs text-foreground/80 leading-relaxed">{scout.directorTip}</p>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div className="flex items-center gap-3 border-b border-cyan-400/30 pb-3 mb-4">
+            <DoorOpen className="w-4 h-4 text-cyan-300" />
+            <h3 className="text-sm font-bold uppercase tracking-wider text-cyan-300">
+              Interior Zones to Generate
+            </h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {scout.interiorZones.map((zone, index) => (
+              <div key={index} className="border border-border bg-secondary/30 p-4 space-y-3">
+                <div className="flex items-start justify-between gap-2">
+                  <h4 className="text-sm font-bold text-foreground">{zone.name}</h4>
+                  <span className="text-[10px] text-cyan-300 border border-cyan-400/30 px-1.5 py-0.5">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">{zone.description}</p>
+                <p className="text-xs text-foreground/70 leading-relaxed">
+                  <span className="text-cyan-300 uppercase tracking-wider text-[10px] font-bold">Connects: </span>
+                  {zone.connectedTo}
+                </p>
+                <div>
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-2">
+                    Interactive Props
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {zone.interactiveProps.map((prop, propIndex) => (
+                      <span key={propIndex} className="text-[10px] border border-cyan-400/30 text-cyan-300 px-1.5 py-0.5">
+                        {prop}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-2">
+                    Story Triggers
+                  </p>
+                  <ul className="space-y-1">
+                    {zone.storyTriggers.map((trigger, triggerIndex) => (
+                      <li key={triggerIndex} className="text-xs text-foreground/75 flex gap-2 leading-relaxed">
+                        <span className="text-cyan-300">•</span>
+                        {trigger}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="pt-2 border-t border-border">
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard(zone.imagePrompt, `zone-${index}`)}
+                    className="flex items-center gap-1 text-[10px] text-cyan-300 hover:text-cyan-200 uppercase tracking-wider mb-2"
+                  >
+                    {copiedField === `zone-${index}` ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                    {copiedField === `zone-${index}` ? "Copied" : "Copy Interior Prompt"}
+                  </button>
+                  <div className="bg-background/50 border border-border p-2 text-xs text-foreground/75 leading-relaxed font-mono max-h-28 overflow-y-auto">
+                    {zone.imagePrompt}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="border border-border bg-secondary/30 p-4">
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-3 flex items-center gap-2">
+              <MousePointerClick className="w-3 h-3 text-cyan-300" />
+              Character Actions
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {scout.characterActions.map((action, index) => (
+                <span key={index} className="text-xs border border-cyan-400/30 bg-cyan-400/5 text-cyan-100 px-2 py-1">
+                  {action}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div className="border border-border bg-secondary/30 p-4">
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold mb-3 flex items-center gap-2">
+              <Clapperboard className="w-3 h-3 text-cyan-300" />
+              Scene Shots Inside the Location
+            </p>
+            <div className="space-y-3">
+              {scout.sceneShots.map((shot, index) => (
+                <div key={index} className="border-l border-cyan-400/40 pl-3">
+                  <p className="text-sm text-foreground font-bold">{shot.title}</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed mt-1">{shot.shotDescription}</p>
+                  <p className="text-xs text-cyan-100/80 mt-2">
+                    {shot.camera} — {shot.sound}
+                  </p>
+                  <p className="text-[10px] uppercase tracking-wider text-cyan-300 mt-2">{shot.purpose}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
