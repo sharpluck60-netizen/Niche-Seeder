@@ -4,14 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import {
+  Bookmark,
   Camera,
   Check,
+  ChevronDown,
+  ChevronRight,
   Copy,
   ImageIcon,
   Palette,
   RefreshCw,
   Search,
   Sparkles,
+  Trash2,
   Wand2,
   ShieldX,
   Layers,
@@ -20,6 +24,35 @@ import {
   X,
 } from "lucide-react";
 import { artStyles, artStyleCategories, artStyleNegativeExtras, type ArtStyle } from "@/data/art-styles";
+
+type SavedPreset = {
+  id: string;
+  name: string;
+  mode: "filters" | "styles";
+  filterName: string;
+  styleName: string;
+  secondaryStyleName: string | null;
+  fusionMode: boolean;
+  identityLevel: string;
+  styleLevel: string;
+  finishLevel: string;
+  subjectNotes: string;
+  promptDraft: string;
+};
+
+const PRESETS_KEY = "niche-seeder-presets";
+
+function loadPresets(): SavedPreset[] {
+  try {
+    return JSON.parse(localStorage.getItem(PRESETS_KEY) ?? "[]");
+  } catch {
+    return [];
+  }
+}
+
+function savePresetsToStorage(presets: SavedPreset[]) {
+  localStorage.setItem(PRESETS_KEY, JSON.stringify(presets));
+}
 
 type StudioFilter = {
   name: string;
@@ -337,6 +370,12 @@ export function PhotoStudio() {
   const [copiedNeg, setCopiedNeg] = useState(false);
   const [negExpanded, setNegExpanded] = useState(false);
 
+  // Presets state
+  const [savedPresets, setSavedPresets] = useState<SavedPreset[]>(() => loadPresets());
+  const [presetName, setPresetName] = useState("");
+  const [presetsOpen, setPresetsOpen] = useState(false);
+  const [presetSaved, setPresetSaved] = useState(false);
+
   const filteredFilters = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     return studioFilters.filter((filter) => {
@@ -411,6 +450,64 @@ export function PhotoStudio() {
     setPromptEdited(false);
     setCopied(false);
     setCopiedNeg(false);
+  };
+
+  const savePreset = () => {
+    const name = presetName.trim() || (mode === "filters" ? selectedFilter.name : selectedStyle.name);
+    const preset: SavedPreset = {
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      name,
+      mode,
+      filterName: selectedFilter.name,
+      styleName: selectedStyle.name,
+      secondaryStyleName: secondaryStyle?.name ?? null,
+      fusionMode,
+      identityLevel,
+      styleLevel,
+      finishLevel,
+      subjectNotes,
+      promptDraft,
+    };
+    const next = [preset, ...savedPresets].slice(0, 20);
+    setSavedPresets(next);
+    savePresetsToStorage(next);
+    setPresetName("");
+    setPresetSaved(true);
+    setTimeout(() => setPresetSaved(false), 1800);
+  };
+
+  const applyPreset = (preset: SavedPreset) => {
+    setMode(preset.mode);
+    setIdentityLevel(preset.identityLevel);
+    setStyleLevel(preset.styleLevel);
+    setFinishLevel(preset.finishLevel);
+    setSubjectNotes(preset.subjectNotes);
+    setPromptDraft(preset.promptDraft);
+    setPromptEdited(false);
+    setCopied(false);
+    setFusionMode(preset.fusionMode);
+    const filter = studioFilters.find((f) => f.name === preset.filterName) ?? studioFilters[0];
+    const style = artStyles.find((s) => s.name === preset.styleName) ?? artStyles[0];
+    const secondary = preset.secondaryStyleName
+      ? (artStyles.find((s) => s.name === preset.secondaryStyleName) ?? null)
+      : null;
+    setSelectedFilter(filter);
+    setSelectedStyle(style);
+    setSecondaryStyle(secondary);
+    if (preset.mode === "filters") {
+      setNegativePrompt(buildNegativePrompt(filter));
+    } else if (preset.fusionMode && secondary) {
+      setNegativePrompt(buildFusionNegativePrompt(style, secondary));
+    } else {
+      setNegativePrompt(buildArtStyleNegativePrompt(style));
+    }
+    setRefreshMessage(`Preset "${preset.name}" applied`);
+  };
+
+  const deletePreset = (id: string) => {
+    const next = savedPresets.filter((p) => p.id !== id);
+    setSavedPresets(next);
+    savePresetsToStorage(next);
   };
 
   const switchMode = (next: "filters" | "styles") => {
@@ -762,6 +859,93 @@ export function PhotoStudio() {
                   placeholder="Example: keep the same jacket, make the background sunset, add confident creator energy..."
                   className="w-full min-h-24 bg-secondary/40 border border-border px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary resize-none"
                 />
+              </div>
+
+              {/* Presets panel */}
+              <div className="border border-primary/30 bg-primary/5">
+                <button
+                  type="button"
+                  onClick={() => setPresetsOpen((v) => !v)}
+                  className="w-full flex items-center justify-between px-3 py-2.5 text-left hover:bg-primary/10 transition-colors"
+                >
+                  <span className="flex items-center gap-2">
+                    <Bookmark className="w-3.5 h-3.5 text-primary" />
+                    <span className="text-[10px] uppercase tracking-wider text-primary font-bold">
+                      Prompt Presets
+                    </span>
+                    {savedPresets.length > 0 && (
+                      <span className="text-[9px] bg-primary/20 border border-primary/40 text-primary px-1.5 py-0.5 uppercase tracking-wider">
+                        {savedPresets.length} saved
+                      </span>
+                    )}
+                  </span>
+                  {presetsOpen ? (
+                    <ChevronDown className="w-3.5 h-3.5 text-primary" />
+                  ) : (
+                    <ChevronRight className="w-3.5 h-3.5 text-primary" />
+                  )}
+                </button>
+                {presetsOpen && (
+                  <div className="px-3 pb-3 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <input
+                        value={presetName}
+                        onChange={(e) => setPresetName(e.target.value)}
+                        placeholder={`Name (default: ${mode === "filters" ? selectedFilter.name : selectedStyle.name})`}
+                        className="flex-1 bg-secondary/50 border border-border px-2.5 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
+                      />
+                      <button
+                        type="button"
+                        onClick={savePreset}
+                        className={cn(
+                          "shrink-0 flex items-center gap-1.5 border px-3 py-1.5 text-[10px] uppercase tracking-wider font-bold transition-colors",
+                          presetSaved
+                            ? "bg-primary/20 border-primary text-primary"
+                            : "border-primary/60 text-primary hover:bg-primary/10"
+                        )}
+                      >
+                        {presetSaved ? <Check className="w-3 h-3" /> : <Bookmark className="w-3 h-3" />}
+                        {presetSaved ? "Saved" : "Save"}
+                      </button>
+                    </div>
+                    {savedPresets.length === 0 ? (
+                      <p className="text-[10px] text-muted-foreground leading-relaxed">
+                        No presets saved yet. Configure a filter/style combo you love, then save it here.
+                      </p>
+                    ) : (
+                      <div className="space-y-1.5 max-h-60 overflow-y-auto">
+                        {savedPresets.map((preset) => (
+                          <div
+                            key={preset.id}
+                            className="flex items-center gap-2 border border-border bg-secondary/20 px-2.5 py-2 group"
+                          >
+                            <button
+                              type="button"
+                              onClick={() => applyPreset(preset)}
+                              className="flex-1 text-left min-w-0"
+                            >
+                              <div className="text-xs font-bold text-foreground truncate">{preset.name}</div>
+                              <div className="text-[9px] text-muted-foreground uppercase tracking-wider mt-0.5">
+                                {preset.mode === "filters" ? preset.filterName : (
+                                  preset.fusionMode && preset.secondaryStyleName
+                                    ? `${preset.styleName} × ${preset.secondaryStyleName}`
+                                    : preset.styleName
+                                )} · {preset.mode}
+                              </div>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => deletePreset(preset.id)}
+                              className="shrink-0 text-muted-foreground hover:text-destructive transition-colors opacity-0 group-hover:opacity-100"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <Button onClick={copyPrompt} className="w-full uppercase tracking-widest font-bold">

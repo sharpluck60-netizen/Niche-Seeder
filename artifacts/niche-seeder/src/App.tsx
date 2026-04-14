@@ -10,6 +10,7 @@ import { AnalysesList } from "@/pages/analyses-list";
 import { AnalysisDetail } from "@/pages/analysis-detail";
 import { ImageLab } from "@/pages/image-lab";
 import { PhotoStudio } from "@/pages/photo-studio";
+import { CreativeStudio } from "@/pages/creative-studio";
 import { ThemeProvider } from "@/lib/theme";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ function Router() {
         <Route path="/analyses/:id" component={AnalysisDetail} />
         <Route path="/image-lab" component={ImageLab} />
         <Route path="/photo-studio" component={PhotoStudio} />
+        <Route path="/creative-studio" component={CreativeStudio} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

@@ -9,9 +9,9 @@ import {
   Type,
   Instagram,
   Camera,
+  Film,
   Shield,
   Wifi,
-  Eye,
   EyeOff,
   Lock,
 } from "lucide-react";
@@ -68,6 +68,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { href: "/analyses", label: "INTEL ARCHIVE", icon: Database },
     { href: "/image-lab", label: "IMAGE LAB", icon: Instagram },
     { href: "/photo-studio", label: "PHOTO STUDIO", icon: Camera },
+    { href: "/creative-studio", label: "CREATIVE STUDIO", icon: Film },
   ];
 
   const currentTheme = themes.find((t) => t.id === theme) ?? themes[0];
@@ -191,7 +192,27 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 Photo Studio
               </div>
               <div className="mt-2 text-[9px] text-muted-foreground leading-relaxed">
-                38 photo prompt filters for anime, fine art, toy, sketch, comic, cartoon, and 3D looks.
+                38 photo prompt filters + 120 art styles with Style Fusion.
+              </div>
+            </div>
+          </Link>
+
+          <Link href="/creative-studio">
+            <div
+              onClick={() => setIsMobileOpen(false)}
+              className={cn(
+                "mt-2 mx-3 border p-3 cursor-pointer transition-colors dw-bracket",
+                location === "/creative-studio"
+                  ? "border-primary bg-primary/10 theme-glow-box"
+                  : "border-purple-500/40 bg-purple-500/10 hover:border-primary hover:bg-primary/10"
+              )}
+            >
+              <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider text-purple-300 font-bold">
+                <Film className="w-3 h-3" />
+                Creative Studio
+              </div>
+              <div className="mt-2 text-[9px] text-muted-foreground leading-relaxed">
+                60+ AI video effect prompts for Runway, Kling &amp; Pika.
               </div>
             </div>
           </Link>
