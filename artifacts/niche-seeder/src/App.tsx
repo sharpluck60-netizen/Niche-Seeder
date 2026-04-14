@@ -14,6 +14,7 @@ import { CreativeStudio } from "@/pages/creative-studio";
 import { CaptionGenerator } from "@/pages/caption-generator";
 import { DanceStudio } from "@/pages/dance-studio";
 import { PhantomPassport } from "@/pages/phantom-passport";
+import { HairstyleLab } from "@/pages/hairstyle-lab";
 import { ThemeProvider } from "@/lib/theme";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ function Router() {
         <Route path="/caption-lab" component={CaptionGenerator} />
         <Route path="/dance-studio" component={DanceStudio} />
         <Route path="/phantom-passport" component={PhantomPassport} />
+        <Route path="/hairstyle-lab" component={HairstyleLab} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

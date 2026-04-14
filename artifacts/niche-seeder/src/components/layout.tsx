@@ -16,6 +16,7 @@ import {
   Lock,
   Music,
   Globe,
+  Scissors,
   Search,
   ChevronDown,
   ChevronUp,
