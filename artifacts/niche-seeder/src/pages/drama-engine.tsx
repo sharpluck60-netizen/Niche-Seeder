@@ -147,7 +147,9 @@ export function DramaEngine() {
   async function fetchSeriesList() {
     try {
       const r = await fetch(`${BASE()}/api/drama-series`);
-      setSeriesList(await r.json());
+      if (!r.ok) return;
+      const data = await r.json();
+      if (Array.isArray(data)) setSeriesList(data);
     } catch { /* silent */ }
   }
 

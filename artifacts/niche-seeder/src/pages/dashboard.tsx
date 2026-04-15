@@ -19,6 +19,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { FaTiktok } from "react-icons/fa";
 import { TerminalLog } from "@/components/terminal-log";
 
+function stableId(str: string): string {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) {
+    h = (Math.imul(31, h) + str.charCodeAt(i)) | 0;
+  }
+  return String(((h >>> 0) % 900) + 100);
+}
+
 export function Dashboard() {
   const { data: stats, isLoading } = useGetDashboardStats();
 
@@ -121,7 +129,7 @@ export function Dashboard() {
                       {niche}
                     </span>
                     <span className="ml-auto text-[10px] text-muted-foreground/50 font-mono shrink-0">
-                      [{String(Math.floor(Math.random() * 900) + 100)}]
+                      [{stableId(niche)}]
                     </span>
                   </div>
                 ))

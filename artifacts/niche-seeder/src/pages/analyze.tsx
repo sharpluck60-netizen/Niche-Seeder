@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Zap, Youtube, Facebook, Loader2, LinkIcon } from "lucide-react";
+import { Zap, Youtube, Facebook, Loader2, LinkIcon, Instagram } from "lucide-react";
 import { FaTiktok } from "react-icons/fa";
 import { useToast } from "@/hooks/use-toast";
 
@@ -43,6 +43,7 @@ export function Analyze() {
     if (inputUrl.includes("youtube.com") || inputUrl.includes("youtu.be")) setPlatform("youtube");
     else if (inputUrl.includes("tiktok.com")) setPlatform("tiktok");
     else if (inputUrl.includes("facebook.com") || inputUrl.includes("fb.watch")) setPlatform("facebook");
+    else if (inputUrl.includes("instagram.com")) setPlatform("instagram");
   };
 
   return (
@@ -105,6 +106,11 @@ export function Analyze() {
                       <Facebook className="w-4 h-4" /> Facebook
                     </div>
                   </SelectItem>
+                  <SelectItem value="instagram">
+                    <div className="flex items-center gap-2">
+                      <Instagram className="w-4 h-4" /> Instagram
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -143,15 +149,15 @@ export function Analyze() {
             </div>
             <div className="flex gap-3">
               <span className="text-primary font-bold">02</span>
-              <span>Community mapping discovers the top 20 active Discord, Telegram, and Reddit groups for your sub-genre</span>
+              <span>On the results page, trigger community mapping to surface top Discord, Telegram, and Reddit groups for your sub-genre</span>
             </div>
             <div className="flex gap-3">
               <span className="text-primary font-bold">03</span>
-              <span>Spark posts are generated — human-sounding invitations that drive high-retention viewers</span>
+              <span>Generate spark posts — human-sounding community messages that seed your content with high-retention viewers</span>
             </div>
             <div className="flex gap-3">
               <span className="text-primary font-bold">04</span>
-              <span>Platform-specific strategy tips optimize for the 2026 Distribution Waterfall</span>
+              <span>Access platform-specific strategy, content blueprint, cinematic script, and episode series from the analysis detail tabs</span>
             </div>
           </div>
         </CardContent>

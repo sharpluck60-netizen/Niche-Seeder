@@ -22,7 +22,7 @@ pnpm workspace monorepo using TypeScript.
 ## Features
 
 - **Command Center** (dashboard): Stats, platform breakdown, Platform Signal Keys, 2026 Distribution Waterfall visualization
-- **New Injection**: Paste YouTube/TikTok/Facebook URL, AI maps micro-niche, mood keywords, audience profile, hook suggestion
+- **New Injection**: Paste YouTube/TikTok/Facebook/Instagram URL, AI maps micro-niche, mood keywords, audience profile, hook suggestion
 - **Community Mapping**: Top 20 Discord/Telegram/Reddit communities per micro-niche with relevance scores
 - **Spark Posts**: Human-sounding organic posts tailored per community and platform
 - **Strategy**: Platform-specific Waterfall Trigger, 1.5s Micro-Hook, Content Pillars, Wildcard Play
@@ -35,11 +35,30 @@ pnpm workspace monorepo using TypeScript.
 - **Hairstyle Lab**: Sidebar-accessible hair prompt studio with male/female hairstyle exploration and female-only Vendor Studio prompts for hair brands/vendors uploading product references for clean model composites
 - **Director Lab**: Cinematic continuity engine that accepts 1-3 uploaded images as anchor frames, visually analyzes people/settings/props/mood, detects a movie idea, builds a 6-10 shot scene with camera/SFX/VFX/dialogue/next-shot prompts, explains creative choices with Director Notes, offers Creative Rescue options for mismatched images, and seeds Episode 1/2 direction
 
+## Creative Tools
+
+- **Story Bible**: Full drama series manager — create series with genre/tone/visual style, add characters with full appearance/personality profiles, plan episodes with conflict/resolution/cliffhangers, deep-link to Drama Engine for scene generation
+- **Drama Engine**: AI scene generator with shot-by-shot breakdown, continuous dialogue, image prompts per shot, "Copy All Prompts" and "Download PDF" export; upgraded prompt enforces shot count discipline and dialogue continuity across shots
+- **Caption Lab**: 10 vibes × 8 tones × 5 content types with subject input, hashtag packs, and per-caption copy
+- **Dance Studio**: 12 dance styles × 10 scenes × 10 camera angles with AI video prompt builder
+- **Map Studio (Phantom Passport)**: 28 world landmarks with detailed visual/sky/ground descriptions for fake travel video prompts targeting Veo3, Kling, Runway, Pika, Hailuo
+
 ## Database Schema
 
 - `analyses` — video analyses with `blueprintData`, `scriptData`, `metadataData`, and `seriesData` (jsonb) columns for persisting generated content tools
 - `communities` — mapped communities per analysis
 - `spark_posts` — generated organic posts
+- `drama_series` — series metadata (title, genre, tone, setting, premise, visual style)
+- `drama_characters` — character profiles linked to a series
+- `drama_episodes` — episode plans with status and generated scene data
+
+## Known Architecture Notes
+
+- Dashboard niche IDs use stable string hash (not Math.random) to prevent flickering
+- Sidebar has exactly 13 nav items; promo card duplicates were removed (April 2026)
+- Intel Archive has live search filtering by title, micro-niche, and platform
+- Drama Engine fetch functions guard against non-array API responses
+- Instagram added as 4th platform in analyzer alongside YouTube, TikTok, Facebook
 
 ## Key Commands
 
