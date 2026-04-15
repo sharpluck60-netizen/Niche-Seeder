@@ -1,6 +1,5 @@
-import { Telegraf } from "telegraf";
-import { message } from "telegraf/filters";
-import { db, analysesTable, dramaSeriesTable, dramaEpisodesTable } from "@workspace/db";
+import { Bot, GrammyError, HttpError } from "grammy";
+import { db, analysesTable } from "@workspace/db";
 import { openai } from "./lib/openai";
 import { desc, eq } from "drizzle-orm";
 import { logger } from "./lib/logger";
@@ -23,9 +22,9 @@ async function analyzeUrl(url: string, platform: string) {
     messages: [
       {
         role: "system",
-        content: `You are an expert in AI-generated cinematic content and social media distribution strategy for 2026. Analyze the given video URL and provide insights about its micro-niche, target audience, and growth potential. Respond in JSON format with these exact fields:
+        content: `You are an expert in AI-generated cinematic content and social media distribution strategy for 2026. Analyze the given video URL and provide insights. Respond in JSON format:
 {
-  "title": "A short descriptive title for this content",
+  "title": "A short descriptive title",
   "microNiche": "The specific sub-genre",
   "moodKeywords": ["keyword1", "keyword2", "keyword3"],
   "audienceProfile": "A 2-3 sentence description of the target audience",
@@ -34,7 +33,7 @@ async function analyzeUrl(url: string, platform: string) {
       },
       {
         role: "user",
-        content: `Analyze this ${platform} video: ${url}. Based on the URL structure, platform, and any context clues, determine the micro-niche, mood keywords, audience profile, and suggest a compelling micro-hook.`,
+        content: `Analyze this ${platform} video: ${url}`,
       },
     ],
   });
@@ -68,58 +67,52 @@ function detectPlatform(url: string): string {
 }
 
 function formatAnalysis(a: typeof analysesTable.$inferSelect): string {
-  const keywords = Array.isArray(a.moodKeywords) ? (a.moodKeywords as string[]).join(", ") : "";
+  const keywords = Array.isArray(a.moodKeywords)
+    ? (a.moodKeywords as string[]).join(", ")
+    : "";
   return [
-    `🎬 *${escapeMarkdown(a.title || "Analysis")}*`,
+    `🎬 <b>${esc(a.title || "Analysis")}</b>`,
     ``,
-    `🎯 *Micro-Niche:* ${escapeMarkdown(a.microNiche || "—")}`,
-    `🔮 *Mood:* ${escapeMarkdown(keywords || "—")}`,
-    `👥 *Audience:* ${escapeMarkdown(a.audienceProfile || "—")}`,
-    `⚡ *Hook:* ${escapeMarkdown(a.hookSuggestion || "—")}`,
-    ``,
-    `🔗 [View full analysis in app](https://seeder-os.replit.app/)`,
+    `🎯 <b>Micro-Niche:</b> ${esc(a.microNiche || "—")}`,
+    `🔮 <b>Mood:</b> ${esc(keywords || "—")}`,
+    `👥 <b>Audience:</b> ${esc(a.audienceProfile || "—")}`,
+    `⚡ <b>Hook:</b> ${esc(a.hookSuggestion || "—")}`,
   ].join("\n");
 }
 
-function escapeMarkdown(text: string): string {
-  return text.replace(/[_*[\]()~`>#+=|{}.!-]/g, "\\$&");
+function esc(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }
 
 export function createBot() {
   if (!token) return null;
 
-  const bot = new Telegraf(token);
+  const bot = new Bot(token);
 
-  bot.start((ctx) =>
-    ctx.replyWithMarkdownV2(
-      [
-        `👾 *Welcome to SEEDER\\_OS Bot\\!*`,
-        ``,
-        `I can analyze viral video content and send you AI\\-generated outputs\\.`,
-        ``,
-        `*Commands:*`,
-        `📡 /analyze \\<url\\> — Analyze a video URL`,
-        `📋 /recent — Show your 5 most recent analyses`,
-        `🎭 /drama — Generate a quick drama scene`,
-        `❓ /help — Show this message`,
-        ``,
-        `Or just paste any TikTok, YouTube, or Instagram URL and I\\'ll analyze it automatically\\.`,
-      ].join("\n")
+  const helpText = [
+    `<b>SEEDER_OS Bot Commands:</b>`,
+    ``,
+    `📡 /analyze &lt;url&gt; — Analyze a video URL`,
+    `📋 /recent — Show 5 most recent analyses`,
+    `🎭 /drama — Generate a quick drama scene`,
+    `❓ /help — Show this message`,
+    ``,
+    `Or just drop any TikTok, YouTube, or Instagram URL in the chat!`,
+  ].join("\n");
+
+  bot.command("start", (ctx) =>
+    ctx.reply(
+      `👾 <b>Welcome to SEEDER_OS Bot!</b>\n\nI can analyze viral video content and generate AI-powered outputs.\n\n` +
+        helpText,
+      { parse_mode: "HTML" }
     )
   );
 
-  bot.help((ctx) =>
-    ctx.replyWithMarkdownV2(
-      [
-        `*SEEDER\\_OS Bot Commands:*`,
-        ``,
-        `📡 /analyze \\<url\\> — Analyze a video URL`,
-        `📋 /recent — Show your 5 most recent analyses`,
-        `🎭 /drama — Generate a quick drama scene sample`,
-        ``,
-        `Or just drop any video URL in the chat\\!`,
-      ].join("\n")
-    )
+  bot.command("help", (ctx) =>
+    ctx.reply(helpText, { parse_mode: "HTML" })
   );
 
   bot.command("analyze", async (ctx) => {
@@ -127,20 +120,23 @@ export function createBot() {
     const url = parts[1];
 
     if (!url || !url.startsWith("http")) {
-      await ctx.reply("Please provide a URL. Example:\n/analyze https://www.tiktok.com/@user/video/123");
+      await ctx.reply(
+        "Please provide a URL. Example:\n<code>/analyze https://www.tiktok.com/@user/video/123</code>",
+        { parse_mode: "HTML" }
+      );
       return;
     }
 
     const platform = detectPlatform(url);
-    const thinking = await ctx.reply(`⏳ Analyzing ${platform} video... this takes a few seconds.`);
+    const thinking = await ctx.reply(`⏳ Analyzing ${platform} video… this takes a few seconds.`);
 
     try {
       const result = await analyzeUrl(url, platform);
-      await ctx.telegram.deleteMessage(ctx.chat.id, thinking.message_id);
-      await ctx.replyWithMarkdownV2(formatAnalysis(result), { disable_web_page_preview: true });
+      await ctx.api.deleteMessage(ctx.chat.id, thinking.message_id);
+      await ctx.reply(formatAnalysis(result), { parse_mode: "HTML" });
     } catch (err) {
       logger.error({ err }, "Bot analysis failed");
-      await ctx.telegram.deleteMessage(ctx.chat.id, thinking.message_id);
+      await ctx.api.deleteMessage(ctx.chat.id, thinking.message_id).catch(() => {});
       await ctx.reply("❌ Analysis failed. Please check the URL and try again.");
     }
   });
@@ -158,9 +154,9 @@ export function createBot() {
         return;
       }
 
-      await ctx.reply("📋 Your 5 most recent analyses:");
+      await ctx.reply("📋 <b>Your 5 most recent analyses:</b>", { parse_mode: "HTML" });
       for (const a of analyses) {
-        await ctx.replyWithMarkdownV2(formatAnalysis(a), { disable_web_page_preview: true });
+        await ctx.reply(formatAnalysis(a), { parse_mode: "HTML" });
       }
     } catch (err) {
       logger.error({ err }, "Bot recent failed");
@@ -169,7 +165,7 @@ export function createBot() {
   });
 
   bot.command("drama", async (ctx) => {
-    const thinking = await ctx.reply("🎭 Generating a drama scene sample...");
+    const thinking = await ctx.reply("🎭 Generating a drama scene sample…");
 
     try {
       const aiResponse = await openai.chat.completions.create({
@@ -178,14 +174,14 @@ export function createBot() {
         messages: [
           {
             role: "system",
-            content: `You are a viral AI drama scene writer. Create a short 3-shot drama scene in this JSON format:
+            content: `You are a viral AI drama scene writer. Create a short 3-shot drama scene in JSON:
 {
   "title": "Scene title",
   "logline": "One sentence premise",
   "shots": [
-    { "shot": 1, "action": "What happens", "dialogue": "Character: 'spoken line'" },
-    { "shot": 2, "action": "What happens", "dialogue": "Character: 'spoken line'" },
-    { "shot": 3, "action": "What happens", "dialogue": "Character: 'spoken line'" }
+    { "shot": 1, "action": "What happens", "dialogue": "Character: spoken line" },
+    { "shot": 2, "action": "What happens", "dialogue": "Character: spoken line" },
+    { "shot": 3, "action": "What happens", "dialogue": "Character: spoken line" }
   ],
   "hook": "The viral caption hook",
   "teaser": "Next episode teaser"
@@ -193,7 +189,7 @@ export function createBot() {
           },
           {
             role: "user",
-            content: "Generate a 3-shot viral drama scene. Pick an interesting genre: betrayal, revenge, love triangle, or family drama.",
+            content: "Generate a 3-shot viral drama scene — betrayal, revenge, love triangle, or family drama.",
           },
         ],
       });
@@ -202,62 +198,65 @@ export function createBot() {
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       const scene = JSON.parse(jsonMatch ? jsonMatch[0] : "{}");
 
-      await ctx.telegram.deleteMessage(ctx.chat.id, thinking.message_id);
+      await ctx.api.deleteMessage(ctx.chat.id, thinking.message_id);
 
-      const shots = (scene.shots || [])
-        .map((s: { shot: number; action: string; dialogue: string }) =>
-          `*Shot ${s.shot}:* ${escapeMarkdown(s.action)}\n_"${escapeMarkdown(s.dialogue)}"_`
+      const shots = ((scene.shots || []) as { shot: number; action: string; dialogue: string }[])
+        .map(
+          (s) =>
+            `<b>Shot ${s.shot}:</b> ${esc(s.action)}\n<i>"${esc(s.dialogue)}"</i>`
         )
         .join("\n\n");
 
       const msg = [
-        `🎭 *${escapeMarkdown(scene.title || "Drama Scene")}*`,
-        `_${escapeMarkdown(scene.logline || "")}_`,
+        `🎭 <b>${esc(scene.title || "Drama Scene")}</b>`,
+        `<i>${esc(scene.logline || "")}</i>`,
         ``,
         shots,
         ``,
-        `🪝 *Hook:* ${escapeMarkdown(scene.hook || "")}`,
-        `📺 *Next:* ${escapeMarkdown(scene.teaser || "")}`,
-        ``,
-        `_Build full drama series in the app\\!_`,
+        `🪝 <b>Hook:</b> ${esc(scene.hook || "")}`,
+        `📺 <b>Next:</b> ${esc(scene.teaser || "")}`,
       ].join("\n");
 
-      await ctx.replyWithMarkdownV2(msg);
+      await ctx.reply(msg, { parse_mode: "HTML" });
     } catch (err) {
       logger.error({ err }, "Bot drama failed");
-      await ctx.telegram.deleteMessage(ctx.chat.id, thinking.message_id);
+      await ctx.api.deleteMessage(ctx.chat.id, thinking.message_id).catch(() => {});
       await ctx.reply("❌ Drama generation failed. Please try again.");
     }
   });
 
-  bot.on(message("text"), async (ctx) => {
+  bot.on("message:text", async (ctx) => {
     const text = ctx.message.text.trim();
-    const urlMatch = text.match(/https?:\/\/[^\s]+/);
+    if (text.startsWith("/")) return;
 
+    const urlMatch = text.match(/https?:\/\/[^\s]+/);
     if (!urlMatch) return;
 
     const url = urlMatch[0];
     const platform = detectPlatform(url);
+    if (platform === "Other") return;
 
-    if (!["TikTok", "YouTube", "Instagram", "X/Twitter"].includes(platform)) return;
-
-    const thinking = await ctx.reply(`⏳ Detected ${platform} URL\\. Analyzing\\.\\.\\.`, {
-      parse_mode: "MarkdownV2",
-    });
+    const thinking = await ctx.reply(`⏳ Detected ${platform} URL. Analyzing…`);
 
     try {
       const result = await analyzeUrl(url, platform);
-      await ctx.telegram.deleteMessage(ctx.chat.id, thinking.message_id);
-      await ctx.replyWithMarkdownV2(formatAnalysis(result), { disable_web_page_preview: true });
+      await ctx.api.deleteMessage(ctx.chat.id, thinking.message_id);
+      await ctx.reply(formatAnalysis(result), { parse_mode: "HTML" });
     } catch (err) {
       logger.error({ err }, "Bot auto-analyze failed");
-      await ctx.telegram.deleteMessage(ctx.chat.id, thinking.message_id);
+      await ctx.api.deleteMessage(ctx.chat.id, thinking.message_id).catch(() => {});
       await ctx.reply("❌ Analysis failed. Please try again.");
     }
   });
 
   bot.catch((err) => {
-    logger.error({ err }, "Telegram bot error");
+    const ctx = err.ctx;
+    logger.error({ err: err.error }, `Telegram bot error in update ${ctx.update.update_id}`);
+    if (err.error instanceof GrammyError) {
+      logger.error(`Error in request: ${err.error.description}`);
+    } else if (err.error instanceof HttpError) {
+      logger.error(`HTTP error: ${err.error}`);
+    }
   });
 
   return bot;

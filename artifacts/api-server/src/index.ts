@@ -26,10 +26,12 @@ app.listen(port, (err) => {
 
   const bot = createBot();
   if (bot) {
-    bot.launch({ dropPendingUpdates: true });
+    bot.start({ drop_pending_updates: true }).catch((err) => {
+      logger.error({ err }, "Telegram bot crashed");
+    });
     logger.info("Telegram bot started (long polling)");
 
-    process.once("SIGINT", () => bot.stop("SIGINT"));
-    process.once("SIGTERM", () => bot.stop("SIGTERM"));
+    process.once("SIGINT", () => bot.stop());
+    process.once("SIGTERM", () => bot.stop());
   }
 });
