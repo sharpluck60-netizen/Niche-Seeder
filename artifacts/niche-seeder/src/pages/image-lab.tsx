@@ -255,7 +255,7 @@ export function ImageLab() {
               Image Lab
             </h1>
             <p className="text-muted-foreground mt-2 font-mono text-sm">
-              Drop any AI image concept — get 6 killer ideas, then fuse any 2 into a WOW mega-idea
+              Drop any AI image concept — get 6 killer ideas, set scouting, then fuse any 2 into a WOW mega-idea
             </p>
           </div>
           <div className="px-3 py-1 border border-primary text-primary text-xs uppercase hidden md:block">
@@ -299,7 +299,7 @@ export function ImageLab() {
                       Drop your reference image here
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      JPG, PNG, WebP — max 15MB
+                      JPG, PNG, WebP — max 15MB. Buildings and rooms unlock Location Scout.
                     </p>
                   </div>
                   <div className="text-xs text-primary border border-primary/40 px-3 py-1">
@@ -350,12 +350,12 @@ export function ImageLab() {
               {isAnalyzing ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Analyzing & Generating Ideas...
+                  Analyzing Image, Location & Ideas...
                 </>
               ) : (
                 <>
                   <Zap className="w-4 h-4 mr-2" />
-                  Generate Killer Ideas
+                  Generate Ideas + Location Scout
                 </>
               )}
             </Button>
@@ -370,7 +370,7 @@ export function ImageLab() {
                 <Sparkles className="w-12 h-12 text-muted-foreground/40 mb-4" />
                 <p className="text-muted-foreground text-sm font-mono">
                   Upload a reference image to unlock<br />
-                  6 Instagram concepts that surpass it
+                  6 Instagram concepts plus cinematic set scouting
                 </p>
               </CardContent>
             </Card>
@@ -382,14 +382,14 @@ export function ImageLab() {
                 <Loader2 className="w-12 h-12 text-primary animate-spin" />
                 <div className="text-center">
                   <p className="text-sm font-bold uppercase tracking-wider text-primary">
-                    Analyzing concept...
+                    Analyzing concept and location...
                   </p>
                   <p className="text-xs text-muted-foreground mt-1 font-mono">
-                    AI is reverse-engineering the virality formula
+                    AI is reverse-engineering virality, set geography, and scene potential
                   </p>
                 </div>
                 <div className="w-full max-w-xs space-y-2 mt-2">
-                  {["Detecting visual style", "Scoring viral factors", "Generating 6 killer ideas"].map(
+                  {["Detecting visual style", "Scoring viral factors", "Scouting explorable spaces", "Generating 6 killer ideas"].map(
                     (step, i) => (
                       <div key={step} className="flex items-center gap-3 text-xs text-muted-foreground">
                         <div className={cn(
@@ -401,6 +401,9 @@ export function ImageLab() {
                     )
                   )}
                 </div>
+                <p className="text-[10px] text-muted-foreground/70 text-center max-w-xs font-mono">
+                  Deep images can take up to two minutes while interiors, props, and prompts are built.
+                </p>
               </CardContent>
             </Card>
           )}
