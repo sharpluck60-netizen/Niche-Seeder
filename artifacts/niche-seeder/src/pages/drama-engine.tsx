@@ -16,6 +16,8 @@ import {
   BookOpen,
   Users,
   AlertCircle,
+  Download,
+  ClipboardList,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -185,6 +187,117 @@ export function DramaEngine() {
     navigator.clipboard.writeText(text).then(() =>
       toast({ title: `${label} copied` })
     );
+  }
+
+  function copyAllPrompts() {
+    if (!result) return;
+    const text = result.shots
+      .map((s) => `=== SHOT ${s.number}: ${s.type.toUpperCase()} ===\n${s.imagePrompt}`)
+      .join("\n\n");
+    navigator.clipboard.writeText(text).then(() =>
+      toast({ title: `All ${result.shots.length} image prompts copied` })
+    );
+  }
+
+  function downloadPDF() {
+    if (!result) return;
+    const seriesInfo = useBible && seriesDetail
+      ? `<p style="margin:0 0 4px"><strong>Series:</strong> ${seriesDetail.title} (${seriesDetail.genre})</p>`
+      : "";
+    const episodeInfo = selectedEpId && seriesDetail
+      ? `<p style="margin:0 0 4px"><strong>Episode:</strong> ${seriesDetail.episodes.find(e => e.id === selectedEpId)?.title ?? ""}</p>`
+      : "";
+
+    const shotsHtml = result.shots.map((shot) => {
+      const dialogueHtml = shot.dialogue.length > 0
+        ? `<div style="margin:10px 0;padding:8px 12px;border-left:3px solid #dc2626;background:#fff5f5;">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#888;margin-bottom:6px;">Dialogue</div>
+            ${shot.dialogue.map(d => `<div style="margin-bottom:4px;"><strong style="color:#dc2626">${d.character}:</strong> <em>"${d.line}"</em></div>`).join("")}
+          </div>`
+        : "";
+      return `
+        <div style="page-break-inside:avoid;margin-bottom:24px;border:1px solid #e5e7eb;border-radius:6px;overflow:hidden;">
+          <div style="background:#1f2937;color:#fff;padding:10px 14px;display:flex;align-items:center;gap:10px;">
+            <span style="font-size:22px;font-weight:900;opacity:.3;min-width:28px;text-align:center">${shot.number}</span>
+            <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;border:1px solid #4b5563;padding:2px 8px;border-radius:3px">${shot.type}</span>
+            <span style="font-size:10px;color:#9ca3af">${shot.charactersPresent.join(", ")}</span>
+            <span style="margin-left:auto;font-size:10px;color:#6b7280;font-style:italic">${shot.emotionalBeat}</span>
+          </div>
+          <div style="padding:12px 14px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;font-size:11px;">
+              <div><span style="font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;display:block;margin-bottom:2px">Setting</span>${shot.setting}</div>
+              <div><span style="font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;display:block;margin-bottom:2px">Camera</span>${shot.cameraAngle}</div>
+              <div><span style="font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;display:block;margin-bottom:2px">Lighting</span>${shot.lighting}</div>
+              <div><span style="font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;display:block;margin-bottom:2px">Sound</span>${shot.sound}</div>
+            </div>
+            <div style="font-size:11px;margin-bottom:8px;"><span style="font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;display:block;margin-bottom:2px">Action</span>${shot.action}</div>
+            ${dialogueHtml}
+            <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:4px;padding:10px;margin-top:10px;">
+              <div style="font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#dc2626;font-weight:700;margin-bottom:6px">Image Prompt</div>
+              <div style="font-size:11px;line-height:1.6;font-family:monospace;">${shot.imagePrompt}</div>
+            </div>
+          </div>
+        </div>`;
+    }).join("");
+
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>${result.sceneTitle}</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 12px; color: #111; margin: 0; padding: 32px; max-width: 860px; margin: 0 auto; }
+    @media print {
+      body { padding: 16px; }
+      .no-print { display: none !important; }
+      @page { margin: 20mm; size: A4; }
+    }
+  </style>
+</head>
+<body>
+  <div class="no-print" style="background:#1d4ed8;color:#fff;padding:10px 16px;margin-bottom:20px;border-radius:6px;display:flex;align-items:center;justify-content:space-between;">
+    <span style="font-size:13px;font-weight:600;">Save as PDF: press Ctrl+P (or Cmd+P) → choose "Save as PDF"</span>
+    <button onclick="window.print()" style="background:#fff;color:#1d4ed8;border:none;padding:6px 16px;border-radius:4px;font-weight:700;cursor:pointer;font-size:12px;">Print / Save PDF</button>
+  </div>
+
+  <div style="margin-bottom:24px;border-bottom:3px solid #dc2626;padding-bottom:16px;">
+    <div style="font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:#888;margin-bottom:6px">Drama Engine — Scene Export</div>
+    <h1 style="margin:0 0 6px;font-size:24px;font-weight:900;text-transform:uppercase;letter-spacing:-.02em">${result.sceneTitle}</h1>
+    <p style="margin:0 0 10px;font-size:14px;font-style:italic;color:#4b5563;">"${result.sceneLogline}"</p>
+    ${seriesInfo}${episodeInfo}
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;">
+      <span style="font-size:10px;background:#f3f4f6;padding:3px 8px;border-radius:3px">${sceneSettings.scenePurpose}</span>
+      <span style="font-size:10px;background:#f3f4f6;padding:3px 8px;border-radius:3px">${result.shots.length} Shots</span>
+      <span style="font-size:10px;background:#f3f4f6;padding:3px 8px;border-radius:3px">${sceneSettings.dialogueLevel} Dialogue</span>
+      <span style="font-size:10px;background:#f3f4f6;padding:3px 8px;border-radius:3px">${sceneSettings.visualStyle}</span>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;padding:14px;background:#f9fafb;border-radius:6px;font-size:11px;">
+    <div><strong style="display:block;font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;margin-bottom:4px">Opening Hook</strong>${result.openingHook}</div>
+    <div><strong style="display:block;font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;margin-bottom:4px">Emotional Arc</strong>${result.emotionalArc}</div>
+    <div><strong style="display:block;font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;margin-bottom:4px">Viral Caption Hook</strong><span style="font-size:13px;font-weight:700;">${result.captionHook}</span></div>
+    <div><strong style="display:block;font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;margin-bottom:4px">Viral Angle</strong>${result.viralAngle}</div>
+  </div>
+
+  <h2 style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:#6b7280;margin:0 0 14px;font-weight:700;">Shot Breakdown</h2>
+
+  ${shotsHtml}
+
+  ${result.nextEpisodeTeaser ? `
+  <div style="margin-top:24px;border:1px solid #f59e0b;background:#fffbeb;padding:14px;border-radius:6px;">
+    <div style="font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#d97706;font-weight:700;margin-bottom:6px">Next Episode Teaser</div>
+    <p style="margin:0;font-style:italic;font-size:13px;">"${result.nextEpisodeTeaser}"</p>
+  </div>` : ""}
+</body>
+</html>`;
+
+    const win = window.open("", "_blank");
+    if (win) {
+      win.document.write(html);
+      win.document.close();
+    }
   }
 
   async function generate() {
@@ -492,9 +605,27 @@ export function DramaEngine() {
 
               {/* Shots */}
               <div className="space-y-3">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                  <Camera className="w-3.5 h-3.5" /> Shot Breakdown
-                </h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <Camera className="w-3.5 h-3.5" /> Shot Breakdown
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={copyAllPrompts}
+                      className="flex items-center gap-1.5 text-[10px] font-mono text-muted-foreground hover:text-primary border border-border hover:border-primary/50 px-2.5 py-1 transition-colors"
+                      title="Copy all image prompts to clipboard"
+                    >
+                      <ClipboardList className="w-3 h-3" /> Copy All Prompts
+                    </button>
+                    <button
+                      onClick={downloadPDF}
+                      className="flex items-center gap-1.5 text-[10px] font-mono text-muted-foreground hover:text-primary border border-border hover:border-primary/50 px-2.5 py-1 transition-colors"
+                      title="Download full scene as PDF"
+                    >
+                      <Download className="w-3 h-3" /> Download PDF
+                    </button>
+                  </div>
+                </div>
                 {result.shots.map((shot) => {
                   const isOpen = expandedShot === shot.number;
                   const colorClass = getShotColor(shot.type);
