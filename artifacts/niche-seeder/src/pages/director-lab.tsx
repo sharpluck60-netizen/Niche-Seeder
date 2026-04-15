@@ -42,6 +42,8 @@ type UploadedImage = {
   fileName: string;
 };
 
+type CreativeRescueOption = string | { title: string; method: string; howItWorks: string };
+
 type AnalysisResult = {
   movieIdea: {
     title: string;
@@ -61,7 +63,7 @@ type AnalysisResult = {
     status: string;
     reading: string;
     contradictions: string[];
-    creativeRescueOptions: string[];
+    creativeRescueOptions: CreativeRescueOption[];
   };
   scene: {
     sceneTitle: string;
@@ -535,6 +537,52 @@ export function DirectorLab() {
                 </div>
               </div>
 
+              {/* Anchor Image Analysis */}
+              {result.anchorImages && result.anchorImages.length > 0 && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 border-b border-border pb-3">
+                    <UserRound className="w-5 h-5 text-red-500" />
+                    <h3 className="text-sm font-bold uppercase tracking-widest">Anchor Frame Analysis</h3>
+                    <span className="ml-auto text-[10px] font-mono text-muted-foreground">{result.anchorImages.length} frame{result.anchorImages.length > 1 ? "s" : ""} read</span>
+                  </div>
+                  <div className={cn("grid gap-4", result.anchorImages.length === 1 ? "grid-cols-1" : result.anchorImages.length === 2 ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1 md:grid-cols-3")}>
+                    {result.anchorImages.map((anchor, i) => (
+                      <div key={i} className="border border-border bg-card p-4 space-y-3 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 text-[80px] font-black text-foreground/5 leading-none select-none pr-2">
+                          {anchor.imageNumber}
+                        </div>
+                        <div className="relative z-10">
+                          <div className="flex items-center gap-2 mb-3">
+                            <span className="text-[9px] font-mono bg-red-500/20 text-red-400 border border-red-500/30 px-2 py-0.5 uppercase tracking-widest">
+                              Frame {anchor.imageNumber}
+                            </span>
+                            <span className="text-[9px] font-mono text-muted-foreground uppercase tracking-wider truncate">
+                              {anchor.cinematicRole}
+                            </span>
+                          </div>
+                          <div className="space-y-2.5">
+                            <div>
+                              <span className="text-[10px] uppercase tracking-widest text-muted-foreground block mb-1">What's Visible</span>
+                              <p className="text-xs font-mono text-foreground/80 leading-relaxed">{anchor.whatIsVisible}</p>
+                            </div>
+                            <div className="border-t border-border/50 pt-2.5">
+                              <span className="text-[10px] uppercase tracking-widest text-muted-foreground block mb-1">Story Meaning</span>
+                              <p className="text-xs font-mono text-foreground/80 leading-relaxed">{anchor.storyMeaning}</p>
+                            </div>
+                            {anchor.continuityNotes && (
+                              <div className="border-t border-border/50 pt-2.5">
+                                <span className="text-[10px] uppercase tracking-widest text-amber-500 block mb-1">Continuity Notes</span>
+                                <p className="text-xs font-mono text-foreground/70 leading-relaxed">{anchor.continuityNotes}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Continuity & Reading */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card className="bg-card border-border rounded-none">
@@ -571,10 +619,17 @@ export function DirectorLab() {
                         <p className="text-[10px] uppercase tracking-widest text-amber-500 font-bold mb-2 flex items-center gap-1.5">
                           <Sparkles className="w-3 h-3" /> Creative Rescue
                         </p>
-                        <ul className="space-y-1.5">
+                        <ul className="space-y-2">
                           {result.continuity.creativeRescueOptions.map((r, i) => (
                             <li key={i} className="text-xs text-foreground/80 flex items-start gap-2">
-                              <span className="text-amber-500 mt-0.5">↳</span> {r}
+                              <span className="text-amber-500 mt-0.5 shrink-0">↳</span>
+                              {typeof r === "string" ? r : (
+                                <span>
+                                  <span className="font-bold text-amber-400">{r.title}</span>
+                                  {r.method && <span className="text-muted-foreground"> · {r.method}</span>}
+                                  {r.howItWorks && <span className="block text-muted-foreground mt-0.5">{r.howItWorks}</span>}
+                                </span>
+                              )}
                             </li>
                           ))}
                         </ul>
@@ -725,6 +780,31 @@ export function DirectorLab() {
                   ))}
                 </div>
               </div>
+
+              {/* Style Regeneration Ideas */}
+              {result.styleRegenerationIdeas && result.styleRegenerationIdeas.length > 0 && (
+                <div className="border border-border bg-card p-5 space-y-3">
+                  <div className="flex items-center gap-2 border-b border-border pb-3">
+                    <Sparkles className="w-4 h-4 text-primary" />
+                    <h4 className="text-sm font-bold uppercase tracking-widest">Regenerate in a Different Style</h4>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {result.styleRegenerationIdeas.map((idea, i) => (
+                      <button
+                        key={i}
+                        onClick={() => { setUserIdea(idea); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                        className="text-left p-3 border border-border hover:border-primary/50 hover:bg-secondary/40 transition-all group"
+                      >
+                        <span className="text-[10px] font-mono text-muted-foreground group-hover:text-primary transition-colors">
+                          {String(i + 1).padStart(2, "0")} →
+                        </span>
+                        <p className="text-xs font-mono mt-1 text-foreground/80 group-hover:text-foreground transition-colors">{idea}</p>
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-[10px] font-mono text-muted-foreground pt-1">Click any variation to pre-fill the idea field, then re-upload your frames and run the analysis again.</p>
+                </div>
+              )}
 
             </div>
           )}

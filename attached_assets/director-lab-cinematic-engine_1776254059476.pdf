@@ -1,0 +1,206 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [6 0 R 8 0 R 10 0 R 12 0 R] /Count 4 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+5 0 obj
+<< /Length 3192 >>
+stream
+BT /F2 30 Tf 54 734 Td (Director Lab) Tj ET
+BT /F2 16 Tf 54 699 Td (Cinematic Continuity Engine for Niche Seeder) Tj ET
+BT /F1 11 Tf 54 669 Td (A product concept for turning uploaded cinematic images into connected movie scenes, short-film) Tj ET
+BT /F1 11 Tf 54 654 Td (prompts, episode structures, sound design, camera language, and next-shot generation guidance.) Tj ET
+BT /F2 15 Tf 54 622 Td (1. Core Vision) Tj ET
+BT /F1 11 Tf 54 600 Td (Director Lab is a creative engine inside the web app that acts like a personal engineer and) Tj ET
+BT /F1 11 Tf 54 585 Td (co-director. A user uploads cinematic photos, and the system reads the images visually,) Tj ET
+BT /F1 11 Tf 54 570 Td (understands what is inside them, detects the implied movie idea, and turns those images into a) Tj ET
+BT /F1 11 Tf 54 555 Td (connected cinematic sequence.) Tj ET
+BT /F1 11 Tf 54 533 Td (The goal is not just to analyze an image. The goal is to help the user build a short movie,) Tj ET
+BT /F1 11 Tf 54 518 Td (scene by scene and shot by shot, until the work naturally grows into Episode 1 and eventually a) Tj ET
+BT /F1 11 Tf 54 503 Td (series.) Tj ET
+BT /F2 15 Tf 54 471 Td (2. The User Experience) Tj ET
+BT /F1 11 Tf 54 449 Td (A user uploads a cinematic photo. Director Lab studies the image like a film director reviewing) Tj ET
+BT /F1 11 Tf 54 434 Td (a frame. It identifies the genre, mood, setting, characters, props, lighting, composition,) Tj ET
+BT /F1 11 Tf 54 419 Td (possible conflict, implied story moment, and emotional direction.) Tj ET
+BT /F1 11 Tf 54 397 Td (From that image, it creates Scene 1 / Shot 1. It adds camera angle, camera movement, lighting) Tj ET
+BT /F1 11 Tf 54 382 Td (notes, sound effects, visual effects, ambience, music direction, character action, and dialogue) Tj ET
+BT /F1 11 Tf 54 367 Td (only when dialogue makes the story stronger.) Tj ET
+BT /F1 11 Tf 54 345 Td (Every line of dialogue must connect to the next shot or scene. Dialogue should not be random) Tj ET
+BT /F1 11 Tf 54 330 Td (decoration. It should move the short movie forward, reveal character, create tension, or set up) Tj ET
+BT /F1 11 Tf 54 315 Td (the next visual beat.) Tj ET
+BT /F2 15 Tf 54 283 Td (3. Up to 3 Uploaded Images) Tj ET
+BT /F1 11 Tf 54 261 Td (Director Lab should allow users to upload up to 3 images at once. The engine reads each image) Tj ET
+BT /F1 11 Tf 54 246 Td (the way Image Lab reads images: it must actually see what is inside the image, not simply treat) Tj ET
+BT /F1 11 Tf 54 231 Td (the upload as a file.) Tj ET
+BT /F1 11 Tf 54 209 Td (With 1 image, the system treats it as an opening frame and builds Scene 1 / Shot 1 around it.) Tj ET
+BT /F1 11 Tf 54 194 Td (With 2 images, it reads setup and development, then checks continuity. With 3 images, it treats) Tj ET
+BT /F1 11 Tf 54 179 Td (them as a mini-sequence with setup, escalation, and reveal.) Tj ET
+BT /F1 11 Tf 54 157 Td (The uploaded images should be treated as anchor frames. They are not the full scene. They are) Tj ET
+BT /F1 11 Tf 54 142 Td (key cinematic moments that the engine builds around.) Tj ET
+BT /F2 15 Tf 54 110 Td (4. Image Intelligence Requirements) Tj ET
+BT /F1 9 Tf 498 28 Td (Page 1 of 4) Tj ET
+endstream
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 5 0 R >>
+endobj
+7 0 obj
+<< /Length 3811 >>
+stream
+BT /F1 11 Tf 54 734 Td (For each uploaded image, Director Lab should detect people, faces, expressions, clothing, body) Tj ET
+BT /F1 11 Tf 54 719 Td (language, setting, props, objects, lighting, weather, time of day, genre signals, composition,) Tj ET
+BT /F1 11 Tf 54 704 Td (camera feel, implied action, emotional tone, and possible story meaning.) Tj ET
+BT /F1 11 Tf 54 682 Td (If there are people in the image, the engine can decide whether to add dialogue. If no dialogue) Tj ET
+BT /F1 11 Tf 54 667 Td (is needed, it may use silence, ambience, narration, environmental sound, or visual action) Tj ET
+BT /F1 11 Tf 54 652 Td (instead. The engine should think like a director, not a caption generator.) Tj ET
+BT /F2 15 Tf 54 620 Td (5. Continuity Detection) Tj ET
+BT /F1 11 Tf 54 598 Td (When the user uploads another image, the engine checks whether it continues the story. It) Tj ET
+BT /F1 11 Tf 54 583 Td (compares characters, location, color palette, wardrobe, props, lighting, emotional state,) Tj ET
+BT /F1 11 Tf 54 568 Td (action direction, and time progression.) Tj ET
+BT /F1 11 Tf 54 546 Td (If the image fits, Director Lab places it as the next shot or scene beat. If it does not fit,) Tj ET
+BT /F1 11 Tf 54 531 Td (the engine should not reject it automatically. It can explain how to use it creatively as a) Tj ET
+BT /F1 11 Tf 54 516 Td (flashback, dream, cutaway, twist, memory, parallel scene, or episode transition.) Tj ET
+BT /F2 15 Tf 54 484 Td (6. Anchor Images vs Full Cinematic Scenes) Tj ET
+BT /F1 11 Tf 54 462 Td (A cinematic scene usually has more than 3 shots. It may need props, filler shots, inserts,) Tj ET
+BT /F1 11 Tf 54 447 Td (reaction shots, atmosphere, cutaways, transitions, and close-ups. Therefore, the 1-3 uploaded) Tj ET
+BT /F1 11 Tf 54 432 Td (images should become anchor shots, while Director Lab generates the missing cinematic grammar) Tj ET
+BT /F1 11 Tf 54 417 Td (around them.) Tj ET
+BT /F1 11 Tf 54 395 Td (The key rule: for every uploaded image, the engine asks, "What shots are missing before and) Tj ET
+BT /F1 11 Tf 54 380 Td (after this image to make it feel like a real movie scene?") Tj ET
+BT /F2 15 Tf 54 348 Td (7. Shot Types Director Lab Should Add) Tj ET
+BT /F2 11 Tf 54 326 Td (") Tj ET
+BT /F1 11 Tf 72 326 Td (Establishing shots to introduce location, scale, and atmosphere.) Tj ET
+BT /F2 11 Tf 54 307 Td (") Tj ET
+BT /F1 11 Tf 72 307 Td (Close-ups to reveal emotion, fear, discovery, suspicion, or realization.) Tj ET
+BT /F2 11 Tf 54 288 Td (") Tj ET
+BT /F1 11 Tf 72 288 Td (Insert shots for props, symbols, screens, weapons, keys, letters, devices, maps, or clues.) Tj ET
+BT /F2 11 Tf 54 269 Td (") Tj ET
+BT /F1 11 Tf 72 269 Td (Reaction shots to show how characters process what just happened.) Tj ET
+BT /F2 11 Tf 54 250 Td (") Tj ET
+BT /F1 11 Tf 72 250 Td (Atmospheric filler shots such as rain on glass, lights flickering, dust moving, shadows) Tj ET
+BT /F1 11 Tf 72 235 Td (crossing walls, or broken objects vibrating.) Tj ET
+BT /F2 11 Tf 54 216 Td (") Tj ET
+BT /F1 11 Tf 72 216 Td (Over-the-shoulder shots, POV shots, silhouette shots, action beats, transition shots, and) Tj ET
+BT /F1 11 Tf 72 201 Td (cliffhanger shots.) Tj ET
+BT /F2 15 Tf 54 172 Td (8. Example Scene Logic) Tj ET
+BT /F1 11 Tf 54 150 Td (If a user uploads: 1\) a woman standing in a ruined city, 2\) a glowing object in her hand, and) Tj ET
+BT /F1 11 Tf 54 135 Td (3\) a monster silhouette behind a building, Director Lab should not stop at three shots. It) Tj ET
+BT /F1 11 Tf 54 120 Td (should build a richer scene around them.) Tj ET
+BT /F2 11 Tf 54 98 Td (") Tj ET
+BT /F1 11 Tf 72 98 Td (Shot 1: Establishing wide shot of the ruined city, slow aerial drift, wind and distant) Tj ET
+BT /F1 11 Tf 72 83 Td (sirens.) Tj ET
+BT /F1 9 Tf 498 28 Td (Page 2 of 4) Tj ET
+endstream
+endobj
+8 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 7 0 R >>
+endobj
+9 0 obj
+<< /Length 3903 >>
+stream
+BT /F2 11 Tf 54 734 Td (") Tj ET
+BT /F1 11 Tf 72 734 Td (Shot 2: Insert shot of broken glass vibrating on the ground, low bass rumble.) Tj ET
+BT /F2 11 Tf 54 715 Td (") Tj ET
+BT /F1 11 Tf 72 715 Td (Shot 3: Medium shot of the woman, based on uploaded image 1, slow push-in, no dialogue.) Tj ET
+BT /F2 11 Tf 54 696 Td (") Tj ET
+BT /F1 11 Tf 72 696 Td (Shot 4: Macro prop close-up of the glowing object, based on uploaded image 2, pulsing) Tj ET
+BT /F1 11 Tf 72 681 Td (electrical hum.) Tj ET
+BT /F2 11 Tf 54 662 Td (") Tj ET
+BT /F1 11 Tf 72 662 Td (Shot 5: Reaction shot. Her eyes widen as the object flickers. Dialogue: "It is calling) Tj ET
+BT /F1 11 Tf 72 647 Td (back.") Tj ET
+BT /F2 11 Tf 54 628 Td (") Tj ET
+BT /F1 11 Tf 72 628 Td (Shot 6: Environmental reveal. Streetlights go out one by one behind her.) Tj ET
+BT /F2 11 Tf 54 609 Td (") Tj ET
+BT /F1 11 Tf 72 609 Td (Shot 7: Monster silhouette reveal, based on uploaded image 3, low-angle telephoto shot) Tj ET
+BT /F1 11 Tf 72 594 Td (through fog and dust.) Tj ET
+BT /F2 11 Tf 54 575 Td (") Tj ET
+BT /F1 11 Tf 72 575 Td (Shot 8: End hook. The object projects a map leading underground.) Tj ET
+BT /F2 15 Tf 54 546 Td (9. Best MVP Output) Tj ET
+BT /F1 11 Tf 54 524 Td (The first version of Director Lab should output a complete creative package from 1-3 uploaded) Tj ET
+BT /F1 11 Tf 54 509 Td (images.) Tj ET
+BT /F2 11 Tf 54 487 Td (") Tj ET
+BT /F1 11 Tf 72 487 Td (Movie idea: title, genre, logline, emotional hook, and core conflict.) Tj ET
+BT /F2 11 Tf 54 468 Td (") Tj ET
+BT /F1 11 Tf 72 468 Td (Anchor image analysis: what each image contains and what story role it plays.) Tj ET
+BT /F2 11 Tf 54 449 Td (") Tj ET
+BT /F1 11 Tf 72 449 Td (Continuity reading: how the images connect, what feels consistent, what needs explanation,) Tj ET
+BT /F1 11 Tf 72 434 Td (and how to fix or use contradictions.) Tj ET
+BT /F2 11 Tf 54 415 Td (") Tj ET
+BT /F1 11 Tf 72 415 Td (Full scene construction: 6-10 shots, with uploaded images placed as anchor shots and) Tj ET
+BT /F1 11 Tf 72 400 Td (additional generated shots added around them.) Tj ET
+BT /F2 11 Tf 54 381 Td (") Tj ET
+BT /F1 11 Tf 72 381 Td (Shot details: camera angle, camera movement, lighting, SFX, VFX, ambience, music direction,) Tj ET
+BT /F1 11 Tf 72 366 Td (action, dialogue, narration, and transition.) Tj ET
+BT /F2 11 Tf 54 347 Td (") Tj ET
+BT /F1 11 Tf 72 347 Td (Next images to generate: recommended next shot, alternate next shot, twist version, and prop) Tj ET
+BT /F1 11 Tf 72 332 Td (or reaction shot prompts.) Tj ET
+BT /F2 11 Tf 54 313 Td (") Tj ET
+BT /F1 11 Tf 72 313 Td (Episode direction: where Episode 1 can go, the cliffhanger, and the seed for Episode 2.) Tj ET
+BT /F2 15 Tf 54 284 Td (10. Product Positioning) Tj ET
+BT /F1 11 Tf 54 262 Td (Director Lab should feel like a creative director sitting beside the user. It should guide,) Tj ET
+BT /F1 11 Tf 54 247 Td (suggest, correct continuity, propose stronger shots, and help the user build momentum. It) Tj ET
+BT /F1 11 Tf 54 232 Td (should not feel like a static form or a generic prompt generator.) Tj ET
+BT /F1 11 Tf 54 210 Td (The user begins with images. Director Lab turns those images into shots. Shots become scenes.) Tj ET
+BT /F1 11 Tf 54 195 Td (Scenes become Episode 1. Episode 1 becomes a cinematic universe.) Tj ET
+BT /F2 15 Tf 54 163 Td (11. Future Expansion) Tj ET
+BT /F2 11 Tf 54 141 Td (") Tj ET
+BT /F1 11 Tf 72 141 Td (Director Board: visual timeline of shots, scenes, and episodes.) Tj ET
+BT /F2 11 Tf 54 122 Td (") Tj ET
+BT /F1 11 Tf 72 122 Td (Character Bible: recurring character identity, wardrobe, voice, motivation, and emotional) Tj ET
+BT /F1 11 Tf 72 107 Td (arc.) Tj ET
+BT /F2 11 Tf 54 88 Td (") Tj ET
+BT /F1 11 Tf 72 88 Td (World Rules: setting, lore, visual symbols, recurring props, danger rules, and mythology.) Tj ET
+BT /F1 9 Tf 498 28 Td (Page 3 of 4) Tj ET
+endstream
+endobj
+10 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 9 0 R >>
+endobj
+11 0 obj
+<< /Length 877 >>
+stream
+BT /F2 11 Tf 54 734 Td (") Tj ET
+BT /F1 11 Tf 72 734 Td (Sound Palette: recurring SFX, music tone, ambience, silence rules, and sonic motifs.) Tj ET
+BT /F2 11 Tf 54 715 Td (") Tj ET
+BT /F1 11 Tf 72 715 Td (Episode Builder: full short-film outline, cliffhanger, next episode seed, missing image) Tj ET
+BT /F1 11 Tf 72 700 Td (prompts, and video-generation prompts.) Tj ET
+BT /F2 15 Tf 54 671 Td (Simple Summary) Tj ET
+BT /F1 11 Tf 54 649 Td (Director Lab is a cinematic co-director that analyzes up to 3 uploaded images, understands what) Tj ET
+BT /F1 11 Tf 54 634 Td (is inside them, detects the movie idea, checks continuity, places the images as anchor shots,) Tj ET
+BT /F1 11 Tf 54 619 Td (generates the missing cinematic shots around them, and guides the user toward a complete) Tj ET
+BT /F1 11 Tf 54 604 Td (Episode 1.) Tj ET
+BT /F1 9 Tf 498 28 Td (Page 4 of 4) Tj ET
+endstream
+endobj
+12 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents 11 0 R >>
+endobj
+xref
+0 13
+0000000000 65535 f 
+0000000015 00000 n 
+0000000064 00000 n 
+0000000141 00000 n 
+0000000211 00000 n 
+0000000286 00000 n 
+0000003529 00000 n 
+0000003665 00000 n 
+0000007513 00000 n 
+0000007649 00000 n 
+0000011569 00000 n 
+0000011706 00000 n 
+0000012630 00000 n 
+trailer
+<< /Size 13 /Root 1 0 R >>
+startxref
+12768
+%%EOF
