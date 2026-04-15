@@ -813,3 +813,106 @@ export function DirectorLab() {
     </div>
   );
 }
+
+type DrivingSequence = NonNullable<AnalysisResult["drivingSequence"]>;
+
+function DrivingSequencePanel({
+  drivingSequence,
+  copyText,
+}: {
+  drivingSequence: DrivingSequence;
+  copyText: (text: string, label: string) => void;
+}) {
+  return (
+    <div className="border border-red-500/30 bg-red-950/10 space-y-0 overflow-hidden">
+      {/* Header */}
+      <div className="bg-red-950/30 border-b border-red-500/30 px-5 py-3 flex items-center gap-3">
+        <Car className="w-4 h-4 text-red-400" />
+        <span className="text-xs font-bold uppercase tracking-widest text-red-400">Driving Sequence</span>
+        <span className="ml-auto text-[10px] font-mono text-muted-foreground">{drivingSequence.mode}</span>
+      </div>
+
+      <div className="p-5 space-y-5">
+        {/* Vehicle Setup */}
+        <div>
+          <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1.5">Vehicle Setup</p>
+          <p className="text-xs font-mono text-foreground/80 leading-relaxed">{drivingSequence.vehicleSetup}</p>
+        </div>
+
+        {/* Continuity Rules */}
+        {drivingSequence.continuityRules.length > 0 && (
+          <div>
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2">Continuity Rules</p>
+            <ul className="space-y-1.5">
+              {drivingSequence.continuityRules.map((rule, i) => (
+                <li key={i} className="flex items-start gap-2 text-xs font-mono text-foreground/70">
+                  <span className="text-red-400 shrink-0 mt-0.5">—</span> {rule}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Cabin Coverage */}
+        {drivingSequence.cabinCoverage.length > 0 && (
+          <div>
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2 flex items-center gap-1.5">
+              <Camera className="w-3 h-3" /> Cabin Coverage
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {drivingSequence.cabinCoverage.map((shot, i) => (
+                <div key={i} className="border border-border bg-card p-3 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-[10px] font-bold text-foreground uppercase tracking-wide leading-snug">{shot.angle}</span>
+                    <button onClick={() => copyText(shot.prompt, "Cabin prompt")} className="text-muted-foreground hover:text-primary shrink-0">
+                      <Copy className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                  <p className="text-[11px] font-mono text-muted-foreground">{shot.purpose}</p>
+                  <p className="text-[10px] font-mono text-foreground/50 bg-secondary/30 p-1.5 line-clamp-2">{shot.prompt}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Motion Beats */}
+        {drivingSequence.motionBeats.length > 0 && (
+          <div>
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2 flex items-center gap-1.5">
+              <Gauge className="w-3 h-3" /> Motion Beats
+            </p>
+            <div className="space-y-2">
+              {drivingSequence.motionBeats.map((beat, i) => (
+                <div key={i} className="border border-border bg-card p-3 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5">
+                  <span className="text-2xl font-black text-red-500/20 leading-none row-span-4">{beat.beat}</span>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-foreground">{beat.title}</span>
+                    <button onClick={() => copyText(beat.prompt, `Beat ${beat.beat} prompt`)} className="text-muted-foreground hover:text-primary shrink-0">
+                      <Copy className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                  <div className="text-[10px] font-mono text-muted-foreground space-y-0.5">
+                    <p><span className="text-foreground/50">Action →</span> {beat.driverAction}</p>
+                    <p><span className="text-foreground/50">Camera →</span> {beat.camera}</p>
+                    <p><span className="text-foreground/50">Road →</span> {beat.roadAction}</p>
+                    <p><span className="text-foreground/50">Sound →</span> {beat.sound}</p>
+                  </div>
+                  <p className="text-[10px] font-mono text-foreground/40 bg-secondary/20 p-1.5 line-clamp-2">{beat.prompt}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Safety Note */}
+        {drivingSequence.safetyNote && (
+          <div className="border border-amber-500/20 bg-amber-500/5 px-3 py-2 flex items-start gap-2">
+            <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
+            <p className="text-[11px] font-mono text-amber-400/80">{drivingSequence.safetyNote}</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
