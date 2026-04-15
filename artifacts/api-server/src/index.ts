@@ -1,5 +1,6 @@
 import app from "./app";
 import { logger } from "./lib/logger";
+import { createBot } from "./bot";
 
 const rawPort = process.env["PORT"];
 
@@ -22,4 +23,13 @@ app.listen(port, (err) => {
   }
 
   logger.info({ port }, "Server listening");
+
+  const bot = createBot();
+  if (bot) {
+    bot.launch({ dropPendingUpdates: true });
+    logger.info("Telegram bot started (long polling)");
+
+    process.once("SIGINT", () => bot.stop("SIGINT"));
+    process.once("SIGTERM", () => bot.stop("SIGTERM"));
+  }
 });
