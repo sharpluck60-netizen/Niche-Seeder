@@ -21,6 +21,8 @@ import {
   ChevronDown,
   ChevronUp,
   Clapperboard,
+  BookOpen,
+  Sparkles,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -91,6 +93,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
     { href: "/hairstyle-lab", label: "HAIRSTYLE LAB", icon: Scissors },
     { href: "/creative-studio", label: "CREATIVE STUDIO", icon: Film },
     { href: "/director-lab", label: "DIRECTOR LAB", icon: Clapperboard },
+    { href: "/story-bible", label: "STORY BIBLE", icon: BookOpen },
+    { href: "/drama-engine", label: "DRAMA ENGINE", icon: Sparkles },
     { href: "/caption-lab", label: "CAPTION LAB", icon: Type },
     { href: "/dance-studio", label: "DANCE STUDIO", icon: Music },
     { href: "/phantom-passport", label: "MAP STUDIO", icon: Globe },

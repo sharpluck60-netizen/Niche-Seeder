@@ -16,6 +16,8 @@ import { DanceStudio } from "@/pages/dance-studio";
 import { PhantomPassport } from "@/pages/phantom-passport";
 import { HairstyleLab } from "@/pages/hairstyle-lab";
 import { DirectorLab } from "@/pages/director-lab";
+import { StoryBible } from "@/pages/story-bible";
+import { DramaEngine } from "@/pages/drama-engine";
 import { ThemeProvider } from "@/lib/theme";
 
 const queryClient = new QueryClient();
@@ -36,6 +38,8 @@ function Router() {
         <Route path="/phantom-passport" component={PhantomPassport} />
         <Route path="/hairstyle-lab" component={HairstyleLab} />
         <Route path="/director-lab" component={DirectorLab} />
+        <Route path="/story-bible" component={StoryBible} />
+        <Route path="/drama-engine" component={DramaEngine} />
         <Route component={NotFound} />
       </Switch>
     </Layout>
