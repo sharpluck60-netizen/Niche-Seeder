@@ -380,29 +380,31 @@ export function AnalysisDetail() {
       </Card>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full bg-secondary border border-border">
-          <TabsTrigger value="communities" className="flex-1 uppercase text-xs tracking-wider" data-testid="tab-communities">
-            Communities
-          </TabsTrigger>
-          <TabsTrigger value="spark-posts" className="flex-1 uppercase text-xs tracking-wider" data-testid="tab-spark-posts">
-            Spark Posts
-          </TabsTrigger>
-          <TabsTrigger value="strategy" className="flex-1 uppercase text-xs tracking-wider" data-testid="tab-strategy">
-            Strategy
-          </TabsTrigger>
-          <TabsTrigger value="blueprint" className="flex-1 uppercase text-xs tracking-wider" data-testid="tab-blueprint">
-            Blueprint
-          </TabsTrigger>
-          <TabsTrigger value="script" className="flex-1 uppercase text-xs tracking-wider" data-testid="tab-script">
-            Script
-          </TabsTrigger>
-          <TabsTrigger value="metadata" className="flex-1 uppercase text-xs tracking-wider" data-testid="tab-metadata">
-            Metadata
-          </TabsTrigger>
-          <TabsTrigger value="series" className="flex-1 uppercase text-xs tracking-wider" data-testid="tab-series">
-            Series
-          </TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto scrollbar-hide border border-border bg-secondary rounded-md">
+          <TabsList className="w-max min-w-full bg-transparent border-0 rounded-none flex">
+            <TabsTrigger value="communities" className="flex-shrink-0 px-4 uppercase text-xs tracking-wider" data-testid="tab-communities">
+              Communities
+            </TabsTrigger>
+            <TabsTrigger value="spark-posts" className="flex-shrink-0 px-4 uppercase text-xs tracking-wider" data-testid="tab-spark-posts">
+              Spark Posts
+            </TabsTrigger>
+            <TabsTrigger value="strategy" className="flex-shrink-0 px-4 uppercase text-xs tracking-wider" data-testid="tab-strategy">
+              Strategy
+            </TabsTrigger>
+            <TabsTrigger value="blueprint" className="flex-shrink-0 px-4 uppercase text-xs tracking-wider" data-testid="tab-blueprint">
+              Blueprint
+            </TabsTrigger>
+            <TabsTrigger value="script" className="flex-shrink-0 px-4 uppercase text-xs tracking-wider" data-testid="tab-script">
+              Script
+            </TabsTrigger>
+            <TabsTrigger value="metadata" className="flex-shrink-0 px-4 uppercase text-xs tracking-wider" data-testid="tab-metadata">
+              Metadata
+            </TabsTrigger>
+            <TabsTrigger value="series" className="flex-shrink-0 px-4 uppercase text-xs tracking-wider" data-testid="tab-series">
+              Series
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="communities" className="mt-4 space-y-4">
           <div className="flex justify-between items-center">
