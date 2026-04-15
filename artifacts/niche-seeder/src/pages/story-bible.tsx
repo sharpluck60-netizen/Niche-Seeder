@@ -58,6 +58,24 @@ type DramaEpisode = {
   sceneData: unknown;
 };
 
+const SETTING_EXAMPLES = [
+  { label: "Lagos luxury", value: "Upscale Lagos restaurants, luxury penthouse apartments, corporate boardrooms, gated estates" },
+  { label: "Atlanta church & hood", value: "Atlanta suburban homes, megachurch halls, neighborhood barbershop and beauty salon, courthouse" },
+  { label: "Nairobi elite", value: "Nairobi gated community estates, rooftop lounges, private hospital corridors, Westlands boutiques" },
+  { label: "London diaspora", value: "London Nigerian diaspora households, Peckham market, family-owned restaurant, council estate vs. mansion" },
+  { label: "Houston drama", value: "Houston luxury condos, upscale malls, church parking lots, barbeque spots and hospital waiting rooms" },
+  { label: "Accra coastal", value: "Accra beach resort villas, government ministry offices, mansion compound, outdoor market and courtroom" },
+];
+
+const PREMISE_EXAMPLES = [
+  { label: "Mother-in-law war", value: "A young mother marries into Lagos old money and must fight her toxic mother-in-law who will do anything to destroy her marriage and take her child." },
+  { label: "Secret second family", value: "When a hardworking woman discovers her husband has been hiding a second family across town, she must choose between revenge and protecting her children — all while rebuilding herself." },
+  { label: "Return & reclaim", value: "After 10 years abroad, a woman returns home to reclaim the inheritance her own family stole from her — but the man standing in her way is the one she never stopped loving." },
+  { label: "Sisters vs. same man", value: "Two sisters fall for the same man without knowing it. When the truth comes out, it tears the family apart — and forces them to decide whether blood or love comes first." },
+  { label: "Pastor's wife secret", value: "A respected church first lady discovers her pastor husband's hidden affairs and corrupt dealings. She must decide how far she will go to protect her reputation — and her soul." },
+  { label: "Corporate comeback", value: "After being set up and fired by her jealous colleague, a woman rebuilds herself into a CEO from scratch — only to find that same woman is now her employee begging for mercy." },
+];
+
 const GENRES = ["Drama", "Telenovela", "Thriller", "Romance", "Family Drama", "Workplace Drama", "Crime Drama", "Supernatural Drama"];
 const TONES = ["Intense & Emotional", "Dark & Gritty", "Uplifting & Hopeful", "Mysterious & Suspenseful", "Passionate & Romantic", "Tense & Unpredictable"];
 const VISUAL_STYLES = ["Realistic 3D", "Hyper-realistic CGI", "Stylized 3D Anime", "Cinematic Live-Action Look", "Oil Painting Style", "Neon Noir 3D"];
@@ -473,11 +491,31 @@ export function StoryBible() {
             </div>
             <div>
               <label className="text-[10px] uppercase tracking-widest text-muted-foreground block mb-1.5">Setting</label>
-              <input value={newSeries.setting} onChange={(e) => setNewSeries((p) => ({ ...p, setting: e.target.value }))} className="w-full bg-background border border-border px-3 py-2 text-xs font-mono focus:outline-none focus:border-primary" placeholder="e.g. Upscale Lagos restaurants, luxury homes, corporate offices" />
+              <input value={newSeries.setting} onChange={(e) => setNewSeries((p) => ({ ...p, setting: e.target.value }))} className="w-full bg-background border border-border px-3 py-2 text-xs font-mono focus:outline-none focus:border-primary" placeholder="Where does your story take place?" />
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                <span className="text-[9px] text-muted-foreground uppercase tracking-widest self-center mr-0.5">Try:</span>
+                {SETTING_EXAMPLES.map((s) => (
+                  <button key={s.label} type="button" onClick={() => setNewSeries((p) => ({ ...p, setting: s.value }))}
+                    className="text-[9px] font-mono px-2 py-1 border border-border hover:border-primary hover:text-primary text-muted-foreground transition-colors">
+                    {s.label}
+                  </button>
+                ))}
+              </div>
             </div>
             <div>
               <label className="text-[10px] uppercase tracking-widest text-muted-foreground block mb-1.5">Series Premise</label>
-              <Textarea value={newSeries.premise} onChange={(e) => setNewSeries((p) => ({ ...p, premise: e.target.value }))} className="text-xs font-mono resize-none rounded-none" rows={3} placeholder="A young mother navigates wealth, family betrayal, and a toxic mother-in-law in Lagos high society..." />
+              <Textarea value={newSeries.premise} onChange={(e) => setNewSeries((p) => ({ ...p, premise: e.target.value }))} className="text-xs font-mono resize-none rounded-none" rows={3} placeholder="What is your story about? Who is the main character, what do they want, and what stands in their way?" />
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                <span className="text-[9px] text-muted-foreground uppercase tracking-widest self-start mt-1 mr-0.5">Try:</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {PREMISE_EXAMPLES.map((p) => (
+                    <button key={p.label} type="button" onClick={() => setNewSeries((prev) => ({ ...prev, premise: p.value }))}
+                      className="text-[9px] font-mono px-2 py-1 border border-border hover:border-primary hover:text-primary text-muted-foreground transition-colors text-left">
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setShowCreateSeries(false)}>Cancel</Button>
