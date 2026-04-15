@@ -14,6 +14,7 @@ type DirectorControls = {
   tone?: string;
   pace?: string;
   style?: string;
+  actionMode?: string;
 };
 
 type VisionFrame = {
@@ -66,6 +67,10 @@ function fallbackResult(vision: VisionResult, controls: DirectorControls, userId
   const pace = controls.pace ?? "measured cinematic pacing";
   const dialogueMode = controls.dialogueMode ?? "balanced dialogue";
   const idea = userIdea.trim() || vision.movieSeed || "A strange visual event pulls the characters into a larger mystery.";
+  const drivingRequested = [controls.actionMode, userIdea, vision.movieSeed, vision.continuitySeed, ...(vision.visibleProps ?? [])]
+    .join(" ")
+    .toLowerCase()
+    .match(/driv|car|vehicle|steering|pedal|gear|highway|street|traffic|passenger|overtak/);
   const shots = Array.from({ length: shotTarget }, (_, index) => {
     const shotNumber = index + 1;
     const anchor = frames.find((frame) => frame.imageNumber === Math.min(imageCount, Math.max(1, Math.ceil((shotNumber / shotTarget) * imageCount))));
@@ -89,13 +94,13 @@ function fallbackResult(vision: VisionResult, controls: DirectorControls, userId
     };
   });
 
-  return {
+  const result = {
     movieIdea: {
-      title,
-      genre: tone.includes("hope") ? "Cinematic mystery with hopeful sci-fi undertones" : "Cinematic mystery thriller",
-      logline: idea,
-      emotionalHook: "The audience is pulled in by the feeling that the uploaded frames are fragments of a larger hidden story.",
-      coreConflict: "The characters must understand what the visual anomaly means before it changes their world.",
+      title: drivingRequested ? "Full Throttle Confession" : title,
+      genre: drivingRequested ? "Grounded cinematic driving thriller" : tone.includes("hope") ? "Cinematic mystery with hopeful sci-fi undertones" : "Cinematic mystery thriller",
+      logline: drivingRequested ? idea || "A driver pushes through live traffic while the passenger beside them forces a truth into the open." : idea,
+      emotionalHook: drivingRequested ? "The audience feels physically inside the car: hands on wheel, foot on pedal, passenger tension, traffic danger, and speed building shot by shot." : "The audience is pulled in by the feeling that the uploaded frames are fragments of a larger hidden story.",
+      coreConflict: drivingRequested ? "The driver must control the vehicle, the road, and the passenger-side pressure while deciding whether to overtake or back off." : "The characters must understand what the visual anomaly means before it changes their world.",
     },
     anchorImages: frames,
     continuity: {
@@ -156,6 +161,37 @@ function fallbackResult(vision: VisionResult, controls: DirectorControls, userId
       "Same story as grounded found-footage realism",
     ],
   };
+
+  if (drivingRequested) {
+    return {
+      ...result,
+      drivingSequence: {
+        mode: "Realistic in-car cinematic driving",
+        vehicleSetup: "Use the uploaded car interior as the hero cabin reference: driver hand on steering wheel, dashboard instruments, center console, windshield road view, and passenger seat geography.",
+        continuityRules: [
+          "Keep the same driver wardrobe, hand position, dashboard layout, windshield weather, and road direction across all shots.",
+          "Cut between wide cabin, steering wheel, pedal insert, gear shift insert, passenger reaction, road POV, exterior tracking, and overtaking shots without changing the car identity.",
+          "Make pedal and gear shots functional: foot presses accelerator or brake, hand shifts/uses paddle, engine note changes, car responds with visible motion.",
+        ],
+        cabinCoverage: [
+          { angle: "Driver POV through windshield", purpose: "Shows the road, lane position, speed feeling, and approaching vehicles.", prompt: "Cinematic driver POV from inside a luxury car on a highway, hand on steering wheel, dashboard visible, passenger edge in frame, trees and traffic through windshield, realistic motion blur, premium action film still." },
+          { angle: "Low pedal insert", purpose: "Shows the foot pressing accelerator and brake like a real movie driving beat.", prompt: "Low close-up inside car footwell, driver's sneaker pressing accelerator pedal, brake pedal nearby, realistic interior shadows, engine vibration, cinematic macro detail, action thriller lighting." },
+          { angle: "Gear/console insert", purpose: "Shows the driver changing gear or engaging paddle shift before acceleration.", prompt: "Close-up of driver's hand changing gear on luxury center console, dashboard glow, tactile motion, shallow depth of field, cinematic realism, high-speed driving scene." },
+          { angle: "Passenger two-shot", purpose: "Shows the passenger beside the driver reacting to speed, danger, or dialogue.", prompt: "Wide interior two-shot from back seat showing driver at wheel and passenger beside them, highway visible through windshield, tense cinematic conversation, natural daylight, realistic car cabin geography." },
+        ],
+        motionBeats: [
+          { beat: 1, title: "Cabin lock-in", driverAction: "Driver steadies one hand on the wheel and checks the lane.", camera: "Wide dashboard-to-windshield angle from the passenger side.", roadAction: "Traffic flows ahead with one slower vehicle in the target lane.", sound: "Low cabin rumble, tire hiss, faint indicator tick.", prompt: "Wide in-car cinematic shot from passenger side, driver hand on steering wheel, full dashboard, passenger beside them, highway traffic ahead, real daylight, tense movie realism." },
+          { beat: 2, title: "Pedal commitment", driverAction: "Foot presses the accelerator smoothly, then hovers near the brake.", camera: "Low footwell macro insert with vibrating floor and pedals.", roadAction: "The car begins closing distance on the vehicle ahead.", sound: "Engine note rises, road noise thickens.", prompt: "Low cinematic footwell close-up, driver's foot pressing accelerator pedal, brake pedal visible, realistic car interior, motion vibration, action film detail." },
+          { beat: 3, title: "Gear change", driverAction: "Driver changes gear or taps paddle shift before pulling out.", camera: "Tight console/steering insert with hand movement.", roadAction: "Lane gap opens beside a slower car.", sound: "Sharp gear click, engine drops then surges.", prompt: "Close-up of hand shifting gear or tapping paddle shifter in luxury car, dashboard lights, speed rising, shallow depth of field, cinematic action realism." },
+          { beat: 4, title: "Passenger pressure", driverAction: "Driver glances to passenger for half a second, then back to road.", camera: "Back-seat two-shot showing both driver and passenger.", roadAction: "A red car appears ahead as the overtaking lane clears.", sound: "Passenger breath, seat leather creak, indicator tick.", prompt: "Back seat wide interior shot of driver and passenger in luxury car, driver focused, passenger tense, highway visible ahead, realistic road motion, cinematic thriller frame." },
+          { beat: 5, title: "Overtake", driverAction: "Driver signals, turns out, accelerates past the slower vehicle, then returns to lane.", camera: "Exterior tracking shot beside the car, then windshield POV cut.", roadAction: "Hero car overtakes another vehicle with safe but dramatic speed.", sound: "Wind rush, tires over lane markers, engine push.", prompt: "Exterior tracking shot of luxury car overtaking another vehicle on highway, trees on both sides, realistic motion blur, grounded movie action, premium cinematic daylight." },
+        ],
+        safetyNote: "Keep the scene cinematic but controlled: no reckless impact, no dangerous stunt instruction, just realistic film coverage of a tense driving moment.",
+      },
+    };
+  }
+
+  return result;
 }
 
 router.post("/director-lab/analyze", async (req, res): Promise<void> => {
@@ -235,7 +271,21 @@ router.post("/director-lab/analyze", async (req, res): Promise<void> => {
           messages: [
             {
               role: "system",
-              content: `You are Director Lab. Build a compact but complete cinematic package from a visual image read. Use exactly ${shotTarget} shots. Uploaded images are anchor frames, not the full scene. Add missing establishing, insert, prop, reaction, atmosphere, transition, and cliffhanger shots. Include Director Notes, Creative Rescue, next image prompts, and style regeneration ideas. Return valid JSON only with keys: movieIdea, anchorImages, continuity, scene, directorNotes, nextImages, episodeDirection, styleRegenerationIdeas.`,
+            content: `You are Director Lab. Build a compact but complete cinematic package from a visual image read. Use exactly ${shotTarget} shots. Uploaded images are anchor frames, not the full scene. Add missing establishing, insert, prop, reaction, atmosphere, transition, and cliffhanger shots. Include Director Notes, Creative Rescue, next image prompts, and style regeneration ideas.
+
+If the user asks for driving, cars, streets, highway movement, gear changes, pedals, passengers, overtaking, or if the uploaded image visibly shows a vehicle interior/exterior, add an extra "drivingSequence" object. It must make the character/model feel like they are really driving in a movie. Include: mode, vehicleSetup, continuityRules, cabinCoverage, motionBeats, and safetyNote.
+
+Driving requirements when applicable:
+- Include driver hand/steering continuity.
+- Include a low camera cutaway of legs/feet pressing accelerator and brake pedals.
+- Include a close-up gear change or paddle shift shot.
+- Include a full interior/cabin shot showing dashboard, windshield, center console, driver, and passenger seat geography.
+- Include passenger beside the driver with reaction/dialogue potential.
+- Include streets/highway seen through windshield and exterior tracking shots.
+- Include car motion, lane change, acceleration, and overtaking other vehicles as cinematic beats.
+- Keep it realistic and filmable; no unsafe crash instructions.
+
+Return valid JSON only with keys: movieIdea, anchorImages, continuity, scene, directorNotes, nextImages, episodeDirection, styleRegenerationIdeas, and optional drivingSequence.`,
             },
             {
               role: "user",
@@ -256,6 +306,14 @@ router.post("/director-lab/analyze", async (req, res): Promise<void> => {
                   nextImages: [{ title: "", purpose: "", prompt: "" }],
                   episodeDirection: { episodeTitle: "", actPath: "", cliffhanger: "", episodeTwoSeed: "" },
                   styleRegenerationIdeas: [],
+                  drivingSequence: {
+                    mode: "",
+                    vehicleSetup: "",
+                    continuityRules: [""],
+                    cabinCoverage: [{ angle: "", purpose: "", prompt: "" }],
+                    motionBeats: [{ beat: 1, title: "", driverAction: "", camera: "", roadAction: "", sound: "", prompt: "" }],
+                    safetyNote: "",
+                  },
                 },
               }),
             },

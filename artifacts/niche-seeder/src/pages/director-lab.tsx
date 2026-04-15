@@ -23,10 +23,16 @@ import {
   MonitorPlay,
   Lightbulb,
   AlertTriangle,
-  MoveRight
+  MoveRight,
+  Car,
+  Gauge,
+  Footprints,
+  UserRound,
+  MapPinned
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import drivingReferenceUrl from "@assets/a7b5fca3de097f2d91401093c8afeee1_1776227284038.jpg";
 
 type UploadedImage = {
   id: string;
@@ -91,12 +97,33 @@ type AnalysisResult = {
     episodeTwoSeed: string;
   };
   styleRegenerationIdeas: string[];
+  drivingSequence?: {
+    mode: string;
+    vehicleSetup: string;
+    continuityRules: string[];
+    cabinCoverage: Array<{
+      angle: string;
+      purpose: string;
+      prompt: string;
+    }>;
+    motionBeats: Array<{
+      beat: number;
+      title: string;
+      driverAction: string;
+      camera: string;
+      roadAction: string;
+      sound: string;
+      prompt: string;
+    }>;
+    safetyNote: string;
+  };
 };
 
 const DIALOGUE_MODES = ["None", "Minimal", "Heavy", "Voiceover Only"];
 const TONES = ["Dark & Gritty", "Uplifting & Bright", "Mysterious & Tense", "Surreal & Dreamy", "Action-Packed", "Melancholic"];
 const PACES = ["Slow Burn", "Steady", "Fast & Kinetic", "Frenetic"];
 const STYLES = ["Cinematic Realism", "Anime / Cel Shaded", "Cyberpunk", "Vintage 35mm", "Neon Noir", "Ethereal Fantasy"];
+const ACTION_MODES = ["Auto Detect", "Driving Scene", "Dialogue Scene", "Chase / Escape", "Interior Tension", "World Reveal"];
 
 export function DirectorLab() {
   const [images, setImages] = useState<UploadedImage[]>([]);
@@ -105,7 +132,8 @@ export function DirectorLab() {
     dialogueMode: "Minimal",
     tone: "Dark & Gritty",
     pace: "Steady",
-    style: "Cinematic Realism"
+    style: "Cinematic Realism",
+    actionMode: "Auto Detect"
   });
   const [userIdea, setUserIdea] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -161,6 +189,35 @@ export function DirectorLab() {
 
   const removeImage = (id: string) => {
     setImages(prev => prev.filter(img => img.id !== id));
+  };
+
+  const loadDrivingReference = async () => {
+    if (images.length >= 3) {
+      toast({ title: "Maximum reached", description: "Remove an image before adding the driving reference.", variant: "destructive" });
+      return;
+    }
+
+    try {
+      const response = await fetch(drivingReferenceUrl);
+      const blob = await response.blob();
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const dataUrl = e.target?.result as string;
+        const base64 = dataUrl.split(",")[1];
+        setImages(prev => [...prev, {
+          id: `driving-${Date.now()}`,
+          dataUrl,
+          base64,
+          mimeType: blob.type || "image/jpeg",
+          fileName: "driving-reference.jpg"
+        }].slice(0, 3));
+        setControls(prev => ({ ...prev, actionMode: "Driving Scene", pace: "Fast & Kinetic", style: "Cinematic Realism" }));
+        setUserIdea((current) => current || "Make my character/model drive like a real movie: changing gear, pedal cutaways, full car interior, passenger beside them, streets through the windshield, car movement, lane changes, and overtaking other vehicles.");
+      };
+      reader.readAsDataURL(blob);
+    } catch {
+      toast({ title: "Could not load reference", description: "Try uploading the driving image manually.", variant: "destructive" });
+    }
   };
 
   const handleSubmit = async () => {
@@ -302,6 +359,19 @@ export function DirectorLab() {
                   )}
                 </div>
               )}
+              {images.length < 3 && (
+                <div className="p-4 border-t border-border bg-red-950/10">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={loadDrivingReference}
+                    className="w-full rounded-none border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300 uppercase tracking-wider text-xs"
+                  >
+                    <Car className="w-4 h-4 mr-2" />
+                    Use Attached Driving Reference
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -355,6 +425,16 @@ export function DirectorLab() {
                       {DIALOGUE_MODES.map(d => <option key={d} value={d}>{d}</option>)}
                     </select>
                   </div>
+                  <div className="space-y-1.5 col-span-2">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Action Mode</label>
+                    <select 
+                      className="w-full bg-background border border-border rounded-none px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                      value={controls.actionMode}
+                      onChange={e => setControls({...controls, actionMode: e.target.value})}
+                    >
+                      {ACTION_MODES.map(mode => <option key={mode} value={mode}>{mode}</option>)}
+                    </select>
+                  </div>
                 </div>
               </div>
 
@@ -363,7 +443,7 @@ export function DirectorLab() {
                   <Lightbulb className="w-3 h-3" /> Initial Idea / Context (Optional)
                 </label>
                 <Textarea 
-                  placeholder="E.g., 'A detective finding a clue in the rain' or 'Make it about a betrayal'."
+                  placeholder="E.g., 'Make my character drive like a real movie: gear shift, pedal cutaway, passenger, street POV, overtaking traffic.'"
                   className="resize-none font-mono text-sm focus-visible:ring-red-500 border-border rounded-none bg-background"
                   value={userIdea}
                   onChange={(e) => setUserIdea(e.target.value)}
@@ -417,6 +497,9 @@ export function DirectorLab() {
                   <span className="animate-pulse">Analyzing continuity...</span>
                   <span className="animate-pulse" style={{animationDelay: '0.2s'}}>Plotting camera moves...</span>
                   <span className="animate-pulse" style={{animationDelay: '0.4s'}}>Generating sound design...</span>
+                  {controls.actionMode === "Driving Scene" && (
+                    <span className="animate-pulse" style={{animationDelay: '0.6s'}}>Blocking pedals, passenger, road POV, and overtakes...</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -511,6 +594,10 @@ export function DirectorLab() {
                   </CardContent>
                 </Card>
               </div>
+
+              {result.drivingSequence && (
+                <DrivingSequencePanel drivingSequence={result.drivingSequence} copyText={copyText} />
+              )}
 
               {/* The Sequence */}
               <div className="space-y-4 pt-4">
