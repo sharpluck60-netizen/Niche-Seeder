@@ -23,8 +23,11 @@ import {
   Clapperboard,
   BookOpen,
   Sparkles,
+  LogOut,
+  User,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { useClerk, useUser } from "@clerk/react";
 import { cn } from "@/lib/utils";
 import { themes, scales, useTheme } from "@/lib/theme";
 import { appFonts, fontCategories, loadGoogleFont, type FontCategory } from "@/lib/fonts";
@@ -56,6 +59,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const { theme, setTheme, scale, setScale, font, setFont } = useTheme();
+  const { signOut } = useClerk();
+  const { user } = useUser();
   const nodeId = useMemo(() => getNodeId(), []);
   const sessionKey = useMemo(() => getSessionKey(), []);
   const [fontSearch, setFontSearch] = useState("");
@@ -85,7 +90,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   }, [uptime]);
 
   const navItems = [
-    { href: "/", label: "OPSEC DASHBOARD", icon: Activity },
+    { href: "/dashboard", label: "OPSEC DASHBOARD", icon: Activity },
     { href: "/analyze", label: "INJECT CONTENT", icon: Zap },
     { href: "/analyses", label: "INTEL ARCHIVE", icon: Database },
     { href: "/image-lab", label: "IMAGE LAB", icon: Instagram },
@@ -353,6 +358,44 @@ export function Layout({ children }: { children: React.ReactNode }) {
             )}
           </div>
         </div>
+
+        {/* User profile */}
+        {user && (
+          <div className="border-t border-border px-3 py-3">
+            <div className="border border-primary/20 bg-primary/5 p-2.5">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-6 h-6 bg-primary/20 border border-primary/30 flex items-center justify-center shrink-0">
+                    {user.imageUrl ? (
+                      <img src={user.imageUrl} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <User className="w-3 h-3 text-primary" />
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-[10px] font-bold text-primary uppercase tracking-wider truncate">
+                      {user.fullName || user.username || "OPERATOR"}
+                    </div>
+                    <div className="text-[9px] text-muted-foreground truncate font-mono">
+                      {user.primaryEmailAddress?.emailAddress}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => signOut({ redirectUrl: "/" })}
+                  title="Sign out"
+                  className="shrink-0 text-muted-foreground hover:text-destructive transition-colors p-0.5"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                </button>
+              </div>
+              <div className="mt-2 pt-2 border-t border-primary/10 text-[9px] text-primary/50 font-mono uppercase tracking-widest text-center">
+                ◈ CREATOR CLEARANCE ◈
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Bottom status + marquee */}
         <div className="border-t border-border overflow-hidden">
