@@ -1,6 +1,7 @@
 import { Bot, GrammyError, HttpError } from "grammy";
 import { db, analysesTable } from "@workspace/db";
 import { openai } from "./lib/openai";
+import { fetchUrlMeta } from "./lib/fetchUrlMeta";
 import { desc, eq } from "drizzle-orm";
 import { logger } from "./lib/logger";
 
@@ -16,13 +17,18 @@ async function analyzeUrl(url: string, platform: string) {
     .values({ url, platform, status: "analyzing" })
     .returning();
 
+  const urlMeta = await fetchUrlMeta(url, platform);
+  const metaContext = urlMeta.raw
+    ? `Here is the actual metadata scraped from the video page:\n${urlMeta.raw}`
+    : `No metadata could be scraped. Use the URL structure and platform context only.`;
+
   const aiResponse = await openai.chat.completions.create({
     model: "llama-3.3-70b-versatile",
     max_tokens: 2048,
     messages: [
       {
         role: "system",
-        content: `You are an expert in AI-generated cinematic content and social media distribution strategy for 2026. Analyze the given video URL and provide insights. Respond in JSON format:
+        content: `You are an expert in AI-generated cinematic content and social media distribution strategy for 2026. Analyze the given video and provide accurate insights based on the REAL metadata provided. Do NOT fabricate or guess — use only what is given. Respond in JSON format:
 {
   "title": "A short descriptive title",
   "microNiche": "The specific sub-genre",
@@ -33,7 +39,7 @@ async function analyzeUrl(url: string, platform: string) {
       },
       {
         role: "user",
-        content: `Analyze this ${platform} video: ${url}`,
+        content: `Analyze this ${platform} video: ${url}\n\n${metaContext}`,
       },
     ],
   });

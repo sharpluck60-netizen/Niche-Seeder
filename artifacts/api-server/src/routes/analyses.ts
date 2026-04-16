@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { eq, desc, sql, count } from "drizzle-orm";
 import { db, analysesTable, communitiesTable, sparkPostsTable } from "@workspace/db";
 import { openai } from "../lib/openai";
+import { fetchUrlMeta } from "../lib/fetchUrlMeta";
 import {
   CreateAnalysisBody,
   GetAnalysisParams,
@@ -59,13 +60,19 @@ router.post("/analyses", async (req, res): Promise<void> => {
     .returning();
 
   try {
+    const urlMeta = await fetchUrlMeta(parsed.data.url, parsed.data.platform);
+
+    const metaContext = urlMeta.raw
+      ? `Here is the actual metadata scraped from the video page:\n${urlMeta.raw}`
+      : `No metadata could be scraped. Use the URL structure and platform context only.`;
+
     const aiResponse = await openai.chat.completions.create({
       model: "llama-3.3-70b-versatile",
       max_tokens: 8192,
       messages: [
         {
           role: "system",
-          content: `You are an expert in AI-generated cinematic content and social media distribution strategy for 2026. Analyze the given video URL and provide insights about its micro-niche, target audience, and growth potential. Respond in JSON format with these exact fields:
+          content: `You are an expert in AI-generated cinematic content and social media distribution strategy for 2026. Analyze the given video and provide accurate insights based on the REAL metadata provided. Do NOT fabricate or guess — use only what is given. Respond in JSON format with these exact fields:
 {
   "title": "A short descriptive title for this content",
   "microNiche": "The specific sub-genre (e.g., 'Dark Fantasy with 80s Retro-Futurism', 'Solarpunk Cinematic Noir')",
@@ -76,7 +83,7 @@ router.post("/analyses", async (req, res): Promise<void> => {
         },
         {
           role: "user",
-          content: `Analyze this ${parsed.data.platform} video: ${parsed.data.url}. Based on the URL structure, platform, and any context clues, determine the micro-niche, mood keywords, audience profile, and suggest a compelling micro-hook.`,
+          content: `Analyze this ${parsed.data.platform} video: ${parsed.data.url}\n\n${metaContext}`,
         },
       ],
     });
