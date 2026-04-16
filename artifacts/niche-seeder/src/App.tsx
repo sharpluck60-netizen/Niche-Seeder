@@ -36,10 +36,6 @@ function stripBase(path: string): string {
     : path;
 }
 
-if (!clerkPubKey) {
-  throw new Error("Missing VITE_CLERK_PUBLISHABLE_KEY");
-}
-
 const queryClient = new QueryClient();
 
 function SignInPage() {
@@ -147,6 +143,19 @@ function Router() {
 function ClerkProviderWithRoutes() {
   const [, setLocation] = useLocation();
 
+  if (!clerkPubKey) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <TooltipProvider>
+            <RouterWithoutClerk />
+            <Toaster />
+          </TooltipProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    );
+  }
+
   return (
     <ClerkProvider
       publishableKey={clerkPubKey}
@@ -164,6 +173,15 @@ function ClerkProviderWithRoutes() {
         </ThemeProvider>
       </QueryClientProvider>
     </ClerkProvider>
+  );
+}
+
+function RouterWithoutClerk() {
+  return (
+    <Switch>
+      <Route path="/" component={Landing} />
+      <Route component={NotFound} />
+    </Switch>
   );
 }
 
