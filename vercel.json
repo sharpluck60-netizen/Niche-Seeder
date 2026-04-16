@@ -1,6 +1,5 @@
 {
-  "buildCommand": "pnpm --filter @workspace/niche-seeder run build",
+  "buildCommand": "pnpm install --frozen-lockfile && pnpm --filter @workspace/niche-seeder run build",
   "outputDirectory": "artifacts/niche-seeder/dist/public",
-  "installCommand": "pnpm install",
   "framework": null
 }
