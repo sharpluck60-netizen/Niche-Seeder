@@ -30,6 +30,7 @@ async function buildAll() {
     external: [
       "*.node",
       "grammy",
+      "groq-sdk",
       "sharp",
       "better-sqlite3",
       "sqlite3",

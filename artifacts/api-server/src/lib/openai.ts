@@ -1,18 +1,9 @@
-type ChatCompletionCreate = (...args: unknown[]) => Promise<unknown>;
+import Groq from "groq-sdk";
 
-export const openai = {
-  chat: {
-    completions: {
-      create: async (...args: Parameters<ChatCompletionCreate>) => {
-        if (!process.env["AI_INTEGRATIONS_OPENAI_BASE_URL"]) {
-          throw new Error(
-            "AI features require the OpenAI AI integration to be connected.",
-          );
-        }
+if (!process.env.GROQ_API_KEY) {
+  throw new Error("AI features require GROQ_API_KEY to be set.");
+}
 
-        const integration = await import("@workspace/integrations-openai-ai-server");
-        return integration.openai.chat.completions.create(...(args as [never]));
-      },
-    },
-  },
-};
+export const openai = new Groq({
+  apiKey: process.env.GROQ_API_KEY,
+});

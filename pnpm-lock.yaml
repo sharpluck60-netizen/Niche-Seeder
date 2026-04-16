@@ -193,6 +193,9 @@ importers:
       grammy:
         specifier: ^1.42.0
         version: 1.42.0
+      groq-sdk:
+        specifier: ^1.1.2
+        version: 1.1.2
       http-proxy-middleware:
         specifier: ^3.0.5
         version: 3.0.5
@@ -2378,6 +2381,10 @@ packages:
   grammy@1.42.0:
     resolution: {integrity: sha512-1AdCge+AkjSdp2FwfICSFnVbl8Mq3KVHJDy+DgTI9+D6keJ0zWALPRKas5jv/8psiCzL4N2cEOcGW7O45Kn39g==}
     engines: {node: ^12.20.0 || >=14.13.1}
+
+  groq-sdk@1.1.2:
+    resolution: {integrity: sha512-CZO0XUQQDhn43ri1+lZHxZKpb+bGutgTvFmCJtooexiitGmPqhm1hntOT3nCoaq07e+OpeokVnfUs0i/oQuUaQ==}
+    hasBin: true
 
   has-symbols@1.1.0:
     resolution: {integrity: sha512-1cDNdwJ2Jaohmb3sg4OmKaMBwuC48sYni5HUw2DvsC8LjGTLK9h+eb1X6RyuOHe4hT0ULCW68iomhjUoKUqlPQ==}
@@ -5125,6 +5132,8 @@ snapshots:
     transitivePeerDependencies:
       - encoding
       - supports-color
+
+  groq-sdk@1.1.2: {}
 
   has-symbols@1.1.0: {}
 

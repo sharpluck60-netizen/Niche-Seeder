@@ -17,8 +17,8 @@ async function analyzeUrl(url: string, platform: string) {
     .returning();
 
   const aiResponse = await openai.chat.completions.create({
-    model: "gpt-5.2",
-    max_completion_tokens: 2048,
+    model: "llama-3.3-70b-versatile",
+    max_tokens: 2048,
     messages: [
       {
         role: "system",
@@ -169,8 +169,8 @@ export function createBot() {
 
     try {
       const aiResponse = await openai.chat.completions.create({
-        model: "gpt-5.2",
-        max_completion_tokens: 1024,
+        model: "llama-3.3-70b-versatile",
+        max_tokens: 1024,
         messages: [
           {
             role: "system",

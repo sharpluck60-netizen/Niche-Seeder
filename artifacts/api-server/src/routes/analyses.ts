@@ -60,8 +60,8 @@ router.post("/analyses", async (req, res): Promise<void> => {
 
   try {
     const aiResponse = await openai.chat.completions.create({
-      model: "gpt-5.2",
-      max_completion_tokens: 8192,
+      model: "llama-3.3-70b-versatile",
+      max_tokens: 8192,
       messages: [
         {
           role: "system",
@@ -193,8 +193,8 @@ router.post("/analyses/:id/communities", async (req, res): Promise<void> => {
 
   try {
     const aiResponse = await openai.chat.completions.create({
-      model: "gpt-5.2",
-      max_completion_tokens: 8192,
+      model: "llama-3.3-70b-versatile",
+      max_tokens: 8192,
       messages: [
         {
           role: "system",
@@ -294,8 +294,8 @@ router.post("/analyses/:id/spark-posts", async (req, res): Promise<void> => {
 
   try {
     const aiResponse = await openai.chat.completions.create({
-      model: "gpt-5.2",
-      max_completion_tokens: 8192,
+      model: "llama-3.3-70b-versatile",
+      max_tokens: 8192,
       messages: [
         {
           role: "system",
@@ -498,8 +498,8 @@ router.post("/analyses/:id/blueprint", async (req, res): Promise<void> => {
 
   try {
     const aiResponse = await openai.chat.completions.create({
-      model: "gpt-5.2",
-      max_completion_tokens: 8192,
+      model: "llama-3.3-70b-versatile",
+      max_tokens: 8192,
       messages: [
         {
           role: "system",
@@ -594,8 +594,8 @@ router.post("/analyses/:id/script", async (req, res): Promise<void> => {
 
   try {
     const aiResponse = await openai.chat.completions.create({
-      model: "gpt-5.2",
-      max_completion_tokens: 8192,
+      model: "llama-3.3-70b-versatile",
+      max_tokens: 8192,
       messages: [
         {
           role: "system",
@@ -670,8 +670,8 @@ router.post("/analyses/:id/metadata", async (req, res): Promise<void> => {
 
   try {
     const aiResponse = await openai.chat.completions.create({
-      model: "gpt-5.2",
-      max_completion_tokens: 8192,
+      model: "llama-3.3-70b-versatile",
+      max_tokens: 8192,
       messages: [
         {
           role: "system",
@@ -755,8 +755,8 @@ router.post("/analyses/:id/series", async (req, res): Promise<void> => {
 
   try {
     const aiResponse = await openai.chat.completions.create({
-      model: "gpt-5.2",
-      max_completion_tokens: 8192,
+      model: "llama-3.3-70b-versatile",
+      max_tokens: 8192,
       messages: [
         {
           role: "system",

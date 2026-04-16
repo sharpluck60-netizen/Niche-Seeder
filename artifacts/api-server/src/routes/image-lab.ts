@@ -13,8 +13,8 @@ router.post("/image-lab/analyze", async (req, res): Promise<void> => {
 
   try {
     const aiResponse = await openai.chat.completions.create({
-      model: "gpt-5.2",
-      max_completion_tokens: 8192,
+      model: "llama-3.3-70b-versatile",
+      max_tokens: 8192,
       messages: [
         {
           role: "system",
@@ -123,8 +123,8 @@ router.post("/image-lab/combine", async (req, res): Promise<void> => {
 
   try {
     const aiResponse = await openai.chat.completions.create({
-      model: "gpt-5.2",
-      max_completion_tokens: 4096,
+      model: "llama-3.3-70b-versatile",
+      max_tokens: 4096,
       messages: [
         {
           role: "system",

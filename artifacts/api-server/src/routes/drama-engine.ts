@@ -123,8 +123,8 @@ SCENE PARAMETERS:
 Make the image prompts hyper-specific about each character's appearance so they stay consistent across every shot. The scene should feel like a premium African/Black drama series episode — emotional, relatable, visually stunning.`;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-5.2",
-      max_completion_tokens: 8192,
+      model: "llama-3.3-70b-versatile",
+      max_tokens: 8192,
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },

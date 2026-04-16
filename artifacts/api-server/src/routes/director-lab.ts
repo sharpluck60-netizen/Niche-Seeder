@@ -237,8 +237,8 @@ router.post("/director-lab/analyze", async (req, res): Promise<void> => {
 
     const visionResponse = (await withTimeout(
       openai.chat.completions.create({
-        model: "gpt-5.2",
-        max_completion_tokens: 2200,
+        model: "llama-3.3-70b-versatile",
+        max_tokens: 2200,
         messages: [
           {
             role: "system",
@@ -266,8 +266,8 @@ router.post("/director-lab/analyze", async (req, res): Promise<void> => {
     try {
       const sceneResponse = (await withTimeout(
         openai.chat.completions.create({
-          model: "gpt-5-mini",
-          max_completion_tokens: 3000,
+          model: "llama-3.1-8b-instant",
+          max_tokens: 3000,
           messages: [
             {
               role: "system",
