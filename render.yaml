@@ -2,7 +2,7 @@ services:
   - type: web
     name: niche-seeder-api
     runtime: node
-    region: oregon
+    region: frankfurt
     plan: free
     rootDir: .
     buildCommand: pnpm install --frozen-lockfile && pnpm --filter @workspace/api-server run build
