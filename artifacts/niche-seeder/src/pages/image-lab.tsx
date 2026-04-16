@@ -106,6 +106,9 @@ export function ImageLab() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
+  // Service selector: "ideas" | "location" | "both"
+  const [selectedService, setSelectedService] = useState<"ideas" | "location" | "both">("both");
+
   // Combiner state
   const [selectedForFusion, setSelectedForFusion] = useState<number[]>([]);
   const [isFusing, setIsFusing] = useState(false);
@@ -333,6 +336,45 @@ export function ImageLab() {
             </CardContent>
           </Card>
 
+          {/* Service Selector */}
+          <Card className="bg-card border-border">
+            <CardHeader className="border-b border-border bg-secondary/50 py-3">
+              <CardTitle className="uppercase text-sm tracking-wider text-primary flex items-center gap-2">
+                <Zap className="w-4 h-4" /> Select Service
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-3">
+              <div className="grid grid-cols-3 gap-2">
+                {(["ideas", "location", "both"] as const).map((svc) => {
+                  const labels: Record<typeof svc, { label: string; sub: string }> = {
+                    ideas: { label: "6 Killer Ideas", sub: "Instagram concepts" },
+                    location: { label: "Location Scout", sub: "Cinematic set" },
+                    both: { label: "Both", sub: "Full analysis" },
+                  };
+                  const active = selectedService === svc;
+                  return (
+                    <button
+                      key={svc}
+                      type="button"
+                      onClick={() => setSelectedService(svc)}
+                      className={cn(
+                        "flex flex-col items-center gap-1 px-3 py-3 border text-xs font-bold uppercase tracking-wider transition-all duration-200",
+                        active
+                          ? "border-primary bg-primary/10 text-primary theme-glow-border"
+                          : "border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                      )}
+                    >
+                      {labels[svc].label}
+                      <span className={cn("text-[10px] font-normal normal-case tracking-normal", active ? "text-primary/70" : "text-muted-foreground/60")}>
+                        {labels[svc].sub}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+
           {error && (
             <div className="flex items-start gap-3 p-4 border border-destructive bg-destructive/10 text-sm text-destructive">
               <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
@@ -350,12 +392,12 @@ export function ImageLab() {
               {isAnalyzing ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Analyzing Image, Location & Ideas...
+                  {selectedService === "ideas" ? "Generating Killer Ideas..." : selectedService === "location" ? "Scouting Location..." : "Analyzing Image, Location & Ideas..."}
                 </>
               ) : (
                 <>
                   <Zap className="w-4 h-4 mr-2" />
-                  Generate Ideas + Location Scout
+                  {selectedService === "ideas" ? "Generate 6 Killer Ideas" : selectedService === "location" ? "Run Location Scout" : "Generate Ideas + Location Scout"}
                 </>
               )}
             </Button>
@@ -472,10 +514,10 @@ export function ImageLab() {
         </div>
       </div>
 
-      {result?.locationScout && <LocationScoutCard scout={result.locationScout} />}
+      {result?.locationScout && selectedService !== "ideas" && <LocationScoutCard scout={result.locationScout} />}
 
       {/* Killer Ideas Grid */}
-      {result && (
+      {result && selectedService !== "location" && (
         <div className="space-y-4">
           <div className="flex items-center gap-3 border-b border-border pb-4">
             <Zap className="w-5 h-5 text-primary theme-glow-icon" />

@@ -108,6 +108,38 @@ const studioFilters: StudioFilter[] = [
   { name: "South Style Cartoon", category: "Cartoon", vitality: "Simple cutout comedy, flat color, quirky grin", tone: "orange", prompt: "Satirical cutout cartoon style with simple shapes, flat color fields, big round eyes, and quirky comedic expression." },
   { name: "Mini me doll", category: "Toy Studio", vitality: "Tiny avatar doll, cute scale, soft bokeh", tone: "pink", prompt: "Mini-me doll style with tiny collectible proportions, large glossy eyes, soft bokeh background, and cute outfit detail." },
   { name: "Cube Face Toy", category: "Toy Studio", vitality: "Blocky smile, plastic shine, toy-shelf simplicity", tone: "amber", prompt: "Cube face toy style with blocky plastic head, simple smiling expression, molded hair, and bright toy-shelf lighting." },
+
+  // ── Vintage ────────────────────────────────────────────────────────────
+  { name: "Kodachrome 64", category: "Vintage", vitality: "Rich saturation, warm grain, nostalgic film depth", tone: "amber", prompt: "Kodachrome 64 film style with rich warm saturation, characteristic orange-red skintones, fine grain, deep shadow detail, and vintage 1970s color signature." },
+  { name: "Sepia Portrait", category: "Vintage", vitality: "Antique warmth, vignette, timeless elegance", tone: "amber", prompt: "Sepia tone portrait with warm brown-amber hues, soft vignette edges, aged paper texture, Victorian-era photography feel, and gentle tonal contrast." },
+  { name: "70s Film Grain", category: "Vintage", vitality: "Heavy grain, faded highlights, bold color bleach", tone: "orange", prompt: "1970s film grain aesthetic with heavy texture, faded overexposed highlights, warm bleached color, cinematic film burn edges, and retro American New Wave energy." },
+  { name: "Polaroid Wash", category: "Vintage", vitality: "Washed color, white border, instant photo soul", tone: "blue", prompt: "Polaroid instant photo style with faded washed colors, soft focus at edges, characteristic white border, slight chemical color shift, and nostalgic analog warmth." },
+  { name: "Daguerreotype", category: "Vintage", vitality: "Silver plate sheen, mirror-like depth, 1840s history", tone: "slate", prompt: "Daguerreotype silver plate photography style with silvery monochrome depth, subtle reflective sheen, fine detail in skin and fabric, and 19th century portrait gravity." },
+  { name: "Super 8 Film", category: "Vintage", vitality: "Home movie flicker, warm color, summer memory", tone: "amber", prompt: "Super 8 home film style with warm orange grain, vignette flicker, slightly overexposed highlights, jittery frame feeling, and golden nostalgic home movie quality." },
+
+  // ── Cyber & Digital ─────────────────────────────────────────────────────
+  { name: "Glitch Art", category: "Cyber", vitality: "RGB split, pixel corruption, digital error beauty", tone: "cyan", prompt: "Glitch art style with chromatic aberration RGB splits, pixel displacement corruption, scan line artifacts, digital freeze blocks, and intentional data error aesthetic." },
+  { name: "Holographic Chrome", category: "Cyber", vitality: "Rainbow chrome sheen, iridescent shift, future luxury", tone: "cyan", prompt: "Holographic chrome portrait style with iridescent rainbow surface shift, metallic skin tones, prismatic color scatter, and futuristic luxury material aesthetic." },
+  { name: "Neon Genesis", category: "Cyber", vitality: "Dark base, vivid neon lines, cyberpunk identity", tone: "pink", prompt: "Neon genesis cyberpunk portrait style with deep black base, vivid magenta and cyan neon edge lighting, electric rim highlights, and moody dystopian digital identity." },
+  { name: "Digital Ghost", category: "Cyber", vitality: "Semi-transparent form, screen static, phantom data", tone: "slate", prompt: "Digital ghost portrait style with semi-transparent overlapping form, static noise overlay, screen phosphor glow, signal distortion bands, and eerie digital specter quality." },
+  { name: "Circuit Board Art", category: "Cyber", vitality: "Green trace lines, solder points, tech beauty", tone: "green", prompt: "Circuit board art portrait with green PCB trace patterns mapped to facial structure, solder point nodes at key features, warm component colors, and elegant tech schematic beauty." },
+  { name: "Vaporwave Aesthetic", category: "Cyber", vitality: "Purple-pink gradient, Greek bust, retrowave grid", tone: "pink", prompt: "Vaporwave aesthetic style with deep purple-magenta gradient atmosphere, retrowave grid floor, oversaturated pastel palette, synthwave sun, and nostalgic 1980s digital luxury." },
+
+  // ── Fantasy & Dark Art ───────────────────────────────────────────────────
+  { name: "Dark Fantasy", category: "Fantasy", vitality: "Dramatic shadows, magical lighting, epic atmosphere", tone: "purple", prompt: "Dark fantasy portrait style with dramatic chiaroscuro lighting, magical particle energy, rich deep color, moody storm atmosphere, and epic high-fantasy gravitas." },
+  { name: "Fairy Tale", category: "Fantasy", vitality: "Soft magic light, sparkle bokeh, enchanted warmth", tone: "amber", prompt: "Fairy tale illustration style with soft magical golden light, glowing sparkle bokeh, enchanted forest atmosphere, warm rosy skin tones, and storybook wonder." },
+  { name: "Ethereal Angel", category: "Fantasy", vitality: "White light halo, translucent wings, divine glow", tone: "blue", prompt: "Ethereal angel portrait style with divine white backlight halo, translucent feathered wings, celestial glow on skin, cloud atmosphere, and sacred radiant energy." },
+  { name: "Dragon Scale Armor", category: "Fantasy", vitality: "Iridescent scales, warrior texture, mythic power", tone: "green", prompt: "Dragon scale armor fantasy style with iridescent green-gold scale texture overlay on clothing and skin, warrior battle portrait energy, mythological lighting, and fierce power." },
+  { name: "Gothic Portrait", category: "Fantasy", vitality: "Victorian darkness, candlelight drama, haunted beauty", tone: "slate", prompt: "Gothic portrait style with Victorian darkness, warm candlelight from below, desaturated skin with deep eye shadows, black lace and velvet textures, and haunted romantic atmosphere." },
+  { name: "Crystal Witch", category: "Fantasy", vitality: "Amethyst glow, mystical smoke, arcane energy", tone: "purple", prompt: "Crystal witch portrait style with amethyst and quartz crystal formations, mystical purple-violet smoke atmosphere, arcane energy glowing from hands, and dark magical identity." },
+
+  // ── Artistic & Expressive ────────────────────────────────────────────────
+  { name: "Brutalist Architecture", category: "Abstract", vitality: "Concrete geometry, raw form, imposing structure", tone: "slate", prompt: "Brutalist architecture art style portrait with raw concrete texture overlay, stark geometric shadow patterns across the subject, monolithic weight, and bold industrial gravitas." },
+  { name: "Expressionist Painting", category: "Abstract", vitality: "Distorted emotion, violent color, raw brushwork", tone: "orange", prompt: "German Expressionist painting style with emotionally distorted proportions, violent brush strokes, clashing vivid color, angular shadows, and raw psychological intensity." },
+  { name: "Ukiyo-e Woodblock", category: "Abstract", vitality: "Japanese print lines, flat color, timeless calm", tone: "blue", prompt: "Ukiyo-e woodblock print style with clean Japanese ink outline, flat bold color fields, decorative pattern background, and classical Edo period portrait elegance." },
+  { name: "Bauhaus Geometry", category: "Abstract", vitality: "Primary shapes, design clarity, modernist order", tone: "amber", prompt: "Bauhaus design style portrait with geometric primary color shapes — circle, square, triangle — composing the subject, clean grid alignment, and stark modernist typographic energy." },
+  { name: "Street Art Mural", category: "Abstract", vitality: "Spray texture, bold outline, urban scale energy", tone: "pink", prompt: "Street art mural style with spray paint texture gradient, thick black outline, vivid urban color palette, stencil aesthetic, and monumental wall-scale graphic impact." },
+  { name: "Art Brut Outsider", category: "Abstract", vitality: "Raw intuition, untrained energy, powerful naïveté", tone: "orange", prompt: "Art Brut outsider art style with raw intuitive mark-making, powerful naive drawing energy, unconventional proportions, obsessive pattern detail, and authentic unfiltered vision." },
 ];
 
 const categories = ["All", ...Array.from(new Set(studioFilters.map((filter) => filter.category)))];
@@ -194,6 +226,10 @@ const categoryNegativeExtras: Record<string, string> = {
   Craft: "photographic, smooth CGI, digital gloss, airbrushed, clinical lighting",
   Gallery: "modern neon digital, cartoon, flat vector, pixelated, overexposed",
   Luxury: "dull matte, flat colors, low contrast, rough texture, washed out, dingy",
+  Vintage: "digital sharpness, oversaturated colors, modern color grading, neon, clean digital, HDR",
+  Cyber: "painterly, watercolor, soft natural light, analog grain, old-fashioned, warm tones",
+  Fantasy: "modern photorealistic mundane, office lighting, casual contemporary, flat colors, dull",
+  Abstract: "photographic realism, soft natural light, suburban ordinary, plain background, casual snapshot",
 };
 
 function buildNegativePrompt(filter: StudioFilter): string {
