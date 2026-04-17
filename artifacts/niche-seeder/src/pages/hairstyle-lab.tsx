@@ -330,89 +330,33 @@ function buildExplorerPrompt(
   const lightDesc = light?.desc ?? lighting;
   const engine = engineDirectives[toolId] ?? engineDirectives["flux"];
   const genderWord = gender === "female" ? "woman" : "man";
-  const pronounWord = gender === "female" ? "her" : "his";
   const displayLength = gender === "female" ? length : "natural length appropriate for this male style";
   const subjectExtra = subject.trim() ? ` ${subject.trim()}.` : "";
 
-  return `MODE: Photorealistic hairstyle render — identity locked
-${engine.prefix}
+  return `${engine.prefix}
 
-IDENTITY ANCHOR (CRITICAL — HIGHEST PRIORITY):
-Lock the following facial characteristics permanently across every generation:
-- Bone structure: same cranial shape, facial width, and depth
-- Eye shape and spacing: identical placement, size, and contour
-- Nose width and contour: exact shape and tip definition
-- Lip shape and proportions: same upper/lower lip ratio and curvature
-- Jawline and cheekbone structure: same angles and prominence
-Do NOT reinterpret, enhance, beautify, or average these features.
-If multiple images are generated, ALL must look like the SAME PERSON from the same photoshoot.
+Use the uploaded source photo as the reference image. Preserve the subject's identity, key facial structure, expression, skin tone, pose, and overall likeness at 95–100% fidelity — same bone structure, eye shape, nose contour, lips, and jawline across every generation. Do not beautify, reconstruct, reinterpret, or morph the face. The output must look like the same person from the same photoshoot, only with a different hairstyle applied.
 
-IDENTITY PRESERVATION:
-Maintain 95–100% likeness across every output.
-Preserve skin tone, undertone, and natural skin texture.
-No symmetry correction, no face morphing, no identity drift between generations.
+Subject: a ${genderWord} with ${skinDesc}.${subjectExtra} Skin rendered with natural pores, subtle subsurface scattering, and soft dimensionality — real and alive, never plastic or over-smoothed. Same skin rendering parameters every generation.
 
-SUBJECT: A ${genderWord} with ${skinDesc}.${subjectExtra}
-Natural pores and micro-texture visible — authentic skin, not plastic.
-Subtle subsurface scattering (SSS) for realistic skin light diffusion — skin appears soft, dimensional, alive.
+Hairstyle — ${style.name}: ${style.visualDetail}. Hair length: ${displayLength}. ${style.technicalDetail}. The hair follows natural gravity and head shape, with consistent strand density, realistic hairline irregularity (not a computer-perfect line), and seamless scalp integration. No wig effect, no synthetic gloss, no floating strands, no visible lace. Every strand from root to tip is sharply rendered — natural highlights, dimensional texture, correct weight and movement.
 
-HAIRSTYLE (HERO):
-${style.name} — ${style.visualDetail}.
-Hair length: ${displayLength}. ${style.technicalDetail}.
-Hair must:
-- Follow natural gravity and head shape
-- Maintain consistent density throughout
-- Show realistic strand separation
-- Present a natural hairline with slight irregularity (not a computer-perfect line)
-No wig effect, no synthetic shine, no artificial enhancements.
+Lighting: ${lightLabel} — ${lightDesc}. Balanced, repeatable studio quality — soft, consistent exposure and shadow structure across every output. Hair sheen is natural only: a soft specular highlight, never wet gloss or plastic finish.
 
-INSTALLATION REALISM:
-Hairline placement must remain consistent across all outputs:
-- Same position on forehead
-- Same temple structure and sideburn transition
-- No shifting, resizing, or repositioning between generations
-No floating hair, no gaps between hair and skin, no clipping into scalp.
+Composition: head-and-shoulders portrait, eye-level angle, centered framing, shallow depth of field with soft background blur. The hairstyle is the hero of the image. Clean neutral background — no distractions, same tone and brightness across all generations.
 
-COMPOSITION:
-Head-and-shoulders portrait, eye-level angle, centered framing.
-Same framing across all outputs — no zoom variation, no angle change.
-The hair is the primary subject of the image.
-Shallow depth of field with soft background blur.
-
-LIGHTING: ${lightLabel} — ${lightDesc}.
-Soft, balanced studio-quality lighting setup — repeatable and consistent.
-No dramatic lighting changes between generations.
-Hair shine must be natural — soft highlight only, not wet or plastic gloss.
-Balanced exposure, no harsh shadows.
-
-SKIN:
-Natural skin texture with subtle SSS.
-No smoothing changes between outputs — same skin rendering every generation.
-
-BACKGROUND:
-Clean, neutral, softly blurred — consistent tone and brightness across all outputs.
-No variation in background between generations.
-
-TECHNICAL CONSISTENCY LOCK:
-${engine.technicalAdditions}.
-Use identical rendering conditions for every generation:
-- Face structure: locked, no randomness
-- Lighting intensity: consistent, no variation
-- Camera distance and angle: fixed, no drift
-- Skin rendering: same parameters every output
-High-resolution output, ultra-sharp focus on hair texture — every strand visible.
-Crisp edges, no noise, no artifacts. Professional editorial quality.
-
-OUTPUT FORMAT: 4:5 or 9:16 aspect ratio, optimized for Instagram/TikTok.
-
-NEGATIVE: identity drift, different face, altered proportions, inconsistent features, changing face shape, wig look, fake hairline, plastic skin, wet gloss shine, artifacts, blur on ${pronounWord} face, extra limbs, watermarks.
-
-FINAL DIRECTIVE:
-All generated images must appear as the SAME PERSON, SAME SESSION, SAME CAMERA SETUP.
-Only the hairstyle is allowed to change between generations.
-The face, skin, lighting, composition, and background must remain identical.
+${engine.technicalAdditions}. Render at professional editorial quality — ultra-sharp hair texture from scalp to ends, lifelike skin, 4:5 or 9:16 aspect ratio optimized for Instagram and TikTok. No artifacts, no watermarks, no duplicated features, no anatomy errors. Push the result: striking, coherent, and social-media ready.
 
 ${engine.suffix}`;
+}
+
+interface HairIntelligence {
+  installType: string;
+  textureType: string;
+  curlPattern: string;
+  colorDesc: string;
+  density: string;
+  sheen: string;
 }
 
 function buildVendorPrompt(
@@ -422,7 +366,8 @@ function buildVendorPrompt(
   toolId: string,
   hasHairReference: boolean,
   hasFaceReference: boolean,
-  gender: "female" | "male"
+  gender: "female" | "male",
+  hair: HairIntelligence
 ): string {
   const skinToneObj = skinTones.find((s) => s.id === skinToneId);
   const skinDesc = skinToneObj?.desc ?? skinToneId;
@@ -431,121 +376,59 @@ function buildVendorPrompt(
   const engine = engineDirectives[toolId] ?? engineDirectives["nano-banana"];
   const genderWord = gender === "female" ? "female" : "male";
 
-  const identityBlock = hasFaceReference
-    ? `Use the face reference image as a fixed identity embedding.
-Do not alter facial structure, proportions, skin tone, or expression.
-No beautification, no face reconstruction, no symmetry correction, no drift.`
-    : `Generate ${modelDesc}.
-Professional ${genderWord} beauty model — consistent facial identity across all outputs.
-Natural composed expression, light or no makeup. Same face every generation.`;
+  const hairIntelFilled =
+    hair.installType || hair.textureType || hair.curlPattern || hair.colorDesc || hair.density || hair.sheen;
 
-  const hairBlock = hasHairReference
-    ? `Match the hair product reference image exactly:
-- Texture: replicate exact surface quality from the reference
-- Color: exact match — no reinterpretation
-- Density: match bundle fullness as shown
-- Curl/wave/twist pattern: reproduce precisely at ${length} length
-- Shine response: natural only — not glossy, not wet, not plastic
-No enhancement. The hair must look like the exact product the customer receives.`
-    : `Reproduce the hairstyle as specified in the HAIRSTYLE VARIANT field below.
-Length behavior: ${length}.
-Natural finish — soft highlight only, not wet gloss, not plastic.
-No reinterpretation or enhancement.`;
+  const identityBlock = hasFaceReference
+    ? `Use the face reference image as a fixed identity anchor — the model's face, bone structure, skin tone, expression, and proportions are locked exactly as seen in the reference. Do not alter, beautify, reconstruct, or reinterpret any facial features. No symmetry correction, no identity drift. Every output must look like the same person from the same photoshoot.`
+    : `Generate ${modelDesc}. Professional ${genderWord} beauty model — composed neutral expression, natural skin, consistent facial identity across all outputs. Same face every generation — no drift, no reinterpretation.`;
+
+  const hairReadBlock = hasHairReference
+    ? `Read the hair product reference image carefully and extract the following attributes before generating:
+- Installation method: ${hair.installType || "identify from the reference — is this braids, locs, a weave, wig, twists, or natural hair?"}
+- Primary texture: ${hair.textureType || "analyze the strand surface — coily, kinky, wavy, curly, or straight?"}
+- Curl/wave/coil pattern: ${hair.curlPattern || "describe the exact pattern — 4C tight zig-zag, 3C spirals, 2B loose waves, S-pattern, etc."}
+- Color: ${hair.colorDesc || "identify precisely — is it 1B natural black, jet black with blue tones, honey blonde level 8, auburn, ombre? Be exact."}
+- Density and volume: ${hair.density || "assess bundle fullness — thin, medium, thick, or jumbo? Does the hair fall heavy or light?"}
+- Sheen response: ${hair.sheen || "matte/natural (light soft highlight) or silky (more reflective)? No wet gloss, no plastic shine."}
+
+Reproduce ALL of these attributes exactly on the model. The installed hair must look identical to the product in the reference image. If you cannot confidently read any attribute from the reference, flag it rather than guessing.`
+    : hairIntelFilled
+    ? `No reference image provided. Reproduce the following hair product profile from description only:
+- Installation method: ${hair.installType || "not specified"}
+- Primary texture: ${hair.textureType || "not specified"}
+- Curl/wave/coil pattern: ${hair.curlPattern || "not specified"}
+- Color: ${hair.colorDesc || "not specified"}
+- Density and volume: ${hair.density || "not specified"}
+- Sheen/finish: ${hair.sheen || "natural — soft highlight only, no wet gloss or plastic"}
+
+Render all attributes with maximum accuracy. Hair must look like a real, purchasable product — not an AI interpretation.`
+    : `No hair reference image and no hair intelligence data provided. Generate a generic professional hair look for: ${hairstyleVariant || "the specified hairstyle variant below"}. Note: for product-accurate vendor shots, upload a hair product photo or fill in the Hair Intelligence fields.`;
 
   const variantLabel = hairstyleVariant.trim()
     ? hairstyleVariant.trim()
-    : "[ENTER HAIRSTYLE VARIANT — e.g. Havana Twists (jumbo, shoulder length, thick volume)]";
+    : "[Hairstyle not specified — enter the product name and key details]";
 
-  return `SYSTEM: ZERO-DRIFT HAIR VENDOR RENDER ENGINE — ${toolName}
-${engine.prefix}
+  const installationNote = hair.installType
+    ? `This is ${hair.installType}. Apply the correct installation physics — scalp integration, hairline behavior, weight distribution, and perimeter blending specific to this installation method.`
+    : `Apply correct installation physics for this hair type — seamless scalp integration, natural hairline, correct weight at ${length} length.`;
 
-INPUTS:
-- Face Reference Image: ${hasFaceReference ? "✓ LOADED — LOCKED IDENTITY" : "✗ Not provided — auto-generating model"}
-- Hair Product Reference Image: ${hasHairReference ? "✓ LOADED — SOURCE OF TRUTH" : "✗ Not provided — using variant description"}
+  return `${engine.prefix}
 
-RULES:
-1. Face reference overrides all text descriptions
-2. Hair reference overrides all styling instructions
-3. Only hairstyle changes are allowed between outputs
+Use the ${hasFaceReference ? "uploaded face reference" : "auto-generated model"} as the identity anchor. ${identityBlock}
 
--------------------------------------
+Hair Intelligence — what the AI must read and reproduce:
+${hairReadBlock}
 
-IDENTITY LOCK (DO NOT OVERRIDE):
-${identityBlock}
+Installation on model: ${installationNote} Hair at ${length} length must follow correct gravity, strand separation, and natural movement. Hairline position is fixed — same placement on the forehead across every generation, with slight natural irregularity (not a computer-perfect line). No visible lace, no wig cap, no glue gaps. Individual perimeter strands blend seamlessly into the scalp.
 
--------------------------------------
+Hairstyle variant: ${variantLabel}
 
-HAIR SYSTEM (REFERENCE CONTROLLED):
-${hairBlock}
+Visual execution: professional studio hair photography — head-and-shoulders portrait, eye-level angle, centered framing, shallow depth of field with soft background blur. The hair is the hero of the image. Dual softbox fill lighting with a controlled key light for dimension and a soft rim light for hair edge separation. Hair sheen is natural only — a soft highlight, never wet gloss or plastic. Same lighting, framing, skin rendering, and background across every generation. Only the hairstyle changes.
 
--------------------------------------
+Skin: ${skinDesc}. Natural pores, subtle subsurface scattering, soft dimensionality — never plastic or over-smoothed. Same skin rendering every output.
 
-INSTALLATION ENGINE:
-Hair must behave like real installed product:
-- Natural scalp integration — seamless, no visible lace, wig cap, or glue
-- Invisible lace/hairline realism — slight natural irregularity, not computer-perfect
-- Same hairline position across every generation — no shifting or resizing
-- Correct gravity physics at ${length} length
-- Individual perimeter strands blend into scalp organically
-- No floating hair, no gaps between hair and skin
-
--------------------------------------
-
-VISUAL STYLE:
-Professional studio hair photography
-Head-and-shoulders framing — same crop every generation
-Hair is the hero subject
-Shallow depth of field, soft background blur
-
--------------------------------------
-
-LIGHTING SYSTEM:
-Fixed studio lighting setup — no variation between outputs:
-- Softbox left and right for even fill
-- Controlled key light for dimension
-- Soft rim light for hair edge separation
-Hair shine: natural only — soft highlight, not wet gloss, not plastic
-
--------------------------------------
-
-SKIN RENDER:
-Natural skin with subtle SSS (subsurface scattering)
-Real pores and micro-texture — no over-smoothing or plastic effect
-Same skin rendering parameters across every generation
-
--------------------------------------
-
-BACKGROUND:
-Neutral studio backdrop — no variation between outputs
-Consistent tone and brightness — no distractions
-
--------------------------------------
-
-TECHNICAL LOCK:
-${engine.technicalAdditions}
-- Fixed camera angle: eye-level
-- Fixed framing: head and shoulders
-- Fixed depth of field: consistent across all outputs
-- Consistent exposure: no variation
-8K resolution, ultra-sharp focus on hair texture from root to end
-No artifacts, no watermarks, no duplicated face, no extra limbs
-
--------------------------------------
-
-NEGATIVE CONSTRAINTS:
-identity drift, face change, altered proportions, wig look, fake hairline, visible lace,
-plastic skin, wet gloss, blurred face, artifacts, extra limbs, warped anatomy,
-inconsistent identity, lighting change, framing change, camera drift
-
--------------------------------------
-
-HAIRSTYLE VARIANT: ${variantLabel}
-
--------------------------------------
-
-OUTPUT RULE:
-Only the hairstyle changes.
-Everything else — face, lighting, framing, skin, background — remains identical across all generations.
+${engine.technicalAdditions}. 8K resolution, ultra-sharp focus on hair texture from root to end. No artifacts, no watermarks, no identity drift, no duplicated features, no anatomy errors. The output must look like a real professional product catalog shot — not an AI render.
 
 ${engine.suffix}`;
 }
@@ -928,6 +811,13 @@ function VendorStudio() {
   const [tool, setTool] = useState("nano-banana");
   const [copied, setCopied] = useState(false);
   const [instructionsOpen, setInstructionsOpen] = useState(false);
+  // Hair Intelligence
+  const [installType, setInstallType] = useState("");
+  const [textureType, setTextureType] = useState("");
+  const [curlPattern, setCurlPattern] = useState("");
+  const [colorDesc, setColorDesc] = useState("");
+  const [density, setDensity] = useState("");
+  const [sheen, setSheen] = useState("");
 
   const processHairFile = useCallback((file: File) => {
     if (!file.type.startsWith("image/")) {
@@ -973,6 +863,8 @@ function VendorStudio() {
     if (file) processFaceFile(file);
   }, [processFaceFile]);
 
+  const hairIntel: HairIntelligence = { installType, textureType, curlPattern, colorDesc, density, sheen };
+
   const prompt = buildVendorPrompt(
     hairstyleVariant,
     skin,
@@ -980,7 +872,8 @@ function VendorStudio() {
     tool,
     Boolean(imagePreview),
     Boolean(facePreview),
-    vendorGender
+    vendorGender,
+    hairIntel
   );
   const currentTool = vendorTools.find((t) => t.id === tool) ?? vendorTools[0];
 
@@ -993,24 +886,26 @@ function VendorStudio() {
 
   return (
     <div className="space-y-6">
-      {/* Zero-Drift Engine intro */}
+      {/* Vendor Studio intro */}
       <div className="border border-amber-400/40 bg-amber-400/5 p-4">
         <div className="flex items-start gap-3">
           <Sparkles className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2 flex-wrap">
-              <p className="font-black text-amber-400 text-[11px] uppercase tracking-widest">Zero-Drift Vendor Engine</p>
-              <span className="text-[8px] border border-amber-400/40 px-1.5 py-0.5 text-amber-400/70 uppercase tracking-wider">Pipeline System</span>
+              <p className="font-black text-amber-400 text-[11px] uppercase tracking-widest">Hair Vendor Studio</p>
+              <span className="text-[8px] border border-amber-400/40 px-1.5 py-0.5 text-amber-400/70 uppercase tracking-wider">AI-Informed Pipeline</span>
             </div>
-            <p className="text-[11px] text-foreground/70 leading-relaxed mb-3">A 3-layer pipeline — not just a prompt. Face = locked identity. Hair = controlled variable. Everything else = fixed environment. Only the hairstyle changes between generations.</p>
+            <p className="text-[11px] text-foreground/70 leading-relaxed mb-3">
+              AI doesn't automatically know your hair product. This studio teaches it — upload your product photo, describe the texture, color, density, and install type, and the prompt will instruct the AI precisely what to read and reproduce. Face stays locked. Only the hair changes.
+            </p>
             <div className="flex flex-wrap gap-2">
               {[
-                { n: "1", label: "Identity Anchor", sub: "Face ref = locked identity map", color: "border-primary/50 text-primary" },
-                { n: "2", label: "Master Engine", sub: "Fixed environment — never changes", color: "border-amber-400/50 text-amber-400" },
-                { n: "3", label: "Variant Slot", sub: "Only hairstyle changes here", color: "border-green-500/50 text-green-400" },
+                { n: "L1", label: "Identity Anchor", sub: "Model face — locked and fixed", color: "border-primary/50 text-primary" },
+                { n: "HI", label: "Hair Intelligence", sub: "Teach AI what makes your hair unique", color: "border-purple-400/50 text-purple-400" },
+                { n: "L3", label: "Variant Slot", sub: "Only the hairstyle changes per output", color: "border-green-500/50 text-green-400" },
               ].map((l) => (
                 <div key={l.n} className={cn("flex items-center gap-2 border px-2.5 py-1.5", l.color)}>
-                  <span className={cn("text-[10px] font-black border px-1 py-0.5", l.color)}>L{l.n}</span>
+                  <span className={cn("text-[10px] font-black border px-1 py-0.5", l.color)}>{l.n}</span>
                   <div>
                     <div className={cn("text-[9px] font-bold uppercase tracking-wider", l.color.split(" ")[1])}>{l.label}</div>
                     <div className="text-[8px] text-muted-foreground">{l.sub}</div>
@@ -1173,6 +1068,128 @@ function VendorStudio() {
               </div>
             )}
 
+            {/* ── HAIR INTELLIGENCE ── */}
+            <div className="flex items-center gap-2 pt-1">
+              <span className="text-[9px] font-black border border-purple-400/50 text-purple-400 px-1.5 py-0.5">HI</span>
+              <span className="text-[10px] uppercase tracking-widest text-purple-400 font-bold">Hair Intelligence</span>
+              <span className="text-[9px] text-muted-foreground ml-auto">Teach the AI what makes this hair unique</span>
+            </div>
+
+            <div className="border border-purple-400/30 bg-card">
+              <div className="border-b border-purple-400/20 bg-purple-400/5 px-3 py-2.5 flex items-start gap-2">
+                <AlertCircle className="w-3 h-3 text-purple-400 mt-0.5 shrink-0" />
+                <p className="text-[9px] text-purple-300/80 leading-relaxed">
+                  AI cannot reliably identify hair brand, texture, or curl type on its own. Fill these fields so the prompt tells it exactly what to look for — and reproduce. The more you fill in, the sharper the result.
+                  {!imagePreview && <span className="text-amber-400"> No hair photo uploaded — these fields become the sole source of truth.</span>}
+                </p>
+              </div>
+
+              <div className="p-3 space-y-3">
+                {/* Row 1: Install type + Texture */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <div className="text-[9px] text-muted-foreground mb-1.5 font-bold uppercase tracking-wider">Installation Type</div>
+                    <div className="flex flex-wrap gap-1">
+                      {["Braids", "Knotless Braids", "Locs / Faux Locs", "Twists", "Weave / Bundles", "Wig / Frontal", "Natural Hair", "Crochet"].map((v) => (
+                        <button key={v} type="button" onClick={() => setInstallType(installType === v ? "" : v)}
+                          className={cn("text-[8px] px-2 py-1 border transition-colors",
+                            installType === v ? "border-purple-400 bg-purple-400/10 text-purple-300" : "border-border text-muted-foreground hover:border-purple-400/50 hover:text-purple-300"
+                          )}
+                        >{v}</button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[9px] text-muted-foreground mb-1.5 font-bold uppercase tracking-wider">Primary Texture</div>
+                    <div className="flex flex-wrap gap-1">
+                      {["4C Coily", "4B Kinky", "3C Curly", "3A/3B Spiral", "2B/2C Wavy", "2A Loose Wave", "Straight / Silky", "Kinky Straight"].map((v) => (
+                        <button key={v} type="button" onClick={() => setTextureType(textureType === v ? "" : v)}
+                          className={cn("text-[8px] px-2 py-1 border transition-colors",
+                            textureType === v ? "border-purple-400 bg-purple-400/10 text-purple-300" : "border-border text-muted-foreground hover:border-purple-400/50 hover:text-purple-300"
+                          )}
+                        >{v}</button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Row 2: Color */}
+                <div>
+                  <div className="text-[9px] text-muted-foreground mb-1.5 font-bold uppercase tracking-wider">Color — be specific</div>
+                  <div className="flex flex-wrap gap-1 mb-1.5">
+                    {["1B Natural Black", "Jet Black (1)", "Off-Black Brown", "Dark Brown (2)", "Medium Brown (4)", "Chestnut (6)", "Honey Blonde (27)", "Caramel Ombre", "Platinum Blonde", "Burgundy / Wine", "Auburn Red", "Silver / Grey"].map((v) => (
+                      <button key={v} type="button" onClick={() => setColorDesc(colorDesc === v ? "" : v)}
+                        className={cn("text-[8px] px-2 py-1 border transition-colors",
+                          colorDesc === v ? "border-purple-400 bg-purple-400/10 text-purple-300" : "border-border text-muted-foreground hover:border-purple-400/50 hover:text-purple-300"
+                        )}
+                      >{v}</button>
+                    ))}
+                  </div>
+                  <input
+                    value={colorDesc}
+                    onChange={(e) => setColorDesc(e.target.value)}
+                    placeholder="Or type exactly: e.g. 1B off-black with dark brown roots, honey blonde ends ombre..."
+                    className="w-full bg-background border border-purple-400/20 focus:border-purple-400/60 px-2.5 py-1.5 text-[10px] text-foreground placeholder:text-muted-foreground/30 focus:outline-none"
+                  />
+                </div>
+
+                {/* Row 3: Density + Sheen */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <div className="text-[9px] text-muted-foreground mb-1.5 font-bold uppercase tracking-wider">Density / Volume</div>
+                    <div className="flex flex-wrap gap-1">
+                      {["Thin / Lightweight", "Medium", "Thick / Full", "Jumbo / Extra Volume", "Super Dense"].map((v) => (
+                        <button key={v} type="button" onClick={() => setDensity(density === v ? "" : v)}
+                          className={cn("text-[8px] px-2 py-1 border transition-colors",
+                            density === v ? "border-purple-400 bg-purple-400/10 text-purple-300" : "border-border text-muted-foreground hover:border-purple-400/50 hover:text-purple-300"
+                          )}
+                        >{v}</button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[9px] text-muted-foreground mb-1.5 font-bold uppercase tracking-wider">Sheen / Finish</div>
+                    <div className="flex flex-wrap gap-1">
+                      {["Matte / No Shine", "Natural Soft Sheen", "Silky / Reflective", "High Gloss"].map((v) => (
+                        <button key={v} type="button" onClick={() => setSheen(sheen === v ? "" : v)}
+                          className={cn("text-[8px] px-2 py-1 border transition-colors",
+                            sheen === v ? "border-purple-400 bg-purple-400/10 text-purple-300" : "border-border text-muted-foreground hover:border-purple-400/50 hover:text-purple-300"
+                          )}
+                        >{v}</button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Row 4: Curl/coil pattern */}
+                <div>
+                  <div className="text-[9px] text-muted-foreground mb-1.5 font-bold uppercase tracking-wider">Curl / Wave / Coil Pattern — optional detail</div>
+                  <input
+                    value={curlPattern}
+                    onChange={(e) => setCurlPattern(e.target.value)}
+                    placeholder="e.g. tight zig-zag 4C coils, deep S-wave, loose spiral ringlets, flat-ironed bone straight..."
+                    className="w-full bg-background border border-purple-400/20 focus:border-purple-400/60 px-2.5 py-1.5 text-[10px] text-foreground placeholder:text-muted-foreground/30 focus:outline-none"
+                  />
+                </div>
+
+                {/* Intelligence score */}
+                {(() => {
+                  const filled = [installType, textureType, colorDesc, density, sheen, curlPattern].filter(Boolean).length;
+                  const pct = Math.round((filled / 6) * 100);
+                  const color = pct >= 80 ? "text-green-400" : pct >= 50 ? "text-amber-400" : "text-red-400";
+                  const label = pct >= 80 ? "High accuracy — prompt is well-informed" : pct >= 50 ? "Moderate — fill more for better results" : pct > 0 ? "Low — AI will guess missing attributes" : "Empty — AI is flying blind";
+                  return (
+                    <div className="flex items-center gap-2 pt-1">
+                      <div className="flex-1 h-1 bg-border rounded-full overflow-hidden">
+                        <div className={cn("h-full transition-all", pct >= 80 ? "bg-green-400" : pct >= 50 ? "bg-amber-400" : "bg-red-400/60")} style={{ width: `${pct}%` }} />
+                      </div>
+                      <span className={cn("text-[8px] font-bold uppercase tracking-wider shrink-0", color)}>{pct}% — {label}</span>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+
             {/* L3 header */}
             <div className="flex items-center gap-2">
               <span className="text-[9px] font-black border border-green-500/50 text-green-400 px-1.5 py-0.5">L3</span>
@@ -1244,16 +1261,20 @@ function VendorStudio() {
 
             {/* Engine lock status */}
             <div className="border border-amber-400/20 bg-card p-3 space-y-2">
-              <div className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold mb-2">Engine Lock Status</div>
+              <div className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold mb-2">Pipeline Status</div>
               <div className="grid grid-cols-2 gap-1.5">
-                {[
-                  { label: "Identity Lock", active: Boolean(facePreview), note: facePreview ? "Face ref loaded" : "Auto-generating" },
-                  { label: "Hair Reference", active: Boolean(imagePreview), note: imagePreview ? "Product ref loaded" : "Using description" },
-                  { label: "Lighting System", active: true, note: "Softbox fixed" },
-                  { label: "Framing & Camera", active: true, note: "Eye-level fixed" },
-                  { label: "Skin Render", active: true, note: "SSS locked" },
-                  { label: "Background", active: true, note: "Neutral fixed" },
-                ].map((item) => (
+                {(() => {
+                  const hairIntelCount = [installType, textureType, colorDesc, density, sheen, curlPattern].filter(Boolean).length;
+                  const hairIntelActive = hairIntelCount >= 3;
+                  return [
+                    { label: "Identity Lock", active: Boolean(facePreview), note: facePreview ? "Face ref loaded" : "Auto-generating" },
+                    { label: "Hair Reference", active: Boolean(imagePreview), note: imagePreview ? "Product photo loaded" : "No photo — use HI fields" },
+                    { label: "Hair Intelligence", active: hairIntelActive, note: `${hairIntelCount}/6 fields filled` },
+                    { label: "Lighting System", active: true, note: "Softbox fixed" },
+                    { label: "Skin Render", active: true, note: "SSS locked" },
+                    { label: "Background", active: true, note: "Neutral fixed" },
+                  ];
+                })().map((item) => (
                   <div key={item.label} className={cn("flex items-center gap-2 border px-2 py-1.5 text-[8px]",
                     item.active ? "border-green-500/30 bg-green-500/5" : "border-amber-400/20 bg-amber-400/5"
                   )}>
