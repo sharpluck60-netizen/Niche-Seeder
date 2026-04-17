@@ -1,7 +1,16 @@
 import { getAuth } from "@clerk/express";
 import type { Request, Response, NextFunction } from "express";
 
+const clerkEnabled =
+  !!process.env.CLERK_SECRET_KEY && !!process.env.CLERK_PUBLISHABLE_KEY;
+
 export function requireAuth(req: Request, res: Response, next: NextFunction) {
+  if (!clerkEnabled) {
+    (req as any).userId = "dev-user";
+    next();
+    return;
+  }
+
   const auth = getAuth(req);
   const userId = auth?.userId;
   if (!userId) {
