@@ -179,7 +179,21 @@ function ClerkProviderWithRoutes() {
 function RouterWithoutClerk() {
   return (
     <Switch>
-      <Route path="/" component={Landing} />
+      <Route path="/" component={() => <Redirect to="/dashboard" />} />
+      <Route path="/dashboard" component={() => <Layout><Dashboard /></Layout>} />
+      <Route path="/analyze" component={() => <Layout><Analyze /></Layout>} />
+      <Route path="/analyses" component={() => <Layout><AnalysesList /></Layout>} />
+      <Route path="/analyses/:id" component={() => <Layout><AnalysisDetail /></Layout>} />
+      <Route path="/image-lab" component={() => <Layout><ImageLab /></Layout>} />
+      <Route path="/photo-studio" component={() => <Layout><PhotoStudio /></Layout>} />
+      <Route path="/creative-studio" component={() => <Layout><CreativeStudio /></Layout>} />
+      <Route path="/caption-lab" component={() => <Layout><CaptionGenerator /></Layout>} />
+      <Route path="/dance-studio" component={() => <Layout><DanceStudio /></Layout>} />
+      <Route path="/phantom-passport" component={() => <Layout><PhantomPassport /></Layout>} />
+      <Route path="/hairstyle-lab" component={() => <Layout><HairstyleLab /></Layout>} />
+      <Route path="/director-lab" component={() => <Layout><DirectorLab /></Layout>} />
+      <Route path="/story-bible" component={() => <Layout><StoryBible /></Layout>} />
+      <Route path="/drama-engine" component={() => <Layout><DramaEngine /></Layout>} />
       <Route component={NotFound} />
     </Switch>
   );
