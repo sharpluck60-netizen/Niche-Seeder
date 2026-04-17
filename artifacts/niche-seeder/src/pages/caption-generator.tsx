@@ -1,14 +1,17 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import {
   Check,
   Copy,
   Hash,
+  ImagePlus,
   MessageSquare,
   RefreshCw,
   Sparkles,
+  Trash2,
   Type,
+  Upload,
 } from "lucide-react";
 
 type ToneGroup = "bold" | "moody" | "playful" | "inspired";
@@ -389,6 +392,111 @@ const vibes: Record<string, VibeData> = {
       niche: ["#surrealismartwork", "#dreameraesthetic", "#celestialvibes", "#mysticalvibes", "#betweenworlds"],
     },
   },
+  "POV": {
+    emoji: "👁️",
+    tone: "cyan",
+    captions: {
+      bold: [
+        "POV: you just met someone who actually has their life together. __SUBJECT__",
+        "POV: this is the main character and you're an extra in their story. __SUBJECT__ 👁️",
+        "POV: you finally stopped settling. __SUBJECT__",
+        "POV: you became everything you used to admire. __SUBJECT__ 👁️",
+      ],
+      moody: [
+        "POV: it's 2am and you're overthinking everything except this. __SUBJECT__ 👁️",
+        "POV: you found the version of yourself you always wanted to meet. __SUBJECT__",
+        "POV: the quiet girl from three years ago is gone. __SUBJECT__ 👁️",
+        "POV: you chose yourself and it looked exactly like this. __SUBJECT__",
+      ],
+      playful: [
+        "POV: your Roman Empire is __SUBJECT__ and you're not explaining that 🙂",
+        "POV: you manifested this and it worked. __SUBJECT__ 👁️✨",
+        "POV: the plot twist you didn't see coming. __SUBJECT__",
+        "POV: main character behavior, no notes. __SUBJECT__ 👁️",
+      ],
+      inspired: [
+        "POV: you started doing things for yourself and they looked like this. __SUBJECT__",
+        "POV: future you sent this back as proof it gets better. __SUBJECT__ 👁️",
+        "POV: you stopped waiting for permission. __SUBJECT__",
+        "POV: the life you built for yourself hitting different lately. __SUBJECT__ ✨",
+      ],
+    },
+    hashtags: {
+      core: ["#pov", "#povchallenge", "#maincharacter", "#maincharacterenergy", "#storytelling", "#povvideo", "#povmoment", "#pointofview"],
+      extended: ["#maincharacterera", "#glowup", "#characterdevelopment", "#povstory", "#theplot", "#povlife", "#plottwist", "#girlera", "#myera", "#newchapter", "#levelup", "#povcheck"],
+      niche: ["#poissonera", "#poissoncheck", "#maincharactercheck", "#romanempire", "#povtrend"],
+    },
+  },
+  "Meme": {
+    emoji: "😭",
+    tone: "orange",
+    captions: {
+      bold: [
+        "Me showing up to life looking like this while everything burns behind me. __SUBJECT__ 😭",
+        "The confidence of someone who has absolutely no reason to be this confident. __SUBJECT__",
+        "My villain era is going very well, thank you for asking. __SUBJECT__ 😈",
+        "I am not the same person. I am worse (I look better though). __SUBJECT__ 💀",
+      ],
+      moody: [
+        "This is my villain origin story and it's going great. __SUBJECT__ 😭",
+        "They said 'you've changed' and I said 'I know'. __SUBJECT__",
+        "The glow up they didn't want to talk about. __SUBJECT__ 💀",
+        "Me: I'm fine. Also me: __SUBJECT__ 😭",
+      ],
+      playful: [
+        "The audacity I carry in this body is genuinely unmatched. __SUBJECT__ 😭",
+        "My Roman Empire is this photo and I will not be elaborating. __SUBJECT__ 💀",
+        "No thoughts. Just vibes and great lighting. __SUBJECT__ 😂",
+        "Me pretending I didn't spend 45 minutes taking this photo. __SUBJECT__ 😭✨",
+      ],
+      inspired: [
+        "Glow up achieved. Villain arc loading. __SUBJECT__ 😭",
+        "The character development nobody asked for but everyone needed. __SUBJECT__ 💀",
+        "Hot girl walks into Monday like she didn't just survive a whole week. __SUBJECT__ 😂",
+        "Living proof that if you delusionally believe in yourself, sometimes it works. __SUBJECT__ 🙃",
+      ],
+    },
+    hashtags: {
+      core: ["#meme", "#relatable", "#funny", "#mood", "#samegirl", "#honestly", "#ngl", "#vibes"],
+      extended: ["#relatablecontent", "#samehere", "#thisis me", "#honestly", "#oomf", "#tweet", "#twitterhumor", "#fyp", "#funnymemes", "#comedypost", "#memesdaily", "#nothoughts"],
+      niche: ["#corecore", "#girlmeme", "#villainera", "#maincharactermeme", "#chaoticcontent"],
+    },
+  },
+  "Affirmation": {
+    emoji: "💫",
+    tone: "amber",
+    captions: {
+      bold: [
+        "Everything I need, I already have. __SUBJECT__ 💫",
+        "__SUBJECT__. Aligned. Abundant. Exactly where I need to be.",
+        "I am not waiting for my life to start. It already has. __SUBJECT__ ✨",
+        "I choose myself. Every single day. __SUBJECT__ 💫",
+      ],
+      moody: [
+        "Healing looks different every day. Today it looks like this. __SUBJECT__ 💫",
+        "__SUBJECT__. Coming back to myself, one breath at a time.",
+        "This version of me took a long time to build. I'm not rushing. __SUBJECT__ ✨",
+        "Peace is something I protect now. __SUBJECT__ 💫",
+      ],
+      playful: [
+        "Manifesting with my whole chest. __SUBJECT__ 💫✨",
+        "The universe said yes and so did I. __SUBJECT__ 💫",
+        "In my aligned era and it shows. __SUBJECT__ ✨",
+        "Soft life, strong mind, full cup. __SUBJECT__ 💫",
+      ],
+      inspired: [
+        "You are allowed to be both a work in progress and worthy of love right now. __SUBJECT__ 💫",
+        "The version of you that got here deserves recognition. __SUBJECT__ ✨",
+        "You don't have to earn rest, softness, or beauty. __SUBJECT__ 💫",
+        "Everything shifts when you stop apologizing for taking up space. __SUBJECT__ ✨",
+      ],
+    },
+    hashtags: {
+      core: ["#affirmations", "#dailyaffirmation", "#manifestation", "#manifest", "#lawofassumption", "#selfworth", "#alignedlife", "#innerwork"],
+      extended: ["#selflovequotes", "#mindsetshift", "#healingjourney", "#personalgrowth", "#softlife", "#abundance", "#positivevibes", "#highvibration", "#energyalignment", "#affirmationquotes", "#growthmindset", "#selfdevelopment"],
+      niche: ["#loa", "#lawofassumption", "#spiritualjourney", "#manifestingdreams", "#alignedaf"],
+    },
+  },
 };
 
 const vibeNames = Object.keys(vibes);
@@ -500,6 +608,30 @@ export function CaptionGenerator() {
   const [subject, setSubject] = useState("");
   const [seed, setSeed] = useState(0);
   const [copiedTags, setCopiedTags] = useState(false);
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [imageName, setImageName] = useState<string>("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) return;
+    setImageName(file.name);
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const result = ev.target?.result;
+      if (typeof result === "string") {
+        setUploadedImage(result);
+      }
+    };
+    reader.readAsDataURL(file);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const clearImage = () => {
+    setUploadedImage(null);
+    setImageName("");
+  };
 
   const toneGroup = useMemo<ToneGroup>(
     () => toneOptions.find((t) => t.label === selectedTone)?.group ?? "bold",
@@ -548,6 +680,82 @@ export function CaptionGenerator() {
           </div>
         </div>
       </header>
+
+      {/* Image Upload Section */}
+      <div className="border border-border bg-card">
+        <div className="flex items-center justify-between px-4 py-2.5 border-b border-border bg-secondary/30">
+          <div className="flex items-center gap-2">
+            <ImagePlus className="w-3.5 h-3.5 text-primary" />
+            <span className="text-[10px] uppercase tracking-wider text-primary font-bold">
+              Image Reference
+            </span>
+          </div>
+          <span className="text-[9px] text-muted-foreground uppercase tracking-wider">
+            Preview only · no data stored
+          </span>
+        </div>
+        <div className="p-4">
+          {uploadedImage ? (
+            <div className="flex flex-col sm:flex-row gap-4 items-start">
+              <div className="relative shrink-0">
+                <img
+                  src={uploadedImage}
+                  alt="Your uploaded reference"
+                  className="w-40 h-40 object-cover border border-border"
+                />
+                <button
+                  type="button"
+                  onClick={clearImage}
+                  className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full w-5 h-5 flex items-center justify-center hover:bg-destructive/80 transition-colors"
+                >
+                  <Trash2 className="w-2.5 h-2.5" />
+                </button>
+              </div>
+              <div className="space-y-2">
+                <p className="text-xs font-bold text-foreground truncate max-w-xs">{imageName}</p>
+                <p className="text-[10px] text-muted-foreground leading-relaxed">
+                  Your image is displayed here as a visual reference while you build your captions. It stays only in your browser — nothing is uploaded or stored anywhere.
+                </p>
+                <p className="text-[10px] text-primary/80">
+                  Describe what's in the photo in the "Describe Your Content" field below to personalize the captions.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground hover:text-primary border border-border px-3 py-1.5 transition-colors"
+                >
+                  <Upload className="w-3 h-3" />
+                  Replace Image
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full border border-dashed border-primary/40 hover:border-primary/70 bg-primary/5 hover:bg-primary/10 transition-colors p-6 flex flex-col items-center gap-3 group"
+            >
+              <Upload className="w-7 h-7 text-primary/50 group-hover:text-primary transition-colors" />
+              <div className="text-center">
+                <p className="text-xs uppercase tracking-wider text-primary font-bold">Upload Your Image</p>
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  Upload a photo to use as a visual reference while writing captions
+                </p>
+                <p className="text-[9px] text-muted-foreground/60 mt-1 uppercase tracking-wider">
+                  JPG, PNG, WebP · Never stored
+                </p>
+              </div>
+            </button>
+          )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleImageUpload}
+            className="hidden"
+          />
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-[400px_minmax(0,1fr)] gap-6">
         {/* Config sidebar */}
